@@ -192,7 +192,7 @@ h3 {
 @media (min-width: 900px) {
   .app {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 220px minmax(0, 1fr);
   }
   .app > .topbar {
     grid-column: 1 / -1;
@@ -239,7 +239,8 @@ h3 {
     display: none;
   }
   .content {
-    padding: 24px 32px 48px;
+    padding: 24px 24px 48px;
+    min-width: 0;
     max-width: 1280px;
     margin: 0;
     width: 100%;
@@ -725,7 +726,7 @@ table.table {
 .table th,
 .table td {
   text-align: left;
-  padding: 10px 12px;
+  padding: 10px 9px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
 }

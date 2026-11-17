@@ -214,7 +214,9 @@ export async function removeDocument(documentId: string): Promise<void> {
   await data.documents.remove(documentId);
 }
 
-export async function loadDocuments(owners: { ownerType: OwnerType; ownerId: string | null }[]): Promise<DocWithVersions[]> {
+export async function loadDocuments(
+  owners: { ownerType: OwnerType; ownerId: string | null }[],
+): Promise<DocWithVersions[]> {
   const result: DocWithVersions[] = [];
   for (const o of owners) {
     if (!o.ownerId) continue;
@@ -296,7 +298,12 @@ export async function loadTagDetail(tagId: string): Promise<TagDetail | null> {
   if (tag.supportEmail || tag.supportPhone) {
     support = { name: tag.supportName, email: tag.supportEmail, phone: tag.supportPhone, source: 'tag' };
   } else if (product && (product.supportEmail || product.supportPhone)) {
-    support = { name: product.supportName, email: product.supportEmail, phone: product.supportPhone, source: 'product' };
+    support = {
+      name: product.supportName,
+      email: product.supportEmail,
+      phone: product.supportPhone,
+      source: 'product',
+    };
   }
 
   return {

@@ -361,9 +361,7 @@ export function FaqEditor({ ownerType, ownerId, readOnly }: OwnerProps) {
       {!readOnly && (
         <button
           className="btn btn-block"
-          onClick={() =>
-            setEdit({ id: uuid(), ownerType, ownerId, question: '', answer: '', sort: faqs?.length ?? 0 })
-          }
+          onClick={() => setEdit({ id: uuid(), ownerType, ownerId, question: '', answer: '', sort: faqs?.length ?? 0 })}
         >
           <Icon name="plus" /> Frage hinzufügen
         </button>

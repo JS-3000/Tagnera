@@ -29,10 +29,7 @@ export function LabelsPage() {
   const [plantFilter, setPlantFilter] = useState('');
 
   const plants = useMemo(() => [...new Set((tags ?? []).map((t) => t.plant).filter(Boolean))].sort(), [tags]);
-  const chosen = useMemo(
-    () => (tags ?? []).filter((t) => (selected ? selected.has(t.id) : true)),
-    [tags, selected],
-  );
+  const chosen = useMemo(() => (tags ?? []).filter((t) => (selected ? selected.has(t.id) : true)), [tags, selected]);
 
   // the sequence of labels (empty slots for already used labels on the first sheet)
   const slots: (Tag | null)[] = useMemo(() => {
@@ -93,11 +90,19 @@ export function LabelsPage() {
                   min={1}
                   max={perSheet(format)}
                   value={skip + 1}
-                  onChange={(e) => setSkip(Math.max(0, Math.min(perSheet(format) - 1, (Number(e.target.value) || 1) - 1)))}
+                  onChange={(e) =>
+                    setSkip(Math.max(0, Math.min(perSheet(format) - 1, (Number(e.target.value) || 1) - 1)))
+                  }
                 />
               </Field>
               <Field label="Etiketten pro Tag">
-                <input type="number" min={1} max={10} value={copies} onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))} />
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={copies}
+                  onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
+                />
               </Field>
               <Field label="Versatz X (mm)" hint="+ = nach rechts">
                 <input
@@ -167,7 +172,11 @@ export function LabelsPage() {
               {tags?.map((t) => {
                 const on = selected ? selected.has(t.id) : true;
                 return (
-                  <label key={t.id} className={`check${on ? ' checked' : ''}`} style={{ minHeight: 44, marginBottom: 4 }}>
+                  <label
+                    key={t.id}
+                    className={`check${on ? ' checked' : ''}`}
+                    style={{ minHeight: 44, marginBottom: 4 }}
+                  >
                     <input type="checkbox" checked={on} onChange={() => toggle(t.id)} />
                     <b>{t.tagNumber}</b> <span className="muted small">{t.plant}</span>
                   </label>
@@ -236,13 +245,37 @@ function Label({ tag, f }: { tag: Tag; f: LabelFormat }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: `${pad}mm`, padding: `${pad}mm`, height: '100%' }}>
       <QrCode text={tagUrl(tag.id)} style={{ width: `${qr}mm`, height: `${qr}mm`, flex: 'none' }} />
-      <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: `${pad * 0.5}mm` }}>
-        <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Tagnera" style={{ height: `${logoH}mm`, width: 'auto', alignSelf: 'flex-start' }} />
-        <div style={{ fontSize: `${tagFont}mm`, fontWeight: 800, lineHeight: 1.05, whiteSpace: 'nowrap', color: '#000' }}>
+      <div
+        style={{
+          minWidth: 0,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: `${pad * 0.5}mm`,
+        }}
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}logo.svg`}
+          alt="Tagnera"
+          style={{ height: `${logoH}mm`, width: 'auto', alignSelf: 'flex-start' }}
+        />
+        <div
+          style={{ fontSize: `${tagFont}mm`, fontWeight: 800, lineHeight: 1.05, whiteSpace: 'nowrap', color: '#000' }}
+        >
           {tag.tagNumber}
         </div>
         {tag.plant && (
-          <div style={{ fontSize: `${plantFont}mm`, lineHeight: 1.1, color: '#222', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              fontSize: `${plantFont}mm`,
+              lineHeight: 1.1,
+              color: '#222',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {tag.plant}
           </div>
         )}

@@ -24,7 +24,10 @@ export function ScanPage() {
   const tagCount = useData(() => data.tags.list().then((l) => l.length), []);
   const recent = useData(async () => {
     const ids = loadSettings().recentTagIds;
-    const [tags, statuses] = await Promise.all([Promise.all(ids.map((id) => data.tags.get(id))), loadAllTaskStatuses()]);
+    const [tags, statuses] = await Promise.all([
+      Promise.all(ids.map((id) => data.tags.get(id))),
+      loadAllTaskStatuses(),
+    ]);
     return tags
       .filter((t): t is Tag => !!t)
       .map((t) => {
@@ -144,11 +147,7 @@ export function ScanPage() {
 
       <section className="card">
         <h2>Zuletzt gescannt</h2>
-        {recent && recent.length > 0 ? (
-          <RecentList items={recent} />
-        ) : (
-          <Empty>Noch nichts gescannt.</Empty>
-        )}
+        {recent && recent.length > 0 ? <RecentList items={recent} /> : <Empty>Noch nichts gescannt.</Empty>}
       </section>
     </div>
   );

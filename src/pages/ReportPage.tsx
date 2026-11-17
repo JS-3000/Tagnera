@@ -6,7 +6,15 @@ import { Icon } from '../components/Icon';
 import { Empty } from '../components/ui';
 import { fmtDate, fmtDateTime, nowIso } from '../lib/util';
 import { intervalLabel } from '../services/maintenance';
-import { buildReport, collectiveOrderMail, currentPeriod, monthName, type Period, type PeriodKind, type ReportPart } from '../services/report';
+import {
+  buildReport,
+  collectiveOrderMail,
+  currentPeriod,
+  monthName,
+  type Period,
+  type PeriodKind,
+  type ReportPart,
+} from '../services/report';
 
 export function ReportPage() {
   const { user, can } = useSession();
@@ -87,7 +95,12 @@ export function ReportPage() {
       ) : (
         <>
           <div className="report-title">
-            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Tagnera" className="print-only" style={{ height: 28, marginBottom: 8 }} />
+            <img
+              src={`${import.meta.env.BASE_URL}logo.svg`}
+              alt="Tagnera"
+              className="print-only"
+              style={{ height: 28, marginBottom: 8 }}
+            />
             <h2 style={{ fontSize: '1.4rem' }}>
               Wartungsreport {report.label}{' '}
               <span className="muted small" style={{ fontWeight: 400 }}>
@@ -139,9 +152,13 @@ export function ReportPage() {
                         </td>
                         <td>
                           {it.status.task.title}
-                          {it.status.task.description && <div className="small muted">{it.status.task.description}</div>}
+                          {it.status.task.description && (
+                            <div className="small muted">{it.status.task.description}</div>
+                          )}
                         </td>
-                        <td className="small">{intervalLabel(it.status.task.intervalValue, it.status.task.intervalUnit)}</td>
+                        <td className="small">
+                          {intervalLabel(it.status.task.intervalValue, it.status.task.intervalUnit)}
+                        </td>
                         <td style={{ fontSize: '1.4rem' }}>☐</td>
                       </tr>
                     ))}
@@ -188,7 +205,11 @@ export function ReportPage() {
             {can('edit') && bySupplier.size > 0 && (
               <div className="btn-row no-print" style={{ marginTop: 12 }}>
                 {[...bySupplier.values()].map((list) => (
-                  <a key={list[0].supplier!.id} className="btn" href={collectiveOrderMail(list[0].supplier!, list, report.label, user?.name ?? '')}>
+                  <a
+                    key={list[0].supplier!.id}
+                    className="btn"
+                    href={collectiveOrderMail(list[0].supplier!, list, report.label, user?.name ?? '')}
+                  >
                     <Icon name="mail" /> Sammelbestellung {list[0].supplier!.name}
                   </a>
                 ))}

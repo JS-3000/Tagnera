@@ -186,30 +186,98 @@ export async function loadDemoData(): Promise<void> {
     list.map(([question, answer], i) => ({ id: uuid(), ownerType: 'product', ownerId, question, answer, sort: i }));
   await data.faqs.saveMany([
     ...faq(pValve.id, [
-      ['Welches Anzugsdrehmoment gilt für die Gehäuseschrauben?', 'M10: 25 Nm, über Kreuz in zwei Durchgängen anziehen. Werte aus der Betriebsanleitung, Kapitel 6, haben Vorrang.'],
-      ['Der Hebel lässt sich nur schwer bewegen – was tun?', 'Meist sind die Sitzdichtungen gequollen oder verschlissen. Anlage drucklos machen und Dichtungssatz 567-050-DS-EPDM einbauen.'],
-      ['Darf der Kugelhahn zum Regeln (Drosseln) verwendet werden?', 'Nein. Kugelhähne nur voll offen oder voll geschlossen betreiben, sonst werden die Sitzdichtungen beschädigt.'],
-      ['Welche Dichtungswerkstoffe sind verfügbar?', 'Standard ist EPDM. Für Öle/Fette gibt es FKM, für hohe Temperaturen PTFE-Sitze. Bestellnummer beim Lieferanten erfragen.'],
-      ['Wie wird der Hahn vor der Demontage gesichert?', 'Leitungsabschnitt absperren, drucklos machen, entleeren und gegen Wiedereinschalten sichern (LOTO).'],
+      [
+        'Welches Anzugsdrehmoment gilt für die Gehäuseschrauben?',
+        'M10: 25 Nm, über Kreuz in zwei Durchgängen anziehen. Werte aus der Betriebsanleitung, Kapitel 6, haben Vorrang.',
+      ],
+      [
+        'Der Hebel lässt sich nur schwer bewegen – was tun?',
+        'Meist sind die Sitzdichtungen gequollen oder verschlissen. Anlage drucklos machen und Dichtungssatz 567-050-DS-EPDM einbauen.',
+      ],
+      [
+        'Darf der Kugelhahn zum Regeln (Drosseln) verwendet werden?',
+        'Nein. Kugelhähne nur voll offen oder voll geschlossen betreiben, sonst werden die Sitzdichtungen beschädigt.',
+      ],
+      [
+        'Welche Dichtungswerkstoffe sind verfügbar?',
+        'Standard ist EPDM. Für Öle/Fette gibt es FKM, für hohe Temperaturen PTFE-Sitze. Bestellnummer beim Lieferanten erfragen.',
+      ],
+      [
+        'Wie wird der Hahn vor der Demontage gesichert?',
+        'Leitungsabschnitt absperren, drucklos machen, entleeren und gegen Wiedereinschalten sichern (LOTO).',
+      ],
     ]),
     ...faq(pPump.id, [
-      ['Die Pumpe tropft an der Welle – ist das normal?', 'Leichte Feuchtigkeit ist normal. Bei mehr als ca. 10 Tropfen pro Minute die Gleitringdichtung tauschen.'],
-      ['Wie wird die Pumpe richtig entlüftet?', 'Entlüftungsschraube am Pumpenkopf öffnen, bis blasenfreies Wasser austritt. Nie trocken laufen lassen.'],
-      ['Welche Drehrichtung ist richtig?', 'Siehe Pfeil auf dem Motorlüfterdeckel. Bei falscher Drehrichtung zwei Phasen tauschen (Elektrofachkraft).'],
-      ['Die Pumpe ist laut und vibriert. Ursache?', 'Häufig Kavitation (Zulaufdruck zu gering) oder Lagerschaden. Zulaufdruck und Filter prüfen.'],
-      ['Wie lange darf die Pumpe gegen geschlossenen Schieber laufen?', 'Maximal wenige Sekunden. Die Mindestfördermenge laut Datenblatt muss eingehalten werden.'],
+      [
+        'Die Pumpe tropft an der Welle – ist das normal?',
+        'Leichte Feuchtigkeit ist normal. Bei mehr als ca. 10 Tropfen pro Minute die Gleitringdichtung tauschen.',
+      ],
+      [
+        'Wie wird die Pumpe richtig entlüftet?',
+        'Entlüftungsschraube am Pumpenkopf öffnen, bis blasenfreies Wasser austritt. Nie trocken laufen lassen.',
+      ],
+      [
+        'Welche Drehrichtung ist richtig?',
+        'Siehe Pfeil auf dem Motorlüfterdeckel. Bei falscher Drehrichtung zwei Phasen tauschen (Elektrofachkraft).',
+      ],
+      [
+        'Die Pumpe ist laut und vibriert. Ursache?',
+        'Häufig Kavitation (Zulaufdruck zu gering) oder Lagerschaden. Zulaufdruck und Filter prüfen.',
+      ],
+      [
+        'Wie lange darf die Pumpe gegen geschlossenen Schieber laufen?',
+        'Maximal wenige Sekunden. Die Mindestfördermenge laut Datenblatt muss eingehalten werden.',
+      ],
     ]),
   ]);
 
   // a document per product (small generated PDF), with an older version for the valve
-  const vOld = await saveFile(makePdf('Betriebsanleitung Kieselmann 567', 'Revision B (veraltet)'), 'BA_567_RevB.pdf', 'application/pdf');
-  const vNew = await saveFile(makePdf('Betriebsanleitung Kieselmann 567', 'Revision C - neue Drehmomente'), 'BA_567_RevC.pdf', 'application/pdf');
-  const pumpPdf = await saveFile(makePdf('Datenblatt Grundfos CR 10-4', 'Kennlinie und Abmessungen'), 'DB_CR10-4.pdf', 'application/pdf');
-  const docValve: DocumentItem = { id: uuid(), ownerType: 'product', ownerId: pValve.id, title: 'Betriebsanleitung', category: 'Anleitung', createdAt: addMonths(t0, -14) + 'T08:00:00.000Z' };
-  const docPump: DocumentItem = { id: uuid(), ownerType: 'product', ownerId: pPump.id, title: 'Datenblatt', category: 'Datenblatt', createdAt: addMonths(t0, -10) + 'T08:00:00.000Z' };
+  const vOld = await saveFile(
+    makePdf('Betriebsanleitung Kieselmann 567', 'Revision B (veraltet)'),
+    'BA_567_RevB.pdf',
+    'application/pdf',
+  );
+  const vNew = await saveFile(
+    makePdf('Betriebsanleitung Kieselmann 567', 'Revision C - neue Drehmomente'),
+    'BA_567_RevC.pdf',
+    'application/pdf',
+  );
+  const pumpPdf = await saveFile(
+    makePdf('Datenblatt Grundfos CR 10-4', 'Kennlinie und Abmessungen'),
+    'DB_CR10-4.pdf',
+    'application/pdf',
+  );
+  const docValve: DocumentItem = {
+    id: uuid(),
+    ownerType: 'product',
+    ownerId: pValve.id,
+    title: 'Betriebsanleitung',
+    category: 'Anleitung',
+    createdAt: addMonths(t0, -14) + 'T08:00:00.000Z',
+  };
+  const docPump: DocumentItem = {
+    id: uuid(),
+    ownerType: 'product',
+    ownerId: pPump.id,
+    title: 'Datenblatt',
+    category: 'Datenblatt',
+    createdAt: addMonths(t0, -10) + 'T08:00:00.000Z',
+  };
   await data.documents.saveMany([docValve, docPump]);
-  const ver = (documentId: string, f: { id: string; name: string; mimeType: string; size: number }, note: string, addedAt: string): DocumentVersion => ({
-    id: uuid(), documentId, fileId: f.id, fileName: f.name, mimeType: f.mimeType, size: f.size, note, addedAt,
+  const ver = (
+    documentId: string,
+    f: { id: string; name: string; mimeType: string; size: number },
+    note: string,
+    addedAt: string,
+  ): DocumentVersion => ({
+    id: uuid(),
+    documentId,
+    fileId: f.id,
+    fileName: f.name,
+    mimeType: f.mimeType,
+    size: f.size,
+    note,
+    addedAt,
   });
   await data.documentVersions.saveMany([
     ver(docValve.id, vOld, 'Rev. B', addMonths(t0, -14) + 'T08:00:00.000Z'),
@@ -238,7 +306,15 @@ export async function loadDemoData(): Promise<void> {
     ...p,
   });
   const valve = (n: string, location: string, description: string) =>
-    mk({ tagNumber: n, type: 'Handventil', description, location, manufacturer: pValve.manufacturer, articleNumber: pValve.articleNumber, productId: pValve.id });
+    mk({
+      tagNumber: n,
+      type: 'Handventil',
+      description,
+      location,
+      manufacturer: pValve.manufacturer,
+      articleNumber: pValve.articleNumber,
+      productId: pValve.id,
+    });
 
   const hv1001 = valve('HV-1001', 'Halle 1, Rohwasserzulauf', 'Absperrung Rohwasser');
   const hv1002 = valve('HV-1002', 'Halle 1, vor Filter F-301', 'Absperrung Filtereintritt');
@@ -246,21 +322,101 @@ export async function loadDemoData(): Promise<void> {
   const hv1004 = valve('HV-1004', 'Halle 1, Bypass Filter', 'Bypass Filterstrecke');
   const hv1005 = valve('HV-1005', 'Halle 2, Reinwassertank', 'Entleerung Reinwassertank');
   const hv1006 = valve('HV-1006', 'Halle 2, Pumpe P-101 saugseitig', 'Absperrung Saugseite P-101');
-  const p101 = mk({ tagNumber: 'P-101', type: 'Pumpe', description: 'Reinwasser-Förderpumpe', location: 'Halle 2, Pumpensumpf', manufacturer: pPump.manufacturer, articleNumber: pPump.articleNumber, productId: pPump.id, commissionedAt: addMonths(t0, -26) });
-  const p102 = mk({ tagNumber: 'P-102', type: 'Pumpe', description: 'Reserve-Förderpumpe', location: 'Halle 2, Pumpensumpf', manufacturer: pPump.manufacturer, articleNumber: pPump.articleNumber, productId: pPump.id, commissionedAt: addMonths(t0, -8) });
-  const fv201 = mk({ tagNumber: 'FV-201', type: 'Regelventil', description: 'Durchflussregelung Reinwasser', location: 'Halle 2, Druckleitung', manufacturer: 'Samson', articleNumber: '3241', orderNumber: 'AW-3241-DN40', supportName: 'MSR-Service Anlagenbau Muster', supportEmail: 'msr@anlagenbau-muster.example', supportPhone: '+49 711 555 120' });
-  const f301 = mk({ tagNumber: 'F-301', type: 'Filter', description: 'Kerzenfilter Rohwasser', location: 'Halle 1', manufacturer: 'FiltraTech', articleNumber: 'KF-25-10', orderNumber: 'FT-KF2510' });
+  const p101 = mk({
+    tagNumber: 'P-101',
+    type: 'Pumpe',
+    description: 'Reinwasser-Förderpumpe',
+    location: 'Halle 2, Pumpensumpf',
+    manufacturer: pPump.manufacturer,
+    articleNumber: pPump.articleNumber,
+    productId: pPump.id,
+    commissionedAt: addMonths(t0, -26),
+  });
+  const p102 = mk({
+    tagNumber: 'P-102',
+    type: 'Pumpe',
+    description: 'Reserve-Förderpumpe',
+    location: 'Halle 2, Pumpensumpf',
+    manufacturer: pPump.manufacturer,
+    articleNumber: pPump.articleNumber,
+    productId: pPump.id,
+    commissionedAt: addMonths(t0, -8),
+  });
+  const fv201 = mk({
+    tagNumber: 'FV-201',
+    type: 'Regelventil',
+    description: 'Durchflussregelung Reinwasser',
+    location: 'Halle 2, Druckleitung',
+    manufacturer: 'Samson',
+    articleNumber: '3241',
+    orderNumber: 'AW-3241-DN40',
+    supportName: 'MSR-Service Anlagenbau Muster',
+    supportEmail: 'msr@anlagenbau-muster.example',
+    supportPhone: '+49 711 555 120',
+  });
+  const f301 = mk({
+    tagNumber: 'F-301',
+    type: 'Filter',
+    description: 'Kerzenfilter Rohwasser',
+    location: 'Halle 1',
+    manufacturer: 'FiltraTech',
+    articleNumber: 'KF-25-10',
+    orderNumber: 'FT-KF2510',
+  });
   const tags = [hv1001, hv1002, hv1003, hv1004, hv1005, hv1006, p101, p102, fv201, f301];
   await data.tags.saveMany(tags);
 
   // tag-specific items (not from a template)
-  const spFilter: SparePart = { id: uuid(), ownerType: 'tag', ownerId: f301.id, name: 'Filterkerze 25 µm, 10"', manufacturerPartNumber: 'KF-25-10-E', supplierId: supFilter.id, supplierOrderNumber: 'FT-88120', notes: '4 Stück pro Wechsel' };
-  const spPositioner: SparePart = { id: uuid(), ownerType: 'tag', ownerId: fv201.id, name: 'Membran Stellantrieb', manufacturerPartNumber: '3271-MEM-120', supplierId: supArmaturen.id, supplierOrderNumber: 'AW-327112', notes: '' };
+  const spFilter: SparePart = {
+    id: uuid(),
+    ownerType: 'tag',
+    ownerId: f301.id,
+    name: 'Filterkerze 25 µm, 10"',
+    manufacturerPartNumber: 'KF-25-10-E',
+    supplierId: supFilter.id,
+    supplierOrderNumber: 'FT-88120',
+    notes: '4 Stück pro Wechsel',
+  };
+  const spPositioner: SparePart = {
+    id: uuid(),
+    ownerType: 'tag',
+    ownerId: fv201.id,
+    name: 'Membran Stellantrieb',
+    manufacturerPartNumber: '3271-MEM-120',
+    supplierId: supArmaturen.id,
+    supplierOrderNumber: 'AW-327112',
+    notes: '',
+  };
   await data.spareParts.saveMany([spFilter, spPositioner]);
-  const taskFilter: MaintenanceTask = { id: uuid(), ownerType: 'tag', ownerId: f301.id, title: 'Filterkerzen wechseln', description: 'Alle 4 Kerzen tauschen, Differenzdruck notieren.', intervalValue: 3, intervalUnit: 'months', requiredParts: [{ sparePartId: spFilter.id, quantity: 4 }] };
-  const taskFv: MaintenanceTask = { id: uuid(), ownerType: 'tag', ownerId: fv201.id, title: 'Funktionsprüfung Stellungsregler', description: 'Hubtest 0–100 %, Kennlinie prüfen.', intervalValue: 1, intervalUnit: 'years', requiredParts: [] };
+  const taskFilter: MaintenanceTask = {
+    id: uuid(),
+    ownerType: 'tag',
+    ownerId: f301.id,
+    title: 'Filterkerzen wechseln',
+    description: 'Alle 4 Kerzen tauschen, Differenzdruck notieren.',
+    intervalValue: 3,
+    intervalUnit: 'months',
+    requiredParts: [{ sparePartId: spFilter.id, quantity: 4 }],
+  };
+  const taskFv: MaintenanceTask = {
+    id: uuid(),
+    ownerType: 'tag',
+    ownerId: fv201.id,
+    title: 'Funktionsprüfung Stellungsregler',
+    description: 'Hubtest 0–100 %, Kennlinie prüfen.',
+    intervalValue: 1,
+    intervalUnit: 'years',
+    requiredParts: [],
+  };
   await data.tasks.saveMany([taskFilter, taskFv]);
-  await data.faqs.save({ id: uuid(), ownerType: 'tag', ownerId: f301.id, question: 'Ab welchem Differenzdruck müssen die Kerzen gewechselt werden?', answer: 'Ab 1,0 bar Differenzdruck oder spätestens nach 3 Monaten.', sort: 0 });
+  await data.faqs.save({
+    id: uuid(),
+    ownerType: 'tag',
+    ownerId: f301.id,
+    question: 'Ab welchem Differenzdruck müssen die Kerzen gewechselt werden?',
+    answer: 'Ab 1,0 bar Differenzdruck oder spätestens nach 3 Monaten.',
+    sort: 0,
+  });
 
   // ---------------------------------------------------------------- diary entries
   // Dates are chosen so that:
@@ -268,18 +424,50 @@ export async function loadDemoData(): Promise<void> {
   //  - F-301 "Filterkerzen wechseln" is due (last done 85 days ago, interval 3 months)
   //  - most other tasks are ok
   const entries: LogEntry[] = [];
-  const add = (tag: Tag, date: string, kind: LogEntry['kind'], description: string, done: MaintenanceTask[] = [], person = 'Max Becker') =>
-    entries.push({ id: uuid(), tagId: tag.id, date, person, kind, description, photoFileId: null, completedTaskIds: done.map((t) => t.id), createdAt: date + 'T10:00:00.000Z' });
+  const add = (
+    tag: Tag,
+    date: string,
+    kind: LogEntry['kind'],
+    description: string,
+    done: MaintenanceTask[] = [],
+    person = 'Max Becker',
+  ) =>
+    entries.push({
+      id: uuid(),
+      tagId: tag.id,
+      date,
+      person,
+      kind,
+      description,
+      photoFileId: null,
+      completedTaskIds: done.map((t) => t.id),
+      createdAt: date + 'T10:00:00.000Z',
+    });
 
-  add(hv1001, addMonths(t0, -13), 'wartung', 'Dichtungssatz getauscht, Hahn leichtgängig.', [taskValveSeal, taskValveCheck]);
+  add(hv1001, addMonths(t0, -13), 'wartung', 'Dichtungssatz getauscht, Hahn leichtgängig.', [
+    taskValveSeal,
+    taskValveCheck,
+  ]);
   add(hv1001, addMonths(t0, -4), 'pruefung', 'Sichtprüfung ohne Befund.', [taskValveCheck]);
-  add(hv1001, addDays(t0, -20), 'reparatur', 'Hebel gelockert – Mutter nachgezogen. Dichtungswechsel steht noch aus.', [], 'Lea Hoffmann');
+  add(
+    hv1001,
+    addDays(t0, -20),
+    'reparatur',
+    'Hebel gelockert – Mutter nachgezogen. Dichtungswechsel steht noch aus.',
+    [],
+    'Lea Hoffmann',
+  );
   for (const v of [hv1002, hv1003, hv1004, hv1005, hv1006]) {
-    add(v, addMonths(t0, -5), 'wartung', 'Jahreswartung: Dichtungen getauscht, Sichtprüfung i. O.', [taskValveSeal, taskValveCheck]);
+    add(v, addMonths(t0, -5), 'wartung', 'Jahreswartung: Dichtungen getauscht, Sichtprüfung i. O.', [
+      taskValveSeal,
+      taskValveCheck,
+    ]);
   }
   add(hv1004, addMonths(t0, -2), 'umbau', 'Hebel gegen abschließbaren Hebel getauscht (Bypass gesichert).');
   add(p101, addMonths(t0, -7), 'wartung', 'Gleitringdichtung gewechselt, Pumpe entlüftet.', [taskPumpSeal]);
-  add(p101, addMonths(t0, -1), 'pruefung', 'Lager- und Geräuschprüfung i. O., Motortemperatur 48 °C.', [taskPumpBearing]);
+  add(p101, addMonths(t0, -1), 'pruefung', 'Lager- und Geräuschprüfung i. O., Motortemperatur 48 °C.', [
+    taskPumpBearing,
+  ]);
   add(p102, addMonths(t0, -2), 'pruefung', 'Reservepumpe Probelauf 15 min, i. O.', [taskPumpBearing]);
   add(f301, addDays(t0, -85), 'wartung', 'Filterkerzen gewechselt, Δp vorher 1,1 bar, nachher 0,2 bar.', [taskFilter]);
   add(fv201, addMonths(t0, -3), 'pruefung', 'Hubtest durchgeführt, Kennlinie i. O.', [taskFv]);

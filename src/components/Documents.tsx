@@ -67,7 +67,9 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                     <button
                       className="icon-btn"
                       aria-label="Dokument löschen"
-                      onClick={() => confirm(`„${d.doc.title}“ mit allen Versionen löschen?`) && removeDocument(d.doc.id)}
+                      onClick={() =>
+                        confirm(`„${d.doc.title}“ mit allen Versionen löschen?`) && removeDocument(d.doc.id)
+                      }
                     >
                       <Icon name="trash" />
                     </button>
@@ -105,7 +107,9 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
         </button>
       )}
 
-      {view && <FileViewer fileId={view.fileId} mimeType={view.mimeType} name={view.fileName} onClose={() => setView(null)} />}
+      {view && (
+        <FileViewer fileId={view.fileId} mimeType={view.mimeType} name={view.fileName} onClose={() => setView(null)} />
+      )}
       {adding && <UploadModal owner={owner} onClose={() => setAdding(false)} />}
       {versionFor && <VersionModal doc={versionFor} onClose={() => setVersionFor(null)} />}
     </>
@@ -182,7 +186,12 @@ function VersionModal({ doc, onClose }: { doc: DocWithVersions; onClose: () => v
         }}
       >
         <Field label="Datei (PDF oder Bild)">
-          <input type="file" accept="application/pdf,image/*" required onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            type="file"
+            accept="application/pdf,image/*"
+            required
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
         </Field>
         <Field label="Was ist neu?" hint="z. B. „Rev. D – geänderte Drehmomente“">
           <input type="text" value={note} onChange={(e) => setNote(e.target.value)} />

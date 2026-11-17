@@ -7,7 +7,13 @@ import { Empty, StatusBadge } from '../components/ui';
 import { data } from '../data';
 import type { Tag } from '../data/types';
 import { byString, fmtDate } from '../lib/util';
-import { loadAllTaskStatuses, STATUS_RANK, worstStatus, type MaintStatus, type TaskStatus } from '../services/maintenance';
+import {
+  loadAllTaskStatuses,
+  STATUS_RANK,
+  worstStatus,
+  type MaintStatus,
+  type TaskStatus,
+} from '../services/maintenance';
 
 interface Row {
   tag: Tag;
@@ -29,7 +35,11 @@ export function TagsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const rows = useData(async (): Promise<Row[]> => {
-    const [tags, products, statuses] = await Promise.all([data.tags.list(), data.products.list(), loadAllTaskStatuses()]);
+    const [tags, products, statuses] = await Promise.all([
+      data.tags.list(),
+      data.products.list(),
+      loadAllTaskStatuses(),
+    ]);
     const productById = new Map(products.map((p) => [p.id, p]));
     return tags.map((tag) => {
       const own = statuses.filter((s) => s.tag.id === tag.id);
@@ -61,7 +71,9 @@ export function TagsPage() {
       type: byString((r) => r.tag.type + r.tag.tagNumber),
       plant: byString((r) => r.tag.plant + r.tag.tagNumber),
       due: (a, b) => (a.next?.dueDate ?? '9999').localeCompare(b.next?.dueDate ?? '9999'),
-      status: (a, b) => STATUS_RANK[b.status ?? 'ok'] - STATUS_RANK[a.status ?? 'ok'] || (a.next?.dueDate ?? '').localeCompare(b.next?.dueDate ?? ''),
+      status: (a, b) =>
+        STATUS_RANK[b.status ?? 'ok'] - STATUS_RANK[a.status ?? 'ok'] ||
+        (a.next?.dueDate ?? '').localeCompare(b.next?.dueDate ?? ''),
     };
     return list.sort(cmp[sort]);
   }, [rows, q, plant, statusFilter, sort]);
@@ -84,7 +96,14 @@ export function TagsPage() {
   return (
     <div>
       <div className="page-head">
-        <h1>Tags {rows && <span className="muted small">({visible.length} von {rows.length})</span>}</h1>
+        <h1>
+          Tags{' '}
+          {rows && (
+            <span className="muted small">
+              ({visible.length} von {rows.length})
+            </span>
+          )}
+        </h1>
         {can('edit') && (
           <Link className="btn btn-primary" to="/tags/neu">
             <Icon name="plus" /> Neuer Tag
@@ -113,7 +132,12 @@ export function TagsPage() {
           style={{ flex: '3 1 260px' }}
           aria-label="Suche"
         />
-        <select value={plant} onChange={(e) => setPlant(e.target.value)} style={{ flex: '1 1 160px' }} aria-label="Anlage">
+        <select
+          value={plant}
+          onChange={(e) => setPlant(e.target.value)}
+          style={{ flex: '1 1 160px' }}
+          aria-label="Anlage"
+        >
           <option value="">Alle Anlagen</option>
           {plants.map((p) => (
             <option key={p}>{p}</option>
@@ -145,9 +169,7 @@ export function TagsPage() {
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    onChange={() =>
-                      setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.tag.id)))
-                    }
+                    onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.tag.id)))}
                     aria-label="Alle auswählen"
                   />
                 </th>
@@ -180,7 +202,11 @@ export function TagsPage() {
                   <td>
                     {r.tag.manufacturer}
                     {r.tag.articleNumber && <span className="muted"> / {r.tag.articleNumber}</span>}
-                    {r.tag.productId && <span className="pill" style={{ marginLeft: 6 }}>Vorlage</span>}
+                    {r.tag.productId && (
+                      <span className="pill" style={{ marginLeft: 6 }}>
+                        Vorlage
+                      </span>
+                    )}
                   </td>
                   <td className="mono small">{r.orderNumber}</td>
                   <td>

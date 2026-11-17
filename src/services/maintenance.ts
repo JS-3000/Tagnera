@@ -91,7 +91,8 @@ export function worstStatus(list: { status: MaintStatus }[]): MaintStatus {
 /** Tasks that apply to a tag: the ones of its product template + its own. */
 export function tasksForTag(tag: Tag, allTasks: MaintenanceTask[]): MaintenanceTask[] {
   return allTasks.filter(
-    (t) => (t.ownerType === 'tag' && t.ownerId === tag.id) || (t.ownerType === 'product' && t.ownerId === tag.productId),
+    (t) =>
+      (t.ownerType === 'tag' && t.ownerId === tag.id) || (t.ownerType === 'product' && t.ownerId === tag.productId),
   );
 }
 

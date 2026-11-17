@@ -38,7 +38,10 @@ export function CsvImportPage() {
     setResult(null);
   };
 
-  const preview = useMemo(() => (parsed ? parsed.rows.slice(0, 6).map((r) => rowToValues(r, mapping)) : []), [parsed, mapping]);
+  const preview = useMemo(
+    () => (parsed ? parsed.rows.slice(0, 6).map((r) => rowToValues(r, mapping)) : []),
+    [parsed, mapping],
+  );
   const existingKeys = useMemo(() => new Set((existing ?? []).map((t) => normalizeKey(t.tagNumber))), [existing]);
   const productKeys = useMemo(() => new Set((products ?? []).map((p) => normalizeKey(p.articleNumber))), [products]);
 
@@ -55,7 +58,9 @@ export function CsvImportPage() {
           onClick={() =>
             downloadBlob(
               new Blob(
-                ['﻿Tag;Typ;Bezeichnung;Anlage;Standort;Hersteller;Artikelnummer;Bestellnummer;Inbetriebnahme\nHV-2001;Handventil;Absperrung Zulauf;Wasseraufbereitung;Halle 3;Kieselmann;567;;01.03.2025\nP-201;Pumpe;Druckerhöhung;Wasseraufbereitung;Halle 3;Grundfos;CR 10-4;;15.04.2025\n'],
+                [
+                  '﻿Tag;Typ;Bezeichnung;Anlage;Standort;Hersteller;Artikelnummer;Bestellnummer;Inbetriebnahme\nHV-2001;Handventil;Absperrung Zulauf;Wasseraufbereitung;Halle 3;Kieselmann;567;;01.03.2025\nP-201;Pumpe;Druckerhöhung;Wasseraufbereitung;Halle 3;Grundfos;CR 10-4;;15.04.2025\n',
+                ],
                 { type: 'text/csv;charset=utf-8' },
               ),
               'tagnera-vorlage.csv',
@@ -129,7 +134,12 @@ export function CsvImportPage() {
             </div>
             {!mapped('plant') && (
               <Field label="Anlage für alle Zeilen" hint="Wird verwendet, weil keine Spalte „Anlage“ zugeordnet ist.">
-                <input type="text" value={defaultPlant} onChange={(e) => setDefaultPlant(e.target.value)} placeholder="z. B. Wasseraufbereitung" />
+                <input
+                  type="text"
+                  value={defaultPlant}
+                  onChange={(e) => setDefaultPlant(e.target.value)}
+                  placeholder="z. B. Wasseraufbereitung"
+                />
               </Field>
             )}
             <label className={`check${updateExisting ? ' checked' : ''}`}>
@@ -159,7 +169,9 @@ export function CsvImportPage() {
                       <td className="small">
                         {!v.tagNumber && <span style={{ color: 'var(--overdue)' }}>keine Tag-Nummer</span>}
                         {v.tagNumber && existingKeys.has(normalizeKey(v.tagNumber)) && (
-                          <span className="pill">{updateExisting ? 'wird aktualisiert' : 'existiert – übersprungen'}</span>
+                          <span className="pill">
+                            {updateExisting ? 'wird aktualisiert' : 'existiert – übersprungen'}
+                          </span>
                         )}{' '}
                         {v.articleNumber && productKeys.has(normalizeKey(v.articleNumber)) && (
                           <span className="pill new">Produkt erkannt</span>
@@ -188,7 +200,11 @@ export function CsvImportPage() {
             >
               <Icon name="upload" /> {parsed.rows.length} Zeilen importieren
             </button>
-            {!mapped('tagNumber') && <p className="small" style={{ color: 'var(--overdue)' }}>Bitte die Spalte für die Tag-Nummer zuordnen.</p>}
+            {!mapped('tagNumber') && (
+              <p className="small" style={{ color: 'var(--overdue)' }}>
+                Bitte die Spalte für die Tag-Nummer zuordnen.
+              </p>
+            )}
           </section>
         </>
       )}

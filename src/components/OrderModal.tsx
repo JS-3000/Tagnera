@@ -5,7 +5,13 @@ import type { SparePart, Supplier, Tag } from '../data/types';
 import { Icon } from './Icon';
 import { Modal } from './ui';
 
-export function buildOrderMail(tag: Tag, part: SparePart, supplier: Supplier | null, qty: number, sender: string): string {
+export function buildOrderMail(
+  tag: Tag,
+  part: SparePart,
+  supplier: Supplier | null,
+  qty: number,
+  sender: string,
+): string {
   const subject = `Bestellung ${part.supplierOrderNumber || part.manufacturerPartNumber} – ${qty} × ${part.name} (${tag.tagNumber})`;
   const lines = [
     'Guten Tag,',
@@ -20,7 +26,9 @@ export function buildOrderMail(tag: Tag, part: SparePart, supplier: Supplier | n
     '',
     `Für Bauteil (Tag): ${tag.tagNumber}${tag.type ? ` – ${tag.type}` : ''}`,
     ...(tag.plant ? [`Anlage: ${tag.plant}`] : []),
-    ...(tag.manufacturer || tag.articleNumber ? [`Hersteller/Art.-Nr.: ${tag.manufacturer} ${tag.articleNumber}`.trim()] : []),
+    ...(tag.manufacturer || tag.articleNumber
+      ? [`Hersteller/Art.-Nr.: ${tag.manufacturer} ${tag.articleNumber}`.trim()]
+      : []),
     '',
     'Bitte bestätigen Sie Liefertermin und Preis.',
     '',
@@ -64,7 +72,13 @@ export function OrderModal({
           <button className="btn" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="weniger">
             −
           </button>
-          <input type="number" min={1} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} aria-label="Menge" />
+          <input
+            type="number"
+            min={1}
+            value={qty}
+            onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+            aria-label="Menge"
+          />
           <button className="btn" onClick={() => setQty((q) => q + 1)} aria-label="mehr">
             +
           </button>

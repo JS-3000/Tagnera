@@ -127,12 +127,24 @@ function TagView({ d }: { d: TagDetail }) {
       </div>
 
       <nav className="jump no-print" aria-label="Bereiche">
-        <a href="#wartung" onClick={jump}>Wartung</a>
-        <a href="#tagebuch" onClick={jump}>Tagebuch</a>
-        <a href="#dokumente" onClick={jump}>Dokumente</a>
-        <a href="#faq" onClick={jump}>FAQ</a>
-        <a href="#ersatzteile" onClick={jump}>Ersatzteile</a>
-        <a href="#support" onClick={jump}>Support</a>
+        <a href="#wartung" onClick={jump}>
+          Wartung
+        </a>
+        <a href="#tagebuch" onClick={jump}>
+          Tagebuch
+        </a>
+        <a href="#dokumente" onClick={jump}>
+          Dokumente
+        </a>
+        <a href="#faq" onClick={jump}>
+          FAQ
+        </a>
+        <a href="#ersatzteile" onClick={jump}>
+          Ersatzteile
+        </a>
+        <a href="#support" onClick={jump}>
+          Support
+        </a>
       </nav>
 
       <section className="card" id="wartung">
@@ -261,7 +273,11 @@ function TagView({ d }: { d: TagDetail }) {
             {d.support.name && <p style={{ marginTop: 0, fontWeight: 700 }}>{d.support.name}</p>}
             <div className="btn-row">
               {d.support.phone && (
-                <a className="btn btn-dark btn-lg" style={{ flex: 1 }} href={`tel:${d.support.phone.replace(/[^+\d]/g, '')}`}>
+                <a
+                  className="btn btn-dark btn-lg"
+                  style={{ flex: 1 }}
+                  href={`tel:${d.support.phone.replace(/[^+\d]/g, '')}`}
+                >
                   <Icon name="phone" /> {d.support.phone}
                 </a>
               )}
@@ -330,8 +346,12 @@ function NextMaintenance({ tasks, tagId }: { tasks: TaskStatus[]; tagId: string 
       <Icon name="calendar" size={28} />
       <div style={{ flex: 1 }}>
         <div className="title">
-          {next.status === 'overdue' ? 'Wartung überfällig' : next.status === 'due' ? 'Wartung fällig' : 'Nächste Wartung'}:{' '}
-          {next.task.title}
+          {next.status === 'overdue'
+            ? 'Wartung überfällig'
+            : next.status === 'due'
+              ? 'Wartung fällig'
+              : 'Nächste Wartung'}
+          : {next.task.title}
         </div>
         <div>
           {fmtDate(next.dueDate)} – {describeDue(next)}
@@ -376,7 +396,12 @@ function Diary({ entries, tasks, canDelete }: { entries: LogEntry[]; tasks: Task
             <div className="done-tasks">✓ Erledigt: {e.completedTaskIds.map(titleOf).join(', ')}</div>
           )}
           {e.photoFileId && (
-            <StoredImage fileId={e.photoFileId} alt="Foto zum Eintrag" className="thumb" onClick={() => setPhoto(e.photoFileId)} />
+            <StoredImage
+              fileId={e.photoFileId}
+              alt="Foto zum Eintrag"
+              className="thumb"
+              onClick={() => setPhoto(e.photoFileId)}
+            />
           )}
         </article>
       ))}

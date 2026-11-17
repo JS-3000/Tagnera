@@ -12,7 +12,20 @@ export interface Period {
   index: number; // month 1–12 or quarter 1–4
 }
 
-const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+const MONTHS = [
+  'Januar',
+  'Februar',
+  'März',
+  'April',
+  'Mai',
+  'Juni',
+  'Juli',
+  'August',
+  'September',
+  'Oktober',
+  'November',
+  'Dezember',
+];
 export const monthName = (m: number) => MONTHS[m - 1];
 
 export function periodRange(p: Period): { start: string; end: string; label: string } {
@@ -43,9 +56,15 @@ export interface ReportPart {
   tags: Tag[];
 }
 
-export async function buildReport(p: Period): Promise<{ items: ReportItem[]; parts: ReportPart[]; start: string; end: string; label: string }> {
+export async function buildReport(
+  p: Period,
+): Promise<{ items: ReportItem[]; parts: ReportPart[]; start: string; end: string; label: string }> {
   const range = periodRange(p);
-  const [statuses, parts, suppliers] = await Promise.all([loadAllTaskStatuses(), data.spareParts.list(), data.suppliers.list()]);
+  const [statuses, parts, suppliers] = await Promise.all([
+    loadAllTaskStatuses(),
+    data.spareParts.list(),
+    data.suppliers.list(),
+  ]);
   const items: ReportItem[] = [];
 
   for (const s of statuses) {
@@ -59,7 +78,11 @@ export async function buildReport(p: Period): Promise<{ items: ReportItem[]; par
       d = addInterval(s.dueDate, s.task.intervalValue, s.task.intervalUnit, guard + 1);
     }
   }
-  items.sort((a, b) => a.date.localeCompare(b.date) || a.status.tag.tagNumber.localeCompare(b.status.tag.tagNumber, 'de', { numeric: true }));
+  items.sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      a.status.tag.tagNumber.localeCompare(b.status.tag.tagNumber, 'de', { numeric: true }),
+  );
 
   // spare parts needed
   const partById = new Map(parts.map((x) => [x.id, x]));
@@ -80,18 +103,28 @@ export async function buildReport(p: Period): Promise<{ items: ReportItem[]; par
       need.set(part.id, entry);
     }
   }
-  const partList = [...need.values()].sort((a, b) => (a.supplier?.name ?? '').localeCompare(b.supplier?.name ?? '') || a.part.name.localeCompare(b.part.name));
+  const partList = [...need.values()].sort(
+    (a, b) => (a.supplier?.name ?? '').localeCompare(b.supplier?.name ?? '') || a.part.name.localeCompare(b.part.name),
+  );
   return { items, parts: partList, ...range };
 }
 
 /** One e-mail per supplier with all parts needed in the period. */
-export function collectiveOrderMail(supplier: Supplier, parts: ReportPart[], periodLabel: string, sender: string): string {
+export function collectiveOrderMail(
+  supplier: Supplier,
+  parts: ReportPart[],
+  periodLabel: string,
+  sender: string,
+): string {
   const lines = [
     'Guten Tag,',
     '',
     `für die Wartungsarbeiten im Zeitraum ${periodLabel} bestellen wir:`,
     '',
-    ...parts.map((p) => `- ${p.quantity} × ${p.part.name} | Bestell-Nr. ${p.part.supplierOrderNumber || '–'} | Hersteller-Nr. ${p.part.manufacturerPartNumber || '–'} | für ${p.tags.map((t) => t.tagNumber).join(', ')}`),
+    ...parts.map(
+      (p) =>
+        `- ${p.quantity} × ${p.part.name} | Bestell-Nr. ${p.part.supplierOrderNumber || '–'} | Hersteller-Nr. ${p.part.manufacturerPartNumber || '–'} | für ${p.tags.map((t) => t.tagNumber).join(', ')}`,
+    ),
     '',
     ...(supplier.customerNumber ? [`Unsere Kundennummer: ${supplier.customerNumber}`, ''] : []),
     'Bitte bestätigen Sie Liefertermin und Preise.',

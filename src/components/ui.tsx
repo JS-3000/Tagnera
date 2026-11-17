@@ -35,7 +35,17 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
 }
 
 /** Field wrapper: label + input + optional hint */
-export function Field({ label, hint, children, full }: { label: string; hint?: ReactNode; children: ReactNode; full?: boolean }) {
+export function Field({
+  label,
+  hint,
+  children,
+  full,
+}: {
+  label: string;
+  hint?: ReactNode;
+  children: ReactNode;
+  full?: boolean;
+}) {
   return (
     <label className={`field${full ? ' full' : ''}`}>
       <span>{label}</span>
@@ -46,7 +56,17 @@ export function Field({ label, hint, children, full }: { label: string; hint?: R
 }
 
 /** Shows a photo or PDF full-screen inside the app. */
-export function FileViewer({ fileId, mimeType, name, onClose }: { fileId: string; mimeType: string; name: string; onClose: () => void }) {
+export function FileViewer({
+  fileId,
+  mimeType,
+  name,
+  onClose,
+}: {
+  fileId: string;
+  mimeType: string;
+  name: string;
+  onClose: () => void;
+}) {
   const url = useFileUrl(fileId);
   const isImage = mimeType.startsWith('image/');
   return (
@@ -84,7 +104,17 @@ export function FileViewer({ fileId, mimeType, name, onClose }: { fileId: string
 }
 
 /** Thumbnail for an image stored in the database */
-export function StoredImage({ fileId, alt, className, onClick }: { fileId: string; alt: string; className?: string; onClick?: () => void }) {
+export function StoredImage({
+  fileId,
+  alt,
+  className,
+  onClick,
+}: {
+  fileId: string;
+  alt: string;
+  className?: string;
+  onClick?: () => void;
+}) {
   const url = useFileUrl(fileId);
   if (!url) return null;
   return <img src={url} alt={alt} className={className} onClick={onClick} />;

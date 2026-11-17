@@ -134,7 +134,13 @@ export function LogEntryPage() {
           <span>Foto (optional)</span>
           <label className="btn btn-block">
             <Icon name="camera" /> {photo ? 'Anderes Foto wählen' : 'Foto aufnehmen / auswählen'}
-            <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+            />
           </label>
           {preview && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>

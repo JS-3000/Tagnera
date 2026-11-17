@@ -58,10 +58,20 @@ function ProductView({ initial }: { initial: Product }) {
         <fieldset disabled={!admin} style={{ border: 0, padding: 0, margin: 0 }}>
           <div className="form-grid">
             <Field label="Hersteller *">
-              <input type="text" value={p.manufacturer} onChange={(e) => set({ manufacturer: e.target.value })} required />
+              <input
+                type="text"
+                value={p.manufacturer}
+                onChange={(e) => set({ manufacturer: e.target.value })}
+                required
+              />
             </Field>
             <Field label="Artikelnummer *">
-              <input type="text" value={p.articleNumber} onChange={(e) => set({ articleNumber: e.target.value })} required />
+              <input
+                type="text"
+                value={p.articleNumber}
+                onChange={(e) => set({ articleNumber: e.target.value })}
+                required
+              />
             </Field>
             <Field label="Bezeichnung">
               <input type="text" value={p.name} onChange={(e) => set({ name: e.target.value })} />
@@ -148,7 +158,8 @@ function ProductView({ initial }: { initial: Product }) {
         <button
           className="btn btn-danger btn-block"
           onClick={async () => {
-            if (!confirm('Vorlage löschen? Verknüpfte Tags bleiben erhalten, verlieren aber die Vorlagendaten.')) return;
+            if (!confirm('Vorlage löschen? Verknüpfte Tags bleiben erhalten, verlieren aber die Vorlagendaten.'))
+              return;
             await deleteProduct(p.id);
             navigate('/katalog', { replace: true });
           }}

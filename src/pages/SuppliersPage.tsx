@@ -19,7 +19,9 @@ export function SuppliersPage() {
         {can('admin') && (
           <button
             className="btn btn-primary"
-            onClick={() => setEdit({ id: uuid(), name: '', orderEmail: '', phone: '', contactPerson: '', customerNumber: '' })}
+            onClick={() =>
+              setEdit({ id: uuid(), name: '', orderEmail: '', phone: '', contactPerson: '', customerNumber: '' })
+            }
           >
             <Icon name="plus" /> Neuer Lieferant
           </button>

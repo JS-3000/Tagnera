@@ -18,15 +18,36 @@ export type TargetField =
   | 'notes';
 
 export const TARGET_FIELDS: { key: TargetField; label: string; required?: boolean; synonyms: string[] }[] = [
-  { key: 'tagNumber', label: 'Tag-Nummer', required: true, synonyms: ['tag', 'tagnummer', 'tagnr', 'kennzeichen', 'kks', 'aks', 'tagno', 'messstelle', 'bmk'] },
+  {
+    key: 'tagNumber',
+    label: 'Tag-Nummer',
+    required: true,
+    synonyms: ['tag', 'tagnummer', 'tagnr', 'kennzeichen', 'kks', 'aks', 'tagno', 'messstelle', 'bmk'],
+  },
   { key: 'type', label: 'Typ', synonyms: ['typ', 'type', 'art', 'bauteil', 'komponente', 'kategorie'] },
-  { key: 'description', label: 'Bezeichnung / Funktion', synonyms: ['bezeichnung', 'beschreibung', 'funktion', 'description', 'name', 'text'] },
+  {
+    key: 'description',
+    label: 'Bezeichnung / Funktion',
+    synonyms: ['bezeichnung', 'beschreibung', 'funktion', 'description', 'name', 'text'],
+  },
   { key: 'plant', label: 'Anlage', synonyms: ['anlage', 'plant', 'teilanlage', 'bereich', 'system'] },
   { key: 'location', label: 'Standort', synonyms: ['standort', 'ort', 'location', 'raum', 'halle', 'ebene'] },
   { key: 'manufacturer', label: 'Hersteller', synonyms: ['hersteller', 'manufacturer', 'fabrikat', 'lieferant'] },
-  { key: 'articleNumber', label: 'Artikelnummer', synonyms: ['artikelnummer', 'artnr', 'artikel', 'typnummer', 'article', 'articlenumber', 'modell', 'model'] },
-  { key: 'orderNumber', label: 'Bestellnummer', synonyms: ['bestellnummer', 'bestellnr', 'ordernumber', 'materialnummer', 'matnr'] },
-  { key: 'commissionedAt', label: 'Inbetriebnahme', synonyms: ['inbetriebnahme', 'ibn', 'baujahr', 'datum', 'commissioned'] },
+  {
+    key: 'articleNumber',
+    label: 'Artikelnummer',
+    synonyms: ['artikelnummer', 'artnr', 'artikel', 'typnummer', 'article', 'articlenumber', 'modell', 'model'],
+  },
+  {
+    key: 'orderNumber',
+    label: 'Bestellnummer',
+    synonyms: ['bestellnummer', 'bestellnr', 'ordernumber', 'materialnummer', 'matnr'],
+  },
+  {
+    key: 'commissionedAt',
+    label: 'Inbetriebnahme',
+    synonyms: ['inbetriebnahme', 'ibn', 'baujahr', 'datum', 'commissioned'],
+  },
   { key: 'notes', label: 'Notizen', synonyms: ['notiz', 'notizen', 'bemerkung', 'kommentar', 'notes', 'hinweis'] },
 ];
 
@@ -121,7 +142,16 @@ export async function importTags(
     }
     let tag: Tag = old ? { ...old } : emptyTag();
     tag.tagNumber = number;
-    for (const k of ['type', 'description', 'plant', 'location', 'manufacturer', 'articleNumber', 'orderNumber', 'notes'] as const) {
+    for (const k of [
+      'type',
+      'description',
+      'plant',
+      'location',
+      'manufacturer',
+      'articleNumber',
+      'orderNumber',
+      'notes',
+    ] as const) {
       if (v[k] !== undefined && v[k] !== '') tag[k] = v[k]!;
     }
     if (v.commissionedAt) tag.commissionedAt = parseDate(v.commissionedAt) || tag.commissionedAt;

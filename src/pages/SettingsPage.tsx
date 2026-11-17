@@ -128,8 +128,9 @@ export function SettingsPage() {
       <section className="card">
         <h2>QR-Code-Adresse</h2>
         <p className="muted small">
-          Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (<span className="mono">{currentAppUrl()}</span>).
-          Wichtig, wenn du Etiketten lokal druckst, die App aber über GitHub Pages nutzt.
+          Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (
+          <span className="mono">{currentAppUrl()}</span>). Wichtig, wenn du Etiketten lokal druckst, die App aber über
+          GitHub Pages nutzt.
         </p>
         <Field label="Basis-URL für QR-Codes">
           <input
@@ -163,8 +164,19 @@ function UserAdmin({ users }: { users: User[] }) {
       <ul className="list">
         {users.map((u) => (
           <li key={u.id} className="list-item">
-            <input className="grow" type="text" defaultValue={u.name} onBlur={(e) => e.target.value.trim() && update(u, { name: e.target.value.trim() })} aria-label="Name" />
-            <select value={u.role} onChange={(e) => update(u, { role: e.target.value as Role })} style={{ width: 160 }} aria-label="Rolle">
+            <input
+              className="grow"
+              type="text"
+              defaultValue={u.name}
+              onBlur={(e) => e.target.value.trim() && update(u, { name: e.target.value.trim() })}
+              aria-label="Name"
+            />
+            <select
+              value={u.role}
+              onChange={(e) => update(u, { role: e.target.value as Role })}
+              style={{ width: 160 }}
+              aria-label="Rolle"
+            >
               {Object.entries(ROLE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
@@ -192,7 +204,13 @@ function UserAdmin({ users }: { users: User[] }) {
           setName('');
         }}
       >
-        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} style={{ flex: 1, minWidth: 160 }} />
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{ flex: 1, minWidth: 160 }}
+        />
         <select value={role} onChange={(e) => setRole(e.target.value as Role)} style={{ width: 160 }}>
           {Object.entries(ROLE_LABELS).map(([k, v]) => (
             <option key={k} value={k}>

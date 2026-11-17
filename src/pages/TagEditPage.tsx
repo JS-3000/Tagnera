@@ -10,7 +10,17 @@ import type { Product, Tag } from '../data/types';
 import { isUuid, normalizeKey } from '../lib/util';
 import { applyProduct, deleteTag, emptyTag, findProduct, saveTag } from '../services/tags';
 
-const TYPES = ['Handventil', 'Regelventil', 'Pumpe', 'Filter', 'Behälter', 'Wärmetauscher', 'Messgerät', 'Motor', 'Klappe'];
+const TYPES = [
+  'Handventil',
+  'Regelventil',
+  'Pumpe',
+  'Filter',
+  'Behälter',
+  'Wärmetauscher',
+  'Messgerät',
+  'Motor',
+  'Klappe',
+];
 
 export function TagEditPage() {
   const { id } = useParams();
@@ -30,8 +40,14 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
   const [tag, setTag] = useState<Tag>(initial);
   const [detected, setDetected] = useState<Product | null>(null);
   const [error, setError] = useState('');
-  const plants = useData(() => data.tags.list().then((l) => [...new Set(l.map((t) => t.plant).filter(Boolean))].sort()), []);
-  const linked = useData(() => (tag.productId ? data.products.get(tag.productId) : Promise.resolve(undefined)), [tag.productId]);
+  const plants = useData(
+    () => data.tags.list().then((l) => [...new Set(l.map((t) => t.plant).filter(Boolean))].sort()),
+    [],
+  );
+  const linked = useData(
+    () => (tag.productId ? data.products.get(tag.productId) : Promise.resolve(undefined)),
+    [tag.productId],
+  );
 
   const set = (patch: Partial<Tag>) => setTag((t) => ({ ...t, ...patch }));
 
@@ -113,8 +129,9 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
                 <Icon name="check" />
                 <div>
                   <div className="title">
-                    {detected ? 'Produkt erkannt' : 'Verknüpft mit Produktvorlage'}: {(detected ?? linked)!.manufacturer}{' '}
-                    {(detected ?? linked)!.articleNumber} – {(detected ?? linked)!.name}
+                    {detected ? 'Produkt erkannt' : 'Verknüpft mit Produktvorlage'}:{' '}
+                    {(detected ?? linked)!.manufacturer} {(detected ?? linked)!.articleNumber} –{' '}
+                    {(detected ?? linked)!.name}
                   </div>
                   <div className="small">
                     Dokumente, FAQ, Wartungsaufgaben, Ersatzteile und Support-Kontakt werden aus der Vorlage übernommen.
@@ -128,7 +145,13 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
               <input type="text" value={tag.description} onChange={(e) => set({ description: e.target.value })} />
             </Field>
             <Field label="Anlage">
-              <input type="text" list="plants" value={tag.plant} onChange={(e) => set({ plant: e.target.value })} placeholder="z. B. Wasseraufbereitung" />
+              <input
+                type="text"
+                list="plants"
+                value={tag.plant}
+                onChange={(e) => set({ plant: e.target.value })}
+                placeholder="z. B. Wasseraufbereitung"
+              />
               <datalist id="plants">
                 {plants?.map((p) => (
                   <option key={p} value={p} />
@@ -138,7 +161,10 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
             <Field label="Standort">
               <input type="text" value={tag.location} onChange={(e) => set({ location: e.target.value })} />
             </Field>
-            <Field label="Bestellnummer (Bauteil)" hint={linked?.orderNumber ? `leer = aus Vorlage: ${linked.orderNumber}` : undefined}>
+            <Field
+              label="Bestellnummer (Bauteil)"
+              hint={linked?.orderNumber ? `leer = aus Vorlage: ${linked.orderNumber}` : undefined}
+            >
               <input type="text" value={tag.orderNumber} onChange={(e) => set({ orderNumber: e.target.value })} />
             </Field>
             <Field label="Inbetriebnahme" hint="Startdatum für Wartungsintervalle ohne bisherigen Eintrag">
