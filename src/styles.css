@@ -1004,3 +1004,25 @@ table.table {
     position: static;
   }
 }
+.flip {
+  transform: scaleX(-1);
+}
+.qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.list-item.wrap {
+  flex-wrap: wrap;
+}
+@media (max-width: 699px) {
+  .list-item.wrap > .item-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .list-item.wrap > .item-actions > .btn {
+    flex: 1;
+  }
+}
