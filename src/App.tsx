@@ -2,6 +2,7 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { SessionProvider } from './app/session';
 import { Layout } from './components/Layout';
 import { CsvImportPage } from './pages/CsvImportPage';
+import { HomePage } from './pages/DashboardPage';
 import { LabelsPage } from './pages/LabelsPage';
 import { LogEntryPage } from './pages/LogEntryPage';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -22,7 +23,8 @@ export function App() {
       <SessionProvider>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<ScanPage />} />
+            <Route index element={<HomePage />} />
+            <Route path="scan" element={<ScanPage />} />
             <Route path="t/:id" element={<TagPage />} />
             <Route path="t/:id/eintrag" element={<LogEntryPage />} />
             <Route path="hinweise" element={<NotificationsPage />} />

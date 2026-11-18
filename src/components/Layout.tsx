@@ -1,8 +1,10 @@
-import { NavLink, Link, Outlet } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useData } from '../app/hooks';
 import { useSession } from '../app/session';
 import { ROLE_LABELS } from '../data/types';
 import { loadAllTaskStatuses } from '../services/maintenance';
+import { HeaderSearch } from './HeaderSearch';
 import { Icon, type IconName } from './Icon';
 import { ToastHost } from './ui';
 
@@ -10,13 +12,12 @@ interface NavItem {
   to: string;
   label: string;
   icon: IconName;
-  short?: string;
   admin?: boolean;
-  edit?: boolean;
 }
 
 const FIELD: NavItem[] = [
-  { to: '/', label: 'Scannen', icon: 'scan' },
+  { to: '/', label: 'Übersicht', icon: 'report' },
+  { to: '/scan', label: 'Scannen', icon: 'scan' },
   { to: '/hinweise', label: 'Hinweise', icon: 'bell' },
 ];
 const MANAGE: NavItem[] = [
@@ -25,10 +26,10 @@ const MANAGE: NavItem[] = [
   { to: '/lieferanten', label: 'Lieferanten', icon: 'truck' },
   { to: '/etiketten', label: 'QR-Etiketten', icon: 'qr' },
   { to: '/import', label: 'CSV-Import', icon: 'upload', admin: true },
-  { to: '/report', label: 'Wartungsreport', icon: 'report' },
+  { to: '/report', label: 'Wartungsreport', icon: 'calendar' },
 ];
 const MOBILE: NavItem[] = [
-  { to: '/', label: 'Scannen', icon: 'scan' },
+  { to: '/scan', label: 'Scannen', icon: 'scan' },
   { to: '/tags', label: 'Tags', icon: 'list' },
   { to: '/hinweise', label: 'Hinweise', icon: 'bell' },
   { to: '/report', label: 'Report', icon: 'report' },
@@ -39,7 +40,14 @@ export function Layout() {
   const { user, can } = useSession();
   const statuses = useData(() => loadAllTaskStatuses(), []);
   const alertCount = statuses?.filter((s) => s.status !== 'ok').length ?? 0;
-  const visible = (n: NavItem) => (!n.admin || can('admin')) && (!n.edit || can('edit'));
+  const visible = (n: NavItem) => !n.admin || can('admin');
+
+  // Only the content area scrolls – jump back to the top on every page change.
+  const scrollRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0);
+  }, [pathname]);
 
   const link = (n: NavItem) => (
     <NavLink key={n.to} to={n.to} end={n.to === '/'}>
@@ -58,6 +66,7 @@ export function Layout() {
             Tag<span className="accent">nera</span>
           </span>
         </Link>
+        <HeaderSearch />
         <div className="spacer" />
         {user && (
           <Link to="/einstellungen" className="who" style={{ textDecoration: 'none', color: '#fff' }}>
@@ -81,8 +90,10 @@ export function Layout() {
         {link({ to: '/einstellungen', label: 'Einstellungen', icon: 'settings' })}
       </nav>
 
-      <main className="content">
-        <Outlet />
+      <main className="scroll" ref={scrollRef}>
+        <div className="content">
+          <Outlet />
+        </div>
       </main>
 
       <nav className="bottomnav" aria-label="Navigation">

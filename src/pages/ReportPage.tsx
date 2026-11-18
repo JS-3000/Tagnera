@@ -203,7 +203,7 @@ export function ReportPage() {
               </div>
             )}
             {can('edit') && bySupplier.size > 0 && (
-              <div className="btn-row no-print" style={{ marginTop: 12 }}>
+              <div className="actions no-print" style={{ marginTop: 12 }}>
                 {[...bySupplier.values()].map((list) => (
                   <a
                     key={list[0].supplier!.id}

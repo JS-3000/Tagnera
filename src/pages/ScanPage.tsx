@@ -67,7 +67,7 @@ export function ScanPage() {
   };
 
   return (
-    <div>
+    <div className="narrow" style={{ maxWidth: 640 }}>
       {tagCount === 0 && (
         <div className="alert info">
           <div>

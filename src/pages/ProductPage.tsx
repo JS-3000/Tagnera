@@ -36,7 +36,7 @@ function ProductView({ initial }: { initial: Product }) {
   };
 
   return (
-    <div className="narrow">
+    <div>
       <div className="page-head">
         <Link to="/katalog" className="btn btn-sm" aria-label="Zurück">
           <Icon name="back" size={18} />
@@ -47,7 +47,7 @@ function ProductView({ initial }: { initial: Product }) {
       </div>
 
       <form
-        className="card"
+        className="card product-form"
         onSubmit={async (e) => {
           e.preventDefault();
           await data.products.save({ ...p, updatedAt: nowIso() });
@@ -116,44 +116,46 @@ function ProductView({ initial }: { initial: Product }) {
         </fieldset>
       </form>
 
-      <section className="card">
-        <h2>Dokumente</h2>
-        <p className="small muted">
-          Neue Versionen erscheinen bei allen verknüpften Tags als „Neue Version vom …“, die alte bleibt unter „Ältere
-          Versionen“.
-        </p>
-        <DocumentList
-          docs={docs ?? []}
-          owner={{ ownerType: 'product', ownerId: p.id }}
-          canAdd={admin}
-          canManage={() => admin}
-        />
-      </section>
-      <section className="card">
-        <h2>Wartungsaufgaben</h2>
-        <TasksEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
-      </section>
-      <section className="card">
-        <h2>Ersatzteile</h2>
-        <PartsEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
-      </section>
-      <section className="card">
-        <h2>FAQ</h2>
-        <FaqEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
-      </section>
-      <section className="card">
-        <h2>Verknüpfte Tags ({tags?.length ?? 0})</h2>
-        {tags?.length === 0 && <Empty>Kein Tag nutzt diese Vorlage.</Empty>}
-        <ul className="list">
-          {tags?.map((t) => (
-            <li key={t.id}>
-              <Link className="list-item" to={`/t/${t.id}`}>
-                <b>{t.tagNumber}</b> <span className="muted">{t.description}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="card-grid">
+        <section className="card">
+          <h2>Dokumente</h2>
+          <p className="small muted">
+            Neue Versionen erscheinen bei allen verknüpften Tags als „Neue Version vom …“, die alte bleibt unter „Ältere
+            Versionen“.
+          </p>
+          <DocumentList
+            docs={docs ?? []}
+            owner={{ ownerType: 'product', ownerId: p.id }}
+            canAdd={admin}
+            canManage={() => admin}
+          />
+        </section>
+        <section className="card">
+          <h2>Wartungsaufgaben</h2>
+          <TasksEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
+        </section>
+        <section className="card">
+          <h2>Ersatzteile</h2>
+          <PartsEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
+        </section>
+        <section className="card">
+          <h2>FAQ</h2>
+          <FaqEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
+        </section>
+        <section className="card">
+          <h2>Verknüpfte Tags ({tags?.length ?? 0})</h2>
+          {tags?.length === 0 && <Empty>Kein Tag nutzt diese Vorlage.</Empty>}
+          <ul className="list">
+            {tags?.map((t) => (
+              <li key={t.id}>
+                <Link className="list-item" to={`/t/${t.id}`}>
+                  <b>{t.tagNumber}</b> <span className="muted">{t.description}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
       {admin && (
         <button
           className="btn btn-danger btn-block"

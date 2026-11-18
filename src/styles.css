@@ -71,15 +71,34 @@ h3 {
   display: none !important;
 }
 
-/* ------------------------------------------------------------ layout */
+/* ------------------------------------------------------------ layout
+   App shell: header and footer never move. Only the area in between
+   (.scroll) scrolls, so there is no "rubber band" effect on the bars. */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 .app {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  flex: none;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -122,6 +141,7 @@ h3 {
   justify-content: center;
   width: 48px;
   height: 48px;
+  flex: none;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -129,7 +149,7 @@ h3 {
   cursor: pointer;
 }
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(127, 127, 127, 0.12);
 }
 .badge-count {
   position: absolute;
@@ -148,16 +168,13 @@ h3 {
 }
 
 .content {
-  padding: 16px 16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom));
+  padding: 16px 16px 32px;
   max-width: 820px;
   margin: 0 auto;
 }
 
 .bottomnav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex: none;
   z-index: 20;
   display: flex;
   background: var(--primary);
@@ -176,6 +193,7 @@ h3 {
   font-size: 0.75rem;
   font-weight: 600;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 .bottomnav a.active {
   color: var(--accent);
@@ -185,32 +203,35 @@ h3 {
   right: calc(50% - 24px);
 }
 
-.sidebar {
-  display: none;
+.sidebar,
+.desktop-only,
+.header-search {
+  display: none !important;
 }
 
+/* ------------------------------------------------------------ desktop */
 @media (min-width: 900px) {
   .app {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
   .app > .topbar {
     grid-column: 1 / -1;
+    padding: 8px 20px;
+    gap: 20px;
   }
   .sidebar {
-    display: block;
+    display: block !important;
     background: var(--primary-2);
     padding: 16px 10px;
-    position: sticky;
-    top: 60px;
-    height: calc(100vh - 60px);
     overflow-y: auto;
   }
   .sidebar a {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
+    padding: 10px 14px;
     color: #dbe1e7;
     text-decoration: none;
     border-radius: 8px;
@@ -235,18 +256,75 @@ h3 {
     position: static;
     margin-left: auto;
   }
-  .bottomnav {
-    display: none;
+  .bottomnav,
+  .mobile-only {
+    display: none !important;
+  }
+  .desktop-only {
+    display: revert !important;
+  }
+  .header-search {
+    display: block !important;
   }
   .content {
-    padding: 24px 24px 48px;
+    padding: 24px 28px 48px;
     min-width: 0;
-    max-width: 1280px;
+    max-width: 1480px;
     margin: 0;
     width: 100%;
   }
-  .content.narrow {
-    max-width: 860px;
+}
+
+/* Desktop with mouse: compact controls (big glove-friendly sizes stay on touch devices). */
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+  :root {
+    --tap: 42px;
+  }
+  body {
+    font-size: 15px;
+  }
+  .btn {
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    border-width: 1.5px;
+  }
+  .btn-lg {
+    min-height: 50px !important;
+    font-size: 1.05rem !important;
+    padding: 10px 20px !important;
+  }
+  .btn-sm {
+    min-height: 34px !important;
+    font-size: 0.875rem !important;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .card {
+    padding: 18px 20px;
+  }
+  .check {
+    min-height: 40px;
+  }
+  .check input {
+    width: 18px;
+    height: 18px;
+  }
+  .segmented button {
+    min-height: 40px;
+  }
+  .list-item {
+    min-height: 0;
+    padding: 9px 4px;
+  }
+  details.acc > summary {
+    min-height: 0;
+    padding: 11px 44px 11px 14px;
   }
 }
 
@@ -929,7 +1007,7 @@ table.table {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));
+  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   background: var(--primary);
   color: #fff;
@@ -987,10 +1065,15 @@ table.table {
   .print-only {
     display: block;
   }
+  html,
   body,
-  .app {
+  #root,
+  .app,
+  .scroll {
     background: #fff;
-    display: block;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
   }
   .content {
     padding: 0 !important;
@@ -1073,4 +1156,239 @@ table.table {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+}
+
+/* ------------------------------------------------------------ uniform button groups
+   .actions: all buttons of a group have the same width and height.
+   Phone: stacked full width. Larger screens: equal columns side by side. */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.actions > .btn,
+.actions > a.btn,
+.actions > label.btn {
+  width: 100%;
+  margin: 0;
+}
+.actions.two {
+  grid-template-columns: 1fr 1fr;
+}
+@media (min-width: 700px) {
+  .actions {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+  .actions.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.actions + .actions {
+  margin-top: 10px;
+}
+
+/* Page header on phones: action buttons share the row equally */
+@media (max-width: 699px) {
+  .page-head > .btn:not(.btn-sm),
+  .page-head > a.btn:not(.btn-sm) {
+    flex: 1 1 0;
+    min-width: 140px;
+  }
+}
+
+/* ------------------------------------------------------------ desktop layouts */
+.header-search {
+  position: relative;
+  flex: 0 1 460px;
+  margin-left: 24px;
+}
+.header-search input {
+  min-height: 40px;
+  padding: 8px 12px 8px 40px;
+  border: 1px solid #3a4a5c;
+  background: #2c3a4a;
+  color: #fff;
+  border-radius: 8px;
+}
+.header-search input::placeholder {
+  color: #9aa7b4;
+}
+.header-search input:focus {
+  background: #fff;
+  color: var(--text);
+  border-color: var(--accent);
+}
+.header-search > svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa7b4;
+  pointer-events: none;
+}
+.header-search .results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  color: var(--text);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 6px;
+  z-index: 50;
+}
+.header-search .results a {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.header-search .results a:hover,
+.header-search .results a.on {
+  background: var(--bg);
+}
+
+/* dashboard */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (min-width: 900px) {
+  .kpis {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+.kpi {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-decoration: none;
+}
+.kpi .num {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.kpi .lbl {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.kpi.ok {
+  border-left-color: var(--ok);
+}
+.kpi.due {
+  border-left-color: var(--due);
+}
+.kpi.overdue {
+  border-left-color: var(--overdue);
+}
+.kpi:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.dash {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 1100px) {
+  .dash {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* card grid (settings, catalog item) */
+.card-grid {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+.card-grid > .card {
+  margin-bottom: 0;
+}
+@media (min-width: 1100px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .card-grid > .span-2 {
+    grid-column: 1 / -1;
+  }
+}
+.card-grid + .card,
+.card-grid + .card-grid,
+.card-grid + .btn {
+  margin-top: 16px;
+}
+
+/* tag page: two columns on desktop, left column stays in view */
+@media (min-width: 1100px) {
+  .tag-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .tag-main-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  .tag-main-grid > .card {
+    margin-bottom: 0;
+  }
+  .tag-main-grid > .span-2 {
+    grid-column: 1 / -1;
+  }
+  .tag-layout .jump {
+    display: none;
+  }
+}
+.qr-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.qr-card .qr {
+  width: 110px;
+  flex: none;
+}
+.inline-form {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+.inline-form > .btn {
+  width: 100%;
+}
+@media (min-width: 700px) {
+  .inline-form {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+@media (min-width: 1100px) {
+  .alert-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
+}
+.product-form {
+  max-width: 1000px;
+}
+/* buttons in a group never wrap their label, so all have the same height */
+.actions > .btn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

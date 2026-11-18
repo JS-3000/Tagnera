@@ -63,8 +63,8 @@ Siehe Abschnitt 3. Danach die Adresse `https://js-3000.github.io/Tagnera/` auf d
 - **QR-Code mit der normalen Handykamera scannen:** Die Kamera-App öffnet die Bauteilseite im Browser. Die Daten
   stammen aus dem Browser-Speicher dieses Geräts. Auf iPhones haben der Safari-Tab und die installierte App
   **getrennte** Speicher. Zum Vorführen also am besten im Browser arbeiten oder die Daten per JSON in die App importieren.
-- **Daten zwischen Geräten übertragen:** Einstellungen → „Alle Daten exportieren (JSON)“, die Datei aufs andere Gerät
-  bringen, dort „JSON importieren“ (ersetzt alle Daten dort).
+- **Daten zwischen Geräten übertragen:** Einstellungen → „Daten exportieren“, die Datei aufs andere Gerät
+  bringen, dort „Daten importieren“ (ersetzt alle Daten dort).
 
 ## 3. Auf GitHub Pages veröffentlichen
 

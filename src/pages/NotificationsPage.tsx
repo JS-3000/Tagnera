@@ -18,7 +18,7 @@ export function NotificationsPage() {
   );
 
   return (
-    <div className="narrow">
+    <div>
       <div className="page-head">
         <h1>Hinweise</h1>
       </div>
@@ -37,29 +37,31 @@ export function NotificationsPage() {
           </div>
         </div>
       ) : (
-        list.map((s) => (
-          <Link
-            key={s.tag.id + s.task.id}
-            to={`/t/${s.tag.id}`}
-            className={`alert ${s.status}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <Icon name="calendar" size={28} />
-            <div style={{ flex: 1 }}>
-              <div className="title">
-                {s.tag.tagNumber} · {s.task.title}
+        <div className="alert-grid">
+          {list.map((s) => (
+            <Link
+              key={s.tag.id + s.task.id}
+              to={`/t/${s.tag.id}`}
+              className={`alert ${s.status}`}
+              style={{ textDecoration: 'none' }}
+            >
+              <Icon name="calendar" size={28} />
+              <div style={{ flex: 1 }}>
+                <div className="title">
+                  {s.tag.tagNumber} · {s.task.title}
+                </div>
+                <div className="small">
+                  {s.tag.type}
+                  {s.tag.plant && ` · ${s.tag.plant}`}
+                </div>
+                <div className="small">
+                  Fällig am {fmtDate(s.dueDate)} – {describeDue(s)}
+                </div>
               </div>
-              <div className="small">
-                {s.tag.type}
-                {s.tag.plant && ` · ${s.tag.plant}`}
-              </div>
-              <div className="small">
-                Fällig am {fmtDate(s.dueDate)} – {describeDue(s)}
-              </div>
-            </div>
-            <StatusBadge status={s.status} />
-          </Link>
-        ))
+              <StatusBadge status={s.status} />
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );
