@@ -166,12 +166,14 @@ export function TagsPage() {
             <thead>
               <tr>
                 <th>
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.tag.id)))}
-                    aria-label="Alle auswählen"
-                  />
+                  <label className="tap">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.tag.id)))}
+                      aria-label="Alle auswählen"
+                    />
+                  </label>
                 </th>
                 {th('tag', 'Tag')}
                 {th('type', 'Typ')}
@@ -186,12 +188,14 @@ export function TagsPage() {
               {visible.map((r) => (
                 <tr key={r.tag.id} className="clickable" onClick={() => navigate(`/t/${r.tag.id}`)}>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(r.tag.id)}
-                      onChange={() => toggle(r.tag.id)}
-                      aria-label={`${r.tag.tagNumber} auswählen`}
-                    />
+                    <label className="tap">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(r.tag.id)}
+                        onChange={() => toggle(r.tag.id)}
+                        aria-label={`${r.tag.tagNumber} auswählen`}
+                      />
+                    </label>
                   </td>
                   <td>
                     <b>{r.tag.tagNumber}</b>
@@ -232,13 +236,15 @@ export function TagsPage() {
           <ul className="list">
             {visible.map((r) => (
               <li key={r.tag.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={selected.has(r.tag.id)}
-                  onChange={() => toggle(r.tag.id)}
-                  style={{ width: 24, height: 24, accentColor: 'var(--accent)' }}
-                  aria-label={`${r.tag.tagNumber} auswählen`}
-                />
+                <label className="tap">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(r.tag.id)}
+                    onChange={() => toggle(r.tag.id)}
+                    style={{ accentColor: 'var(--accent)' }}
+                    aria-label={`${r.tag.tagNumber} auswählen`}
+                  />
+                </label>
                 <Link className="list-item" to={`/t/${r.tag.id}`} style={{ flex: 1 }}>
                   <div className="grow">
                     <div className="title">{r.tag.tagNumber}</div>

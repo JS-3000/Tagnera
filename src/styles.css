@@ -1536,3 +1536,138 @@ table.table {
   justify-content: center;
   margin: 2px 0 12px;
 }
+
+/* ============================================================ responsive (fluid) */
+:root {
+  --gutter: clamp(12px, 3.2vw, 28px);
+}
+h1 {
+  font-size: clamp(1.3rem, 1.05rem + 1.1vw, 1.75rem);
+}
+h2 {
+  font-size: clamp(1.08rem, 1rem + 0.4vw, 1.25rem);
+}
+.content {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right));
+}
+.topbar {
+  padding-left: calc(clamp(10px, 3vw, 20px) + env(safe-area-inset-left));
+  padding-right: calc(clamp(6px, 2vw, 20px) + env(safe-area-inset-right));
+  gap: clamp(6px, 2vw, 20px);
+}
+.topbar .logo {
+  --logo-h: clamp(22px, 6.5vw, 30px) !important;
+}
+.topbar .who {
+  min-width: 0;
+  max-width: 38vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bottomnav {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.tag-head .tagno {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+.kpi .num {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem);
+}
+.card {
+  padding: clamp(12px, 2.6vw, 20px);
+}
+/* very small phones: role text only, no user name */
+@media (max-width: 380px) {
+  .topbar .who .who-name {
+    display: none;
+  }
+}
+/* phones in landscape: slimmer bars, more room for content */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --nav-h: 54px;
+  }
+  .topbar {
+    min-height: 48px;
+    padding-top: calc(env(safe-area-inset-top) + 4px);
+    padding-bottom: 4px;
+  }
+  .bottomnav a {
+    flex-direction: row;
+    gap: 6px;
+  }
+}
+/* large monitors: keep content centred and readable */
+@media (min-width: 900px) {
+  .content {
+    max-width: 1640px;
+    margin: 0 auto;
+  }
+}
+
+/* Touch devices: every target at least 44 × 44 px */
+@media (pointer: coarse) {
+  .btn,
+  .btn-sm,
+  .icon-btn,
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    min-height: 44px !important;
+  }
+  .btn,
+  .btn-sm,
+  .icon-btn {
+    min-width: 44px;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 26px !important;
+    height: 26px !important;
+    margin: 9px;
+  }
+  .header-search input {
+    min-height: 44px;
+  }
+}
+.user-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+}
+.user-row > input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.user-row > select {
+  flex: 1 1 140px;
+  width: auto !important;
+}
+label.tap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.check {
+  flex-wrap: wrap;
+}
+@media (max-width: 359px) {
+  .pdfv-bar.bottom {
+    flex-wrap: wrap;
+  }
+}
+.actions > .btn {
+  justify-content: safe center;
+}
+.actions > .btn > svg {
+  flex: none;
+}

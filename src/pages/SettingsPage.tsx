@@ -176,9 +176,8 @@ function UserAdmin({ users }: { users: User[] }) {
       <h2>Benutzerverwaltung</h2>
       <ul className="list">
         {users.map((u) => (
-          <li key={u.id} className="list-item">
+          <li key={u.id} className="user-row">
             <input
-              className="grow"
               type="text"
               defaultValue={u.name}
               onBlur={(e) => e.target.value.trim() && update(u, { name: e.target.value.trim() })}
@@ -187,7 +186,6 @@ function UserAdmin({ users }: { users: User[] }) {
             <select
               value={u.role}
               onChange={(e) => update(u, { role: e.target.value as Role })}
-              style={{ width: 160 }}
               aria-label="Rolle"
             >
               {Object.entries(ROLE_LABELS).map(([k, v]) => (

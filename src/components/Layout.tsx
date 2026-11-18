@@ -72,8 +72,10 @@ export function Layout() {
         <div className="spacer" />
         {user && (
           <Link to="/einstellungen" className="who" style={{ textDecoration: 'none', color: '#fff' }}>
-            {user.name}
-            <br />
+            <span className="who-name">
+              {user.name}
+              <br />
+            </span>
             <span style={{ color: 'var(--accent)' }}>{ROLE_LABELS[user.role]}</span>
           </Link>
         )}
