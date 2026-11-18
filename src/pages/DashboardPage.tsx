@@ -97,11 +97,11 @@ export function DashboardPage() {
             <div className="title">Noch keine Daten auf diesem Gerät</div>
             {can('admin') ? (
               <>
-                In den <Link to="/einstellungen">Einstellungen</Link> Demo-Daten laden, einen{' '}
+                In den <Link to="/einstellungen">Einstellungen</Link> „Demo zurücksetzen“ wählen, einen{' '}
                 <Link to="/tags/neu">Tag anlegen</Link> oder Tags per <Link to="/import">CSV importieren</Link>.
               </>
             ) : (
-              'Zum Laden der Demo-Daten in den Einstellungen die Rolle Administrator wählen.'
+              'Die Demo lässt sich in den Einstellungen mit „Demo zurücksetzen“ wiederherstellen.'
             )}
           </div>
         </div>

@@ -36,6 +36,24 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // PDFs are not pre-cached (27 MB) – every document that was opened once is kept
+        // in the cache, so it opens again at the plant with poor or no network.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/docs/') && url.pathname.endsWith('.pdf'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'tagnera-docs',
+              expiration: { maxEntries: 80 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('/docs/manifest.json'),
+            handler: 'NetworkFirst',
+            options: { cacheName: 'tagnera-docs-manifest', networkTimeoutSeconds: 4 },
+          },
+        ],
       },
     }),
   ],

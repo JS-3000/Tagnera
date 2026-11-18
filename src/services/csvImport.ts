@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { data } from '../data';
 import type { Tag } from '../data/types';
 import { normalizeKey, nowIso } from '../lib/util';
-import { applyProduct, emptyTag } from './tags';
+import { applyProduct, emptyTag, productKeys } from './tags';
 
 export type TargetField =
   | 'tagNumber'
@@ -160,7 +160,7 @@ export async function importTags(
     // product recognition by article number (+ manufacturer)
     const ak = normalizeKey(tag.articleNumber);
     if (ak) {
-      const hits = products.filter((p) => normalizeKey(p.articleNumber) === ak);
+      const hits = products.filter((p) => productKeys(p).includes(ak));
       const p = hits.find((h) => normalizeKey(h.manufacturer) === normalizeKey(tag.manufacturer)) ?? hits[0];
       if (p) {
         tag = applyProduct(tag, p);

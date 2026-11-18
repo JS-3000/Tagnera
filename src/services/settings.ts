@@ -55,9 +55,16 @@ export function appBaseUrl(): string {
   return base.endsWith('/') ? base : base + '/';
 }
 
+// Tags whose QR codes are already printed (demo cards) always point to a fixed address.
+const fixedQr = new Map<string, string>();
+export function registerFixedQrTags(ids: Iterable<string>, baseUrl: string): void {
+  for (const id of ids) fixedQr.set(id, baseUrl);
+}
+
 /** Content of the QR code of a tag. A normal phone camera opens exactly this page. */
 export function tagUrl(tagId: string): string {
-  return `${appBaseUrl()}#/t/${tagId}`;
+  const fixed = fixedQr.get(tagId);
+  return `${fixed ?? appBaseUrl()}#/t/${tagId}`;
 }
 
 /** Extract the tag UUID from a scanned text (URL or bare UUID). */

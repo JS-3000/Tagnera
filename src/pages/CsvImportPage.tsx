@@ -17,6 +17,7 @@ import {
   type ParsedCsv,
   type TargetField,
 } from '../services/csvImport';
+import { productKeys } from '../services/tags';
 
 export function CsvImportPage() {
   const { can } = useSession();
@@ -43,7 +44,7 @@ export function CsvImportPage() {
     [parsed, mapping],
   );
   const existingKeys = useMemo(() => new Set((existing ?? []).map((t) => normalizeKey(t.tagNumber))), [existing]);
-  const productKeys = useMemo(() => new Set((products ?? []).map((p) => normalizeKey(p.articleNumber))), [products]);
+  const productKeySet = useMemo(() => new Set((products ?? []).flatMap(productKeys)), [products]);
 
   if (!can('admin')) return <Empty>Der CSV-Import ist Administratoren vorbehalten.</Empty>;
 
@@ -173,7 +174,7 @@ export function CsvImportPage() {
                             {updateExisting ? 'wird aktualisiert' : 'existiert – übersprungen'}
                           </span>
                         )}{' '}
-                        {v.articleNumber && productKeys.has(normalizeKey(v.articleNumber)) && (
+                        {v.articleNumber && productKeySet.has(normalizeKey(v.articleNumber)) && (
                           <span className="pill new">Produkt erkannt</span>
                         )}
                       </td>

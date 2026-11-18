@@ -1,13 +1,18 @@
-// "Demo-Daten laden": one plant (Wasseraufbereitung) with 10 tags, two product templates,
-// suppliers, diary entries, one due and one overdue maintenance.
-// Manufacturer names are real, article numbers / contents are invented for demonstration.
+// Fixed demo dataset "Demoanlage Tagnera".
+//
+// - The 10 tags have FIXED UUIDs (the QR codes are printed – never change them).
+// - All other demo records get stable IDs derived from a name (demoId), so a newer
+//   DEMO_VERSION can replace exactly the demo records and nothing else.
+// - Dates are relative to "today". Every day the demo diary entries are shifted again,
+//   so the status mix (6 ok, 2 due, 2 overdue) looks the same on every presentation day.
+// - Maintenance intervals, FAQ and spare parts are example values ("Demo-Daten").
 
 import { data } from '../data';
 import type {
-  DocumentItem,
-  DocumentVersion,
   Faq,
+  IntervalUnit,
   LogEntry,
+  LogKind,
   MaintenanceTask,
   Product,
   SparePart,
@@ -15,488 +20,959 @@ import type {
   Tag,
   User,
 } from '../data/types';
-import { addDays, addMonths, nowIso, today, uuid } from '../lib/util';
-import { saveFile } from './tags';
+import { addDays, addMonths, today } from '../lib/util';
+import { registerFixedQrTags, saveSettings } from './settings';
 
-const PLANT = 'Wasseraufbereitung';
+/** Increase when the demo content changes – devices then replace their demo data. */
+export const DEMO_VERSION = 1;
+export const DEMO_PLANT = 'Demoanlage Tagnera';
+const STATE_KEY = 'tagnera.demo.v1';
 
-export async function loadDemoData(): Promise<void> {
-  await data.clearAll();
-  const now = nowIso();
-  const t0 = today();
+// ---------------------------------------------------------------- stable ids
 
-  // ---------------------------------------------------------------- users
-  const users: User[] = [
-    { id: uuid(), name: 'Administrator', role: 'admin' },
-    { id: uuid(), name: 'Max Becker', role: 'editor' },
-    { id: uuid(), name: 'Lea Hoffmann', role: 'reader' },
-  ];
-  await data.users.saveMany(users);
-
-  // ---------------------------------------------------------------- suppliers
-  const supArmaturen: Supplier = {
-    id: uuid(),
-    name: 'Armaturen Weber GmbH',
-    orderEmail: 'bestellung@armaturen-weber.example',
-    phone: '+49 711 123456-0',
-    contactPerson: 'Frau Kraus',
-    customerNumber: 'K-48213',
-  };
-  const supPumpen: Supplier = {
-    id: uuid(),
-    name: 'Pumpen & Service Nord',
-    orderEmail: 'ersatzteile@pumpen-nord.example',
-    phone: '+49 40 987654-0',
-    contactPerson: 'Herr Jansen',
-    customerNumber: '100772',
-  };
-  const supFilter: Supplier = {
-    id: uuid(),
-    name: 'FiltraTech Handel',
-    orderEmail: 'order@filtratech.example',
-    phone: '+49 89 445566',
-    contactPerson: 'Vertrieb Süd',
-    customerNumber: 'FT-2201',
-  };
-  await data.suppliers.saveMany([supArmaturen, supPumpen, supFilter]);
-
-  // ---------------------------------------------------------------- products
-  const base = { createdAt: now, updatedAt: now };
-  const pValve: Product = {
-    ...base,
-    id: uuid(),
-    manufacturer: 'Kieselmann',
-    articleNumber: '567',
-    name: 'Kugelhahn DN50 Edelstahl',
-    type: 'Handventil',
-    description: 'Hygienischer Kugelhahn, Edelstahl 1.4404, Handhebel, Dichtungen EPDM.',
-    supplierId: supArmaturen.id,
-    orderNumber: 'AW-567-050',
-    supportName: 'Anlagenbau Muster GmbH – Service',
-    supportEmail: 'service@anlagenbau-muster.example',
-    supportPhone: '+49 711 555 100',
-  };
-  const pPump: Product = {
-    ...base,
-    id: uuid(),
-    manufacturer: 'Grundfos',
-    articleNumber: 'CR 10-4',
-    name: 'Kreiselpumpe CR 10-4',
-    type: 'Pumpe',
-    description: 'Vertikale mehrstufige Kreiselpumpe, 2,2 kW, Gleitringdichtung HQQE.',
-    supplierId: supPumpen.id,
-    orderNumber: 'PSN-CR10-4',
-    supportName: 'Pumpen & Service Nord – Hotline',
-    supportEmail: 'service@pumpen-nord.example',
-    supportPhone: '+49 40 987654-77',
-  };
-  await data.products.saveMany([pValve, pPump]);
-
-  // spare parts
-  const spValveSeal: SparePart = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pValve.id,
-    name: 'Dichtungssatz EPDM DN50',
-    manufacturerPartNumber: '567-050-DS-EPDM',
-    supplierId: supArmaturen.id,
-    supplierOrderNumber: 'AW-100234',
-    notes: '2 Sitzdichtungen, 2 O-Ringe',
-  };
-  const spValveLever: SparePart = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pValve.id,
-    name: 'Handhebel komplett',
-    manufacturerPartNumber: '567-050-HH',
-    supplierId: supArmaturen.id,
-    supplierOrderNumber: 'AW-100240',
-    notes: '',
-  };
-  const spPumpSeal: SparePart = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pPump.id,
-    name: 'Gleitringdichtung HQQE',
-    manufacturerPartNumber: '96455086',
-    supplierId: supPumpen.id,
-    supplierOrderNumber: 'PSN-96455086',
-    notes: 'Wellendurchmesser 22 mm',
-  };
-  const spPumpOring: SparePart = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pPump.id,
-    name: 'O-Ring-Satz Pumpenkopf',
-    manufacturerPartNumber: '96455095',
-    supplierId: supPumpen.id,
-    supplierOrderNumber: 'PSN-96455095',
-    notes: '',
-  };
-  await data.spareParts.saveMany([spValveSeal, spValveLever, spPumpSeal, spPumpOring]);
-
-  // maintenance tasks of the templates
-  const taskValveSeal: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pValve.id,
-    title: 'Dichtung wechseln',
-    description: 'Sitzdichtungen und O-Ringe tauschen, Gängigkeit prüfen.',
-    intervalValue: 1,
-    intervalUnit: 'years',
-    requiredParts: [{ sparePartId: spValveSeal.id, quantity: 1 }],
-  };
-  const taskValveCheck: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pValve.id,
-    title: 'Sichtprüfung auf Leckage',
-    description: 'Gehäuse und Anschlüsse auf Undichtigkeit prüfen, Hebel betätigen.',
-    intervalValue: 6,
-    intervalUnit: 'months',
-    requiredParts: [],
-  };
-  const taskPumpSeal: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pPump.id,
-    title: 'Gleitringdichtung prüfen/tauschen',
-    description: 'Leckage an der Welle prüfen. Bei Tropfleckage Dichtung tauschen.',
-    intervalValue: 2,
-    intervalUnit: 'years',
-    requiredParts: [
-      { sparePartId: spPumpSeal.id, quantity: 1 },
-      { sparePartId: spPumpOring.id, quantity: 1 },
-    ],
-  };
-  const taskPumpBearing: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pPump.id,
-    title: 'Motorlager und Laufgeräusch prüfen',
-    description: 'Geräusch, Vibration und Temperatur am Motor prüfen und dokumentieren.',
-    intervalValue: 3,
-    intervalUnit: 'months',
-    requiredParts: [],
-  };
-  await data.tasks.saveMany([taskValveSeal, taskValveCheck, taskPumpSeal, taskPumpBearing]);
-
-  // FAQ (5 per template)
-  const faq = (ownerId: string, list: [string, string][]): Faq[] =>
-    list.map(([question, answer], i) => ({ id: uuid(), ownerType: 'product', ownerId, question, answer, sort: i }));
-  await data.faqs.saveMany([
-    ...faq(pValve.id, [
-      [
-        'Welches Anzugsdrehmoment gilt für die Gehäuseschrauben?',
-        'M10: 25 Nm, über Kreuz in zwei Durchgängen anziehen. Werte aus der Betriebsanleitung, Kapitel 6, haben Vorrang.',
-      ],
-      [
-        'Der Hebel lässt sich nur schwer bewegen – was tun?',
-        'Meist sind die Sitzdichtungen gequollen oder verschlissen. Anlage drucklos machen und Dichtungssatz 567-050-DS-EPDM einbauen.',
-      ],
-      [
-        'Darf der Kugelhahn zum Regeln (Drosseln) verwendet werden?',
-        'Nein. Kugelhähne nur voll offen oder voll geschlossen betreiben, sonst werden die Sitzdichtungen beschädigt.',
-      ],
-      [
-        'Welche Dichtungswerkstoffe sind verfügbar?',
-        'Standard ist EPDM. Für Öle/Fette gibt es FKM, für hohe Temperaturen PTFE-Sitze. Bestellnummer beim Lieferanten erfragen.',
-      ],
-      [
-        'Wie wird der Hahn vor der Demontage gesichert?',
-        'Leitungsabschnitt absperren, drucklos machen, entleeren und gegen Wiedereinschalten sichern (LOTO).',
-      ],
-    ]),
-    ...faq(pPump.id, [
-      [
-        'Die Pumpe tropft an der Welle – ist das normal?',
-        'Leichte Feuchtigkeit ist normal. Bei mehr als ca. 10 Tropfen pro Minute die Gleitringdichtung tauschen.',
-      ],
-      [
-        'Wie wird die Pumpe richtig entlüftet?',
-        'Entlüftungsschraube am Pumpenkopf öffnen, bis blasenfreies Wasser austritt. Nie trocken laufen lassen.',
-      ],
-      [
-        'Welche Drehrichtung ist richtig?',
-        'Siehe Pfeil auf dem Motorlüfterdeckel. Bei falscher Drehrichtung zwei Phasen tauschen (Elektrofachkraft).',
-      ],
-      [
-        'Die Pumpe ist laut und vibriert. Ursache?',
-        'Häufig Kavitation (Zulaufdruck zu gering) oder Lagerschaden. Zulaufdruck und Filter prüfen.',
-      ],
-      [
-        'Wie lange darf die Pumpe gegen geschlossenen Schieber laufen?',
-        'Maximal wenige Sekunden. Die Mindestfördermenge laut Datenblatt muss eingehalten werden.',
-      ],
-    ]),
-  ]);
-
-  // a document per product (small generated PDF), with an older version for the valve
-  const vOld = await saveFile(
-    makePdf('Betriebsanleitung Kieselmann 567', 'Revision B (veraltet)'),
-    'BA_567_RevB.pdf',
-    'application/pdf',
-  );
-  const vNew = await saveFile(
-    makePdf('Betriebsanleitung Kieselmann 567', 'Revision C - neue Drehmomente'),
-    'BA_567_RevC.pdf',
-    'application/pdf',
-  );
-  const pumpPdf = await saveFile(
-    makePdf('Datenblatt Grundfos CR 10-4', 'Kennlinie und Abmessungen'),
-    'DB_CR10-4.pdf',
-    'application/pdf',
-  );
-  const docValve: DocumentItem = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pValve.id,
-    title: 'Betriebsanleitung',
-    category: 'Anleitung',
-    createdAt: addMonths(t0, -14) + 'T08:00:00.000Z',
-  };
-  const docPump: DocumentItem = {
-    id: uuid(),
-    ownerType: 'product',
-    ownerId: pPump.id,
-    title: 'Datenblatt',
-    category: 'Datenblatt',
-    createdAt: addMonths(t0, -10) + 'T08:00:00.000Z',
-  };
-  await data.documents.saveMany([docValve, docPump]);
-  const ver = (
-    documentId: string,
-    f: { id: string; name: string; mimeType: string; size: number },
-    note: string,
-    addedAt: string,
-  ): DocumentVersion => ({
-    id: uuid(),
-    documentId,
-    fileId: f.id,
-    fileName: f.name,
-    mimeType: f.mimeType,
-    size: f.size,
-    note,
-    addedAt,
-  });
-  await data.documentVersions.saveMany([
-    ver(docValve.id, vOld, 'Rev. B', addMonths(t0, -14) + 'T08:00:00.000Z'),
-    ver(docValve.id, vNew, 'Rev. C – neue Anzugsdrehmomente', addDays(t0, -12) + 'T08:00:00.000Z'),
-    ver(docPump.id, pumpPdf, '', addMonths(t0, -10) + 'T08:00:00.000Z'),
-  ]);
-
-  // ---------------------------------------------------------------- tags
-  const commissioned = addMonths(t0, -20);
-  const mk = (p: Partial<Tag> & Pick<Tag, 'tagNumber' | 'type'>): Tag => ({
-    id: uuid(),
-    description: '',
-    plant: PLANT,
-    location: '',
-    manufacturer: '',
-    articleNumber: '',
-    orderNumber: '',
-    productId: null,
-    commissionedAt: commissioned,
-    supportName: '',
-    supportEmail: '',
-    supportPhone: '',
-    notes: '',
-    createdAt: now,
-    updatedAt: now,
-    ...p,
-  });
-  const valve = (n: string, location: string, description: string) =>
-    mk({
-      tagNumber: n,
-      type: 'Handventil',
-      description,
-      location,
-      manufacturer: pValve.manufacturer,
-      articleNumber: pValve.articleNumber,
-      productId: pValve.id,
-    });
-
-  const hv1001 = valve('HV-1001', 'Halle 1, Rohwasserzulauf', 'Absperrung Rohwasser');
-  const hv1002 = valve('HV-1002', 'Halle 1, vor Filter F-301', 'Absperrung Filtereintritt');
-  const hv1003 = valve('HV-1003', 'Halle 1, nach Filter F-301', 'Absperrung Filteraustritt');
-  const hv1004 = valve('HV-1004', 'Halle 1, Bypass Filter', 'Bypass Filterstrecke');
-  const hv1005 = valve('HV-1005', 'Halle 2, Reinwassertank', 'Entleerung Reinwassertank');
-  const hv1006 = valve('HV-1006', 'Halle 2, Pumpe P-101 saugseitig', 'Absperrung Saugseite P-101');
-  const p101 = mk({
-    tagNumber: 'P-101',
-    type: 'Pumpe',
-    description: 'Reinwasser-Förderpumpe',
-    location: 'Halle 2, Pumpensumpf',
-    manufacturer: pPump.manufacturer,
-    articleNumber: pPump.articleNumber,
-    productId: pPump.id,
-    commissionedAt: addMonths(t0, -26),
-  });
-  const p102 = mk({
-    tagNumber: 'P-102',
-    type: 'Pumpe',
-    description: 'Reserve-Förderpumpe',
-    location: 'Halle 2, Pumpensumpf',
-    manufacturer: pPump.manufacturer,
-    articleNumber: pPump.articleNumber,
-    productId: pPump.id,
-    commissionedAt: addMonths(t0, -8),
-  });
-  const fv201 = mk({
-    tagNumber: 'FV-201',
-    type: 'Regelventil',
-    description: 'Durchflussregelung Reinwasser',
-    location: 'Halle 2, Druckleitung',
-    manufacturer: 'Samson',
-    articleNumber: '3241',
-    orderNumber: 'AW-3241-DN40',
-    supportName: 'MSR-Service Anlagenbau Muster',
-    supportEmail: 'msr@anlagenbau-muster.example',
-    supportPhone: '+49 711 555 120',
-  });
-  const f301 = mk({
-    tagNumber: 'F-301',
-    type: 'Filter',
-    description: 'Kerzenfilter Rohwasser',
-    location: 'Halle 1',
-    manufacturer: 'FiltraTech',
-    articleNumber: 'KF-25-10',
-    orderNumber: 'FT-KF2510',
-  });
-  const tags = [hv1001, hv1002, hv1003, hv1004, hv1005, hv1006, p101, p102, fv201, f301];
-  await data.tags.saveMany(tags);
-
-  // tag-specific items (not from a template)
-  const spFilter: SparePart = {
-    id: uuid(),
-    ownerType: 'tag',
-    ownerId: f301.id,
-    name: 'Filterkerze 25 µm, 10"',
-    manufacturerPartNumber: 'KF-25-10-E',
-    supplierId: supFilter.id,
-    supplierOrderNumber: 'FT-88120',
-    notes: '4 Stück pro Wechsel',
-  };
-  const spPositioner: SparePart = {
-    id: uuid(),
-    ownerType: 'tag',
-    ownerId: fv201.id,
-    name: 'Membran Stellantrieb',
-    manufacturerPartNumber: '3271-MEM-120',
-    supplierId: supArmaturen.id,
-    supplierOrderNumber: 'AW-327112',
-    notes: '',
-  };
-  await data.spareParts.saveMany([spFilter, spPositioner]);
-  const taskFilter: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'tag',
-    ownerId: f301.id,
-    title: 'Filterkerzen wechseln',
-    description: 'Alle 4 Kerzen tauschen, Differenzdruck notieren.',
-    intervalValue: 3,
-    intervalUnit: 'months',
-    requiredParts: [{ sparePartId: spFilter.id, quantity: 4 }],
-  };
-  const taskFv: MaintenanceTask = {
-    id: uuid(),
-    ownerType: 'tag',
-    ownerId: fv201.id,
-    title: 'Funktionsprüfung Stellungsregler',
-    description: 'Hubtest 0–100 %, Kennlinie prüfen.',
-    intervalValue: 1,
-    intervalUnit: 'years',
-    requiredParts: [],
-  };
-  await data.tasks.saveMany([taskFilter, taskFv]);
-  await data.faqs.save({
-    id: uuid(),
-    ownerType: 'tag',
-    ownerId: f301.id,
-    question: 'Ab welchem Differenzdruck müssen die Kerzen gewechselt werden?',
-    answer: 'Ab 1,0 bar Differenzdruck oder spätestens nach 3 Monaten.',
-    sort: 0,
-  });
-
-  // ---------------------------------------------------------------- diary entries
-  // Dates are chosen so that:
-  //  - HV-1001 "Dichtung wechseln" is overdue (last done 13 months ago)
-  //  - F-301 "Filterkerzen wechseln" is due (last done 85 days ago, interval 3 months)
-  //  - most other tasks are ok
-  const entries: LogEntry[] = [];
-  const add = (
-    tag: Tag,
-    date: string,
-    kind: LogEntry['kind'],
-    description: string,
-    done: MaintenanceTask[] = [],
-    person = 'Max Becker',
-  ) =>
-    entries.push({
-      id: uuid(),
-      tagId: tag.id,
-      date,
-      person,
-      kind,
-      description,
-      photoFileId: null,
-      completedTaskIds: done.map((t) => t.id),
-      createdAt: date + 'T10:00:00.000Z',
-    });
-
-  add(hv1001, addMonths(t0, -13), 'wartung', 'Dichtungssatz getauscht, Hahn leichtgängig.', [
-    taskValveSeal,
-    taskValveCheck,
-  ]);
-  add(hv1001, addMonths(t0, -4), 'pruefung', 'Sichtprüfung ohne Befund.', [taskValveCheck]);
-  add(
-    hv1001,
-    addDays(t0, -20),
-    'reparatur',
-    'Hebel gelockert – Mutter nachgezogen. Dichtungswechsel steht noch aus.',
-    [],
-    'Lea Hoffmann',
-  );
-  for (const v of [hv1002, hv1003, hv1004, hv1005, hv1006]) {
-    add(v, addMonths(t0, -5), 'wartung', 'Jahreswartung: Dichtungen getauscht, Sichtprüfung i. O.', [
-      taskValveSeal,
-      taskValveCheck,
-    ]);
+/** Deterministic UUID-formatted id from a text key (same key -> same id on every device). */
+export function demoId(key: string): string {
+  // cyrb128 hash -> 128 bit
+  let h1 = 1779033703,
+    h2 = 3144134277,
+    h3 = 1013904242,
+    h4 = 2773480762;
+  const s = 'tagnera-demo:' + key;
+  for (let i = 0; i < s.length; i++) {
+    const k = s.charCodeAt(i);
+    h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
   }
-  add(hv1004, addMonths(t0, -2), 'umbau', 'Hebel gegen abschließbaren Hebel getauscht (Bypass gesichert).');
-  add(p101, addMonths(t0, -7), 'wartung', 'Gleitringdichtung gewechselt, Pumpe entlüftet.', [taskPumpSeal]);
-  add(p101, addMonths(t0, -1), 'pruefung', 'Lager- und Geräuschprüfung i. O., Motortemperatur 48 °C.', [
-    taskPumpBearing,
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  const hex = [h1 ^ h2 ^ h3 ^ h4, h2 ^ h1, h3 ^ h1, h4 ^ h1]
+    .map((n) => (n >>> 0).toString(16).padStart(8, '0'))
+    .join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+// ---------------------------------------------------------------- definition
+
+type DateFn = (t: string) => string;
+const monthsAgo =
+  (m: number, plusDays = 0): DateFn =>
+  (t) =>
+    addDays(addMonths(t, -m), plusDays);
+
+interface TaskDef {
+  key: string;
+  title: string;
+  description: string;
+  value: number;
+  unit: IntervalUnit;
+  parts?: [string, number][]; // [part key, quantity]
+}
+interface PartDef {
+  key: string;
+  name: string;
+  notes?: string;
+}
+interface LogDef {
+  date: DateFn;
+  person: string;
+  kind: LogKind;
+  text: string;
+  done?: string[]; // task keys
+}
+interface DemoDef {
+  uuid: string;
+  tagNumber: string;
+  type: string;
+  description: string;
+  location: string;
+  manufacturer: string;
+  articleNumber: string;
+  aliases?: string[];
+  productName: string;
+  tasks: TaskDef[];
+  parts: PartDef[];
+  faq: [string, string][];
+  log: LogDef[];
+}
+
+const W = 'M. Weber';
+const S = 'J. Simon';
+const COMMISSIONING = monthsAgo(17);
+const ibn = (text: string): LogDef => ({ date: COMMISSIONING, person: S, kind: 'inbetriebnahme', text });
+
+/** In the order of the printed list. */
+export const DEMO_DEFS: DemoDef[] = [
+  {
+    uuid: '7a41d91b-5a92-4d1d-be5f-ab29f05d5163',
+    tagNumber: '1BV101',
+    type: 'Automatischer Schwimmer-Entlüfter',
+    description: 'Entlüftung Vorlagebehälter',
+    location: 'Ebene 1, Vorlagebehälter',
+    manufacturer: 'VOSS',
+    articleNumber: 'PURG-INOX 2000',
+    productName: 'Schwimmer-Schnellentlüfter PURG-INOX 2000',
+    tasks: [
+      {
+        key: 'check',
+        title: 'Funktion und Dichtheit prüfen',
+        description: 'Entlüftungsfunktion beobachten, Gehäuse und Anschluss auf Undichtigkeit prüfen.',
+        value: 6,
+        unit: 'months',
+      },
+      {
+        key: 'clean',
+        title: 'Schwimmer und Ventilsitz reinigen',
+        description: 'Absperren, drucklos machen, Haube öffnen, Schwimmer und Sitz reinigen, Dichtung prüfen.',
+        value: 1,
+        unit: 'years',
+        parts: [['seal', 1]],
+      },
+    ],
+    parts: [
+      { key: 'seal', name: 'Gehäusedichtung', notes: 'Beim Öffnen der Haube immer erneuern' },
+      { key: 'valve', name: 'Ventileinsatz komplett' },
+    ],
+    faq: [
+      [
+        'Der Entlüfter tropft dauerhaft – was tun?',
+        'Meist sitzt Schmutz auf dem Ventilsitz. Anlagenteil absperren, drucklos machen und Schwimmer sowie Sitz reinigen. Hilft das nicht, Ventileinsatz bzw. Dichtung tauschen.',
+      ],
+      [
+        'Es kommt keine Luft heraus, obwohl die Leitung Luft enthält.',
+        'Prüfen, ob die Absperrung vor dem Entlüfter offen ist und die Entlüftungsöffnung frei ist. Ein festsitzender Schwimmer deutet auf Ablagerungen hin.',
+      ],
+      [
+        'Darf der Entlüfter in jeder Lage eingebaut werden?',
+        'Schwimmer-Entlüfter arbeiten nur senkrecht am höchsten Punkt der Leitung bzw. des Behälters zuverlässig.',
+      ],
+      [
+        'Wie oft sollte der Entlüfter geprüft werden?',
+        'In dieser Demo halbjährlich per Sichtprüfung und jährlich mit Reinigung. Maßgeblich sind die Herstellerangaben und die Betriebsbedingungen.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Entlüftungsfunktion geprüft.'),
+      {
+        date: monthsAgo(5),
+        person: W,
+        kind: 'wartung',
+        text: 'Haube geöffnet, Schwimmer und Ventilsitz gereinigt, Dichtung erneuert.',
+        done: ['clean', 'check'],
+      },
+      { date: monthsAgo(2), person: W, kind: 'pruefung', text: 'Sichtprüfung: dicht, Funktion i. O.', done: ['check'] },
+    ],
+  },
+  {
+    uuid: 'be49ecf3-25c5-4c86-82e4-87261e81bf21',
+    tagNumber: '1F102',
+    type: 'Beutelfiltergehäuse',
+    description: 'Vorfilter Rohwasser',
+    location: 'Ebene 1, Zulauf',
+    manufacturer: 'Sommer & Strassburger',
+    articleNumber: 'FiltraLine® Größe 2 F&B',
+    productName: 'FiltraLine® Beutelfiltergehäuse Größe 2 (Food & Beverage)',
+    tasks: [
+      {
+        key: 'bag',
+        title: 'Filterbeutel wechseln',
+        description: 'Gehäuse entlasten, Deckel öffnen, Filterbeutel tauschen, Stützkorb und Dichtung prüfen.',
+        value: 3,
+        unit: 'months',
+        parts: [['bag', 1]],
+      },
+      {
+        key: 'gasket',
+        title: 'Deckeldichtung prüfen/wechseln',
+        description: 'Dichtung auf Risse, Verformung und Quellung prüfen, bei Bedarf ersetzen.',
+        value: 1,
+        unit: 'years',
+        parts: [['gasket', 1]],
+      },
+    ],
+    parts: [
+      { key: 'bag', name: 'Filterbeutel Größe 2', notes: 'Feinheit je nach Anwendung' },
+      { key: 'gasket', name: 'Deckeldichtung' },
+      { key: 'basket', name: 'Stützkorb Größe 2' },
+    ],
+    faq: [
+      [
+        'Woran erkenne ich, dass der Filterbeutel voll ist?',
+        'Am steigenden Differenzdruck zwischen Ein- und Austritt bzw. an sinkendem Durchfluss. Den Grenzwert legt der Betreiber fest.',
+      ],
+      [
+        'Der Deckel ist nach dem Beutelwechsel undicht.',
+        'Dichtung auf richtigen Sitz, Beschädigung und Sauberkeit prüfen. Verschluss gleichmäßig anziehen.',
+      ],
+      [
+        'Darf der Deckel unter Druck geöffnet werden?',
+        'Nein. Gehäuse immer absperren, entlasten und entleeren, bevor der Deckel geöffnet wird.',
+      ],
+      [
+        'Der Beutel ist gerissen – was ist zu tun?',
+        'Beutel tauschen und die nachgeschalteten Anlagenteile auf eingetragene Partikel prüfen. Häufige Ursache: zu hoher Differenzdruck.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, erster Filterbeutel eingesetzt.'),
+      { date: monthsAgo(4), person: W, kind: 'wartung', text: 'Deckeldichtung geprüft und ersetzt.', done: ['gasket'] },
+      {
+        date: monthsAgo(3, 6),
+        person: W,
+        kind: 'wartung',
+        text: 'Filterbeutel gewechselt, Stützkorb gereinigt.',
+        done: ['bag'],
+      },
+    ],
+  },
+  {
+    uuid: 'd06cc8cc-5868-47f6-a18a-068995e3904a',
+    tagNumber: '1VR103',
+    type: 'Rückschlagklappe',
+    description: 'Rückflussverhinderung Druckseite 1P101',
+    location: 'Ebene 1, Druckleitung',
+    manufacturer: 'Kieselmann',
+    articleNumber: '5091032000-041',
+    productName: 'Tellerrückschlagventil Typ 5091',
+    tasks: [
+      {
+        key: 'tight',
+        title: 'Dichtheit und Funktion prüfen',
+        description: 'Rückfluss bei stehender Pumpe prüfen, auf Geräusche (Flattern) achten.',
+        value: 1,
+        unit: 'years',
+      },
+      {
+        key: 'seal',
+        title: 'Dichtungen wechseln',
+        description: 'Ventil ausbauen, Dichtungen ersetzen, Teller und Feder prüfen.',
+        value: 2,
+        unit: 'years',
+        parts: [['seals', 1]],
+      },
+    ],
+    parts: [
+      { key: 'seals', name: 'Dichtungssatz Rückschlagventil' },
+      { key: 'spring', name: 'Druckfeder' },
+    ],
+    faq: [
+      [
+        'Die Armatur klappert bzw. flattert im Betrieb.',
+        'Häufig ist der Durchfluss zu gering, um den Teller ganz zu öffnen. Betriebspunkt und Einbausituation prüfen.',
+      ],
+      [
+        'Bei stehender Pumpe läuft Medium zurück.',
+        'Teller oder Dichtung sind verschmutzt oder verschlissen. Ventil reinigen und Dichtungen ersetzen.',
+      ],
+      [
+        'Spielt die Einbaurichtung eine Rolle?',
+        'Ja. Die Durchflussrichtung ist am Gehäuse markiert und muss eingehalten werden.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Einbaurichtung kontrolliert.'),
+      {
+        date: monthsAgo(10),
+        person: W,
+        kind: 'wartung',
+        text: 'Dichtungen gewechselt, Teller gereinigt.',
+        done: ['seal'],
+      },
+      {
+        date: monthsAgo(3),
+        person: S,
+        kind: 'pruefung',
+        text: 'Dichtheitsprüfung bei Pumpenstillstand: kein Rückfluss.',
+        done: ['tight'],
+      },
+    ],
+  },
+  {
+    uuid: '665fdabd-0105-4af7-a7fc-a2c951b677bd',
+    tagNumber: '3XV101',
+    type: 'Auf/Zu-Ventil, pneumatisch',
+    description: 'Zulauf Reaktionstank',
+    location: 'Ebene 2, Reaktionstank',
+    manufacturer: 'Kieselmann',
+    articleNumber: '4510100130-041',
+    productName: 'Scheibenventil Typ 4510 mit pneumatischem Drehantrieb',
+    tasks: [
+      {
+        key: 'seal',
+        title: 'Scheibenventil-Dichtung wechseln',
+        description: 'Ventil ausbauen, Dichtung ersetzen, Scheibe und Lagerung prüfen.',
+        value: 1,
+        unit: 'years',
+        parts: [['seal', 1]],
+      },
+      {
+        key: 'actuator',
+        title: 'Antrieb und Rückmeldung prüfen',
+        description: 'Auf/Zu-Fahrt beobachten, Endlagenrückmeldung und Druckluftanschluss prüfen.',
+        value: 6,
+        unit: 'months',
+      },
+    ],
+    parts: [
+      { key: 'seal', name: 'Scheibenventil-Dichtung' },
+      { key: 'actseal', name: 'Dichtungssatz Drehantrieb' },
+    ],
+    faq: [
+      [
+        'Das Ventil schaltet nicht.',
+        'Druckluftversorgung, Magnetventil/Steuerkopf und elektrische Ansteuerung prüfen. Läuft der Antrieb, aber die Scheibe nicht, Kupplung prüfen.',
+      ],
+      ['Die Endlagenrückmeldung fehlt.', 'Sitz und Einstellung der Rückmelder bzw. des Steuerkopfes prüfen.'],
+      [
+        'Das Ventil ist in Zu-Stellung undicht.',
+        'Dichtung verschlissen oder gequollen. Ventil drucklos machen und Dichtung ersetzen.',
+      ],
+      [
+        'Was ist vor Arbeiten am Ventil zu beachten?',
+        'Leitung absperren und entleeren, Druckluft abschalten und gegen Wiedereinschalten sichern.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Schaltzeiten und Rückmeldung geprüft.'),
+      { date: monthsAgo(12, -25), person: W, kind: 'wartung', text: 'Dichtung gewechselt.', done: ['seal'] },
+      {
+        date: monthsAgo(2),
+        person: W,
+        kind: 'pruefung',
+        text: 'Antrieb und Rückmeldung i. O. Dichtungswechsel demnächst einplanen.',
+        done: ['actuator'],
+      },
+    ],
+  },
+  {
+    uuid: '829c0f55-148d-4c0f-8279-011a1ebffa9f',
+    tagNumber: '4HV110',
+    type: 'Handventil',
+    description: 'Absperrung Probenahme',
+    location: 'Ebene 2, Probenahme',
+    manufacturer: 'Kieselmann',
+    articleNumber: '4310025130-041',
+    productName: 'Scheibenventil Typ 4310, handbetätigt',
+    tasks: [
+      {
+        key: 'check',
+        title: 'Gängigkeit und Dichtheit prüfen',
+        description: 'Handhebel betätigen, Rastung prüfen, auf Undichtigkeit achten.',
+        value: 1,
+        unit: 'years',
+      },
+      {
+        key: 'seal',
+        title: 'Dichtung wechseln',
+        description: 'Ventil ausbauen und Dichtung ersetzen.',
+        value: 2,
+        unit: 'years',
+        parts: [['seal', 1]],
+      },
+    ],
+    parts: [
+      { key: 'seal', name: 'Scheibenventil-Dichtung' },
+      { key: 'lever', name: 'Handhebel mit Rastung' },
+    ],
+    faq: [
+      [
+        'Der Hebel lässt sich nur schwer bewegen.',
+        'Häufig ist die Dichtung gequollen oder verschmutzt. Ventil drucklos machen, prüfen und Dichtung ersetzen.',
+      ],
+      [
+        'Darf das Handventil zum Drosseln verwendet werden?',
+        'Absperrarmaturen sind für Auf/Zu ausgelegt. Dauerhaftes Drosseln kann die Dichtung beschädigen.',
+      ],
+      [
+        'Das Ventil ist geschlossen, aber nicht dicht.',
+        'Dichtung prüfen und ersetzen. Stellung des Hebels in der Rastung kontrollieren.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme.'),
+      { date: monthsAgo(8), person: W, kind: 'wartung', text: 'Dichtung gewechselt.', done: ['seal'] },
+      { date: monthsAgo(3), person: W, kind: 'pruefung', text: 'Gängigkeit und Dichtheit i. O.', done: ['check'] },
+    ],
+  },
+  {
+    uuid: '9498ff79-08a5-48a3-89a1-ab25511ee1d3',
+    tagNumber: '2P104',
+    type: 'Dosierpumpe',
+    description: 'Dosierung pH-Korrektur',
+    location: 'Ebene 2, Dosierstation',
+    manufacturer: 'Grundfos',
+    articleNumber: 'DDA 7.5-16 FCM-C-PV/V/C F-31U2U2FG',
+    productName: 'SMART Digital S DDA 7.5-16',
+    tasks: [
+      {
+        key: 'kit',
+        title: 'Dosierkopf, Ventile und Membran prüfen',
+        description: 'Dosierkopf, Saug-/Druckventil und Membran prüfen; bei Verschleiß Wartungsset einbauen.',
+        value: 1,
+        unit: 'years',
+        parts: [['kit', 1]],
+      },
+      {
+        key: 'visual',
+        title: 'Sichtprüfung Leckage und Dosierleitungen',
+        description: 'Dosierkopf, Anschlüsse und Leitungen auf Leckage und Luftblasen prüfen.',
+        value: 3,
+        unit: 'months',
+      },
+    ],
+    parts: [
+      { key: 'kit', name: 'Wartungsset Dosierkopf (Membran, Ventile, Dichtungen)' },
+      { key: 'valve', name: 'Druckventil komplett' },
+    ],
+    faq: [
+      [
+        'Die Pumpe läuft, fördert aber nichts.',
+        'Häufig Luft im Dosierkopf oder ein verschmutztes Ventil. Pumpe entlüften, Saugleitung und Ventile prüfen.',
+      ],
+      [
+        'Die Pumpe meldet einen Fehler zur Membran oder Leckage.',
+        'Pumpe stoppen, Dosierkopf auf Leckage prüfen. Membran bei Bedarf mit dem Wartungsset ersetzen.',
+      ],
+      [
+        'Die Dosiermenge stimmt nicht.',
+        'Kalibrierung prüfen und ggf. neu kalibrieren; außerdem Gegendruck und Ventile kontrollieren.',
+      ],
+      [
+        'Was ist beim Arbeiten mit der Chemikalie zu beachten?',
+        'Schutzausrüstung tragen und das Sicherheitsdatenblatt des Mediums beachten. Leitungen vor dem Öffnen drucklos machen.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Pumpe kalibriert.'),
+      {
+        date: monthsAgo(4),
+        person: W,
+        kind: 'wartung',
+        text: 'Dosierkopf geprüft, Wartungsset eingebaut.',
+        done: ['kit', 'visual'],
+      },
+      { date: monthsAgo(1), person: W, kind: 'pruefung', text: 'Sichtprüfung: keine Leckage.', done: ['visual'] },
+    ],
+  },
+  {
+    uuid: '96dcfd4b-9757-48db-9309-48aa95d79ef4',
+    tagNumber: '1P101',
+    type: 'Kreiselpumpe, mehrstufig',
+    description: 'Hauptförderpumpe',
+    location: 'Ebene 1, Pumpenstand',
+    manufacturer: 'Grundfos',
+    articleNumber: 'CRN32-4-2 A-F-A-E-HQQE 3x400/690',
+    aliases: ['96122356'],
+    productName: 'Mehrstufige Kreiselpumpe CRN 32-4-2',
+    tasks: [
+      {
+        key: 'shaft',
+        title: 'Gleitringdichtung prüfen',
+        description: 'Wellendichtung auf Leckage prüfen, bei Tropfleckage Gleitringdichtung tauschen.',
+        value: 6,
+        unit: 'months',
+        parts: [['mech', 1]],
+      },
+      {
+        key: 'motor',
+        title: 'Motorlager und Laufgeräusch prüfen',
+        description: 'Geräusch, Vibration und Temperatur am Motor prüfen und dokumentieren.',
+        value: 1,
+        unit: 'years',
+      },
+    ],
+    parts: [
+      { key: 'mech', name: 'Gleitringdichtung HQQE (Kartusche)' },
+      { key: 'orings', name: 'O-Ring-Satz Pumpenkopf' },
+    ],
+    faq: [
+      [
+        'Die Pumpe tropft an der Welle.',
+        'Leichte Feuchtigkeit kann normal sein. Bei deutlicher Leckage Gleitringdichtung prüfen und tauschen.',
+      ],
+      [
+        'Die Pumpe ist laut oder vibriert.',
+        'Mögliche Ursachen: Luft im System, zu geringer Zulaufdruck (Kavitation) oder Lagerschaden. Zulauf und Lager prüfen.',
+      ],
+      [
+        'Die Pumpe bringt nicht die gewohnte Leistung.',
+        'Drehrichtung, Entlüftung, verschmutzte Saugleitung oder Filter prüfen.',
+      ],
+      [
+        'Darf die Pumpe trocken laufen?',
+        'Nein. Vor dem Start füllen und entlüften; Trockenlauf beschädigt die Gleitringdichtung.',
+      ],
+      [
+        'Wie wird die Pumpe entlüftet?',
+        'Über die Entlüftungsschraube am Pumpenkopf, bis blasenfreies Medium austritt. Details stehen in der Betriebsanleitung.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Drehrichtung und Entlüftung geprüft.'),
+      {
+        date: monthsAgo(6, -12),
+        person: W,
+        kind: 'pruefung',
+        text: 'Gleitringdichtung trocken, i. O.',
+        done: ['shaft'],
+      },
+      {
+        date: monthsAgo(5),
+        person: S,
+        kind: 'pruefung',
+        text: 'Motorlager: Geräusch und Temperatur unauffällig.',
+        done: ['motor'],
+      },
+      {
+        date: monthsAgo(1),
+        person: W,
+        kind: 'reparatur',
+        text: 'Leichte Tropfleckage an der Welle bemerkt – Prüfung der Gleitringdichtung steht aus.',
+      },
+    ],
+  },
+  {
+    uuid: 'b70d0122-3f51-43dc-8749-2044a91e7669',
+    tagNumber: '5V101',
+    type: 'Hochdruckgebläse, 1,5 kW',
+    description: 'Belüftung Reaktionstank',
+    location: 'Ebene 2, Gebläseraum',
+    manufacturer: 'Dassler',
+    articleNumber: 'DSC20C150T',
+    productName: 'Hochdruckgebläse DSC20C150T, Motor 1,5 kW, PTC, Aluguss',
+    tasks: [
+      {
+        key: 'filter',
+        title: 'Ansaugfilter reinigen',
+        description: 'Ansaugfilter ausbauen, reinigen oder ersetzen.',
+        value: 3,
+        unit: 'months',
+        parts: [['filter', 1]],
+      },
+      {
+        key: 'run',
+        title: 'Laufgeräusch, Temperatur und PTC prüfen',
+        description: 'Geräusch, Vibration und Gehäusetemperatur prüfen, PTC-Auswertung testen.',
+        value: 1,
+        unit: 'years',
+      },
+    ],
+    parts: [
+      { key: 'filter', name: 'Ansaugfilterelement' },
+      { key: 'silencer', name: 'Schalldämpfereinsatz' },
+    ],
+    faq: [
+      [
+        'Das Gebläse wird sehr heiß und schaltet ab.',
+        'Oft ist der Ansaugfilter zugesetzt oder der Gegendruck zu hoch. Filter reinigen und Druckseite prüfen. Der PTC schützt den Motor vor Überhitzung.',
+      ],
+      [
+        'Das Laufgeräusch ist lauter als sonst.',
+        'Filter, Schalldämpfer und Befestigung prüfen. Bei metallischen Geräuschen Gebläse abschalten und prüfen lassen.',
+      ],
+      ['Die Luftmenge ist zu gering.', 'Ansaugfilter, Leitungen und Belüftungselemente auf Verstopfung prüfen.'],
+    ],
+    log: [
+      ibn('Inbetriebnahme, PTC-Auswertung getestet.'),
+      {
+        date: monthsAgo(6),
+        person: S,
+        kind: 'pruefung',
+        text: 'Laufgeräusch und Temperatur unauffällig, PTC i. O.',
+        done: ['run'],
+      },
+      { date: monthsAgo(1), person: W, kind: 'wartung', text: 'Ansaugfilter gereinigt.', done: ['filter'] },
+    ],
+  },
+  {
+    uuid: '0428d30c-f9d5-4e3e-911f-7d82aba918f2',
+    tagNumber: '2FV102',
+    type: 'Schrägsitz-Stellventil',
+    description: 'Durchflussregelung',
+    location: 'Ebene 2, Regelstrecke',
+    manufacturer: 'Schubert & Salzer',
+    articleNumber: '4016123',
+    aliases: ['7020/020V1H20R1-1---S3------1'],
+    productName: 'Schrägsitz-Stellventil Typ 7020 mit Stellungsregler',
+    tasks: [
+      {
+        key: 'stroke',
+        title: 'Hubtest und Stellungsregler prüfen',
+        description: 'Hub 0–100 % fahren, Stellungsrückmeldung und Regelverhalten prüfen.',
+        value: 1,
+        unit: 'years',
+      },
+      {
+        key: 'packing',
+        title: 'Spindelabdichtung prüfen',
+        description: 'Spindeldurchführung auf Leckage prüfen.',
+        value: 6,
+        unit: 'months',
+        parts: [['packing', 1]],
+      },
+    ],
+    parts: [
+      { key: 'packing', name: 'Spindelabdichtung (Packungssatz)' },
+      { key: 'seat', name: 'Kegel-/Sitzdichtung' },
+    ],
+    faq: [
+      [
+        'Das Ventil regelt unruhig (schwingt).',
+        'Reglerparameter und Druckluftversorgung prüfen; ggf. Stellungsregler neu initialisieren.',
+      ],
+      [
+        'Die Stellungsrückmeldung stimmt nicht mit dem Hub überein.',
+        'Stellungsregler neu einmessen bzw. initialisieren lassen.',
+      ],
+      [
+        'An der Spindel tritt Medium aus.',
+        'Spindelabdichtung verschlissen. Ventil drucklos machen und Abdichtung ersetzen.',
+      ],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Stellungsregler initialisiert.'),
+      {
+        date: monthsAgo(4),
+        person: S,
+        kind: 'pruefung',
+        text: 'Hubtest 0–100 % durchgeführt, Rückmeldung i. O.',
+        done: ['stroke'],
+      },
+      { date: monthsAgo(2), person: W, kind: 'pruefung', text: 'Spindelabdichtung dicht.', done: ['packing'] },
+    ],
+  },
+  {
+    uuid: '8657b0c8-d83c-4106-8efd-50b37d18cb92',
+    tagNumber: '2QT101-1',
+    type: 'pH-/Redox-Sensor (Analysenmessung)',
+    description: 'pH-Messung Ablauf',
+    location: 'Ebene 2, Messstelle Ablauf',
+    manufacturer: 'Endress+Hauser',
+    articleNumber: 'CPS16E-AA7BTA2+Z1',
+    productName: 'Memosens CPS16E pH-/Redox-Sensor',
+    tasks: [
+      {
+        key: 'cal',
+        title: 'Sensor kalibrieren (2-Punkt)',
+        description: 'Kalibrierung mit zwei Pufferlösungen, Ergebnis dokumentieren.',
+        value: 1,
+        unit: 'months',
+        parts: [['buffer', 1]],
+      },
+      {
+        key: 'clean',
+        title: 'Sensor reinigen und prüfen',
+        description: 'Sensor ausbauen, Glasmembran und Diaphragma reinigen, auf Beschädigung prüfen.',
+        value: 3,
+        unit: 'months',
+      },
+      {
+        key: 'replace',
+        title: 'Sensorzustand bewerten / Sensor tauschen',
+        description: 'Steilheit und Nullpunkt bewerten; bei Alterung Sensor ersetzen.',
+        value: 2,
+        unit: 'years',
+        parts: [['sensor', 1]],
+      },
+    ],
+    parts: [
+      { key: 'buffer', name: 'Pufferlösungen pH 4 / pH 7' },
+      { key: 'sensor', name: 'Ersatzsensor pH/Redox' },
+    ],
+    faq: [
+      [
+        'Der Messwert driftet oder ist träge.',
+        'Sensor reinigen und neu kalibrieren. Bei alten Sensoren sinkt die Steilheit – dann tauschen.',
+      ],
+      [
+        'Die Kalibrierung wird nicht akzeptiert.',
+        'Frische Pufferlösungen verwenden, Sensor reinigen und genügend Einstellzeit abwarten.',
+      ],
+      [
+        'Darf der Sensor trocken lagern?',
+        'Glaselektroden nicht austrocknen lassen; bei Ausbau die Feuchthaltekappe bzw. Aufbewahrungslösung verwenden.',
+      ],
+      ['Wie oft muss kalibriert werden?', 'Abhängig von Medium und Anforderungen. In dieser Demo monatlich.'],
+    ],
+    log: [
+      ibn('Inbetriebnahme, Sensor kalibriert.'),
+      { date: monthsAgo(1), person: W, kind: 'wartung', text: 'Sensor gereinigt, Glasmembran i. O.', done: ['clean'] },
+      {
+        date: monthsAgo(1, 5),
+        person: W,
+        kind: 'pruefung',
+        text: '2-Punkt-Kalibrierung durchgeführt, Steilheit 97 %.',
+        done: ['cal', 'replace'],
+      },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------- build records
+
+const DEMO_SUPPLIER: Supplier = {
+  id: demoId('supplier'),
+  name: 'Demo Industriebedarf GmbH',
+  orderEmail: 'bestellung@example.com',
+  phone: '+49 000 000000',
+  contactPerson: 'Innendienst',
+  customerNumber: 'K-DEMO-01',
+};
+
+export const DEMO_USERS: User[] = [
+  { id: demoId('user:simon'), name: 'J. Simon', role: 'admin' },
+  { id: demoId('user:weber'), name: 'M. Weber', role: 'editor' },
+  { id: demoId('user:gast'), name: 'Gast', role: 'reader' },
+];
+
+interface DemoRecords {
+  users: User[];
+  suppliers: Supplier[];
+  products: Product[];
+  tags: Tag[];
+  tasks: MaintenanceTask[];
+  spareParts: SparePart[];
+  faqs: Faq[];
+  logEntries: LogEntry[];
+}
+
+function buildRecords(t: string): DemoRecords {
+  const r: DemoRecords = {
+    users: DEMO_USERS,
+    suppliers: [DEMO_SUPPLIER],
+    products: [],
+    tags: [],
+    tasks: [],
+    spareParts: [],
+    faqs: [],
+    logEntries: [],
+  };
+  const stamp = COMMISSIONING(t) + 'T08:00:00.000Z';
+  let orderNo = 10000;
+  DEMO_DEFS.forEach((d, i) => {
+    const pid = demoId(`product:${d.tagNumber}`);
+    r.products.push({
+      id: pid,
+      manufacturer: d.manufacturer,
+      articleNumber: d.articleNumber,
+      aliases: d.aliases ?? [],
+      name: d.productName,
+      type: d.type,
+      description: '',
+      supplierId: DEMO_SUPPLIER.id,
+      orderNumber: `L-${10001 + i}`,
+      supportName: 'Demo Anlagenbau GmbH',
+      supportEmail: 'service@example.com',
+      supportPhone: '+49 000 000000',
+      createdAt: stamp,
+      updatedAt: stamp,
+    });
+    r.tags.push({
+      id: d.uuid,
+      tagNumber: d.tagNumber,
+      type: d.type,
+      description: d.description,
+      plant: DEMO_PLANT,
+      location: d.location,
+      manufacturer: d.manufacturer,
+      articleNumber: d.articleNumber,
+      orderNumber: '',
+      productId: pid,
+      commissionedAt: COMMISSIONING(t),
+      supportName: '',
+      supportEmail: '',
+      supportPhone: '',
+      notes: '',
+      createdAt: stamp,
+      updatedAt: stamp,
+    });
+    const partId = (k: string) => demoId(`part:${d.tagNumber}:${k}`);
+    const taskId = (k: string) => demoId(`task:${d.tagNumber}:${k}`);
+    const short = d.tagNumber.replace(/[^A-Z0-9]/gi, '');
+    d.parts.forEach((p, j) =>
+      r.spareParts.push({
+        id: partId(p.key),
+        ownerType: 'product',
+        ownerId: pid,
+        name: p.name,
+        manufacturerPartNumber: `DEMO-${short}-${j + 1}`,
+        supplierId: DEMO_SUPPLIER.id,
+        supplierOrderNumber: `L-${(orderNo += 7)}`,
+        notes: p.notes ?? '',
+      }),
+    );
+    d.tasks.forEach((tk) =>
+      r.tasks.push({
+        id: taskId(tk.key),
+        ownerType: 'product',
+        ownerId: pid,
+        title: tk.title,
+        description: tk.description,
+        intervalValue: tk.value,
+        intervalUnit: tk.unit,
+        requiredParts: (tk.parts ?? []).map(([k, q]) => ({ sparePartId: partId(k), quantity: q })),
+      }),
+    );
+    d.faq.forEach(([question, answer], j) =>
+      r.faqs.push({
+        id: demoId(`faq:${d.tagNumber}:${j}`),
+        ownerType: 'product',
+        ownerId: pid,
+        question,
+        answer,
+        sort: j,
+      }),
+    );
+    d.log.forEach((l, j) => {
+      const date = l.date(t);
+      r.logEntries.push({
+        id: demoId(`log:${d.tagNumber}:${j}`),
+        tagId: d.uuid,
+        date,
+        person: l.person,
+        kind: l.kind,
+        description: l.text,
+        photoFileId: null,
+        completedTaskIds: (l.done ?? []).map(taskId),
+        createdAt: date + 'T09:00:00.000Z',
+      });
+    });
+  });
+  return r;
+}
+
+export const DEMO_TAG_IDS = new Set(DEMO_DEFS.map((d) => d.uuid));
+/** The printed demo cards point here – never change. */
+export const DEMO_QR_BASE = 'https://js-3000.github.io/Tagnera/';
+registerFixedQrTags(DEMO_TAG_IDS, DEMO_QR_BASE);
+const DEMO_PRODUCT_IDS = new Set(DEMO_DEFS.map((d) => demoId(`product:${d.tagNumber}`)));
+export const isDemoTag = (id: string) => DEMO_TAG_IDS.has(id);
+
+// ---------------------------------------------------------------- state on this device
+
+interface DemoState {
+  version: number;
+  anchor: string; // date the demo diary dates were computed for
+}
+
+function readState(): DemoState | null {
+  try {
+    return JSON.parse(localStorage.getItem(STATE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+function writeState(s: DemoState) {
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(s));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Remove everything that belongs to the demo (incl. own entries on demo tags). Own tags stay. */
+async function removeDemo(): Promise<void> {
+  const ownerIds = new Set([...DEMO_TAG_IDS, ...DEMO_PRODUCT_IDS]);
+  const [entries, docs, faqs, parts, tasks] = await Promise.all([
+    data.logEntries.list(),
+    data.documents.list(),
+    data.faqs.list(),
+    data.spareParts.list(),
+    data.tasks.list(),
   ]);
-  add(p102, addMonths(t0, -2), 'pruefung', 'Reservepumpe Probelauf 15 min, i. O.', [taskPumpBearing]);
-  add(f301, addDays(t0, -85), 'wartung', 'Filterkerzen gewechselt, Δp vorher 1,1 bar, nachher 0,2 bar.', [taskFilter]);
-  add(fv201, addMonths(t0, -3), 'pruefung', 'Hubtest durchgeführt, Kennlinie i. O.', [taskFv]);
-  await data.logEntries.saveMany(entries);
+  const demoEntries = entries.filter((e) => DEMO_TAG_IDS.has(e.tagId));
+  await data.files.removeMany(demoEntries.map((e) => e.photoFileId).filter((x): x is string => !!x));
+  await data.logEntries.removeMany(demoEntries.map((e) => e.id));
+  for (const d of docs.filter((x) => ownerIds.has(x.ownerId))) {
+    const versions = await data.documentVersions.findBy('documentId', d.id);
+    await data.files.removeMany(versions.map((v) => v.fileId).filter(Boolean));
+    await data.documentVersions.removeMany(versions.map((v) => v.id));
+    await data.documents.remove(d.id);
+  }
+  await data.faqs.removeMany(faqs.filter((x) => ownerIds.has(x.ownerId)).map((x) => x.id));
+  await data.spareParts.removeMany(parts.filter((x) => ownerIds.has(x.ownerId)).map((x) => x.id));
+  await data.tasks.removeMany(tasks.filter((x) => ownerIds.has(x.ownerId)).map((x) => x.id));
+  await data.tags.removeMany([...DEMO_TAG_IDS]);
+  await data.products.removeMany([...DEMO_PRODUCT_IDS]);
+}
+
+/** One-time cleanup of the earlier demo "Wasseraufbereitung" (random ids, recognised by its content). */
+async function removeLegacyDemo(): Promise<void> {
+  const products = await data.products.list();
+  const legacy = products.filter(
+    (p) =>
+      (p.manufacturer === 'Kieselmann' && p.articleNumber === '567') ||
+      (p.manufacturer === 'Grundfos' && p.articleNumber === 'CR 10-4'),
+  );
+  if (legacy.length === 0) return;
+  const { deleteTag, deleteProduct } = await import('./tags');
+  for (const t of (await data.tags.list()).filter((x) => x.plant === 'Wasseraufbereitung')) await deleteTag(t.id);
+  for (const p of legacy) await deleteProduct(p.id);
+  const oldSuppliers = ['Armaturen Weber GmbH', 'Pumpen & Service Nord', 'FiltraTech Handel'];
+  await data.suppliers.removeMany(
+    (await data.suppliers.list()).filter((s) => oldSuppliers.includes(s.name)).map((s) => s.id),
+  );
+  const oldUsers = ['Administrator', 'Max Becker', 'Lea Hoffmann'];
+  await data.users.removeMany((await data.users.list()).filter((u) => oldUsers.includes(u.name)).map((u) => u.id));
+}
+
+async function writeDemo(t: string): Promise<void> {
+  const r = buildRecords(t);
+  await data.users.saveMany(r.users);
+  await data.suppliers.saveMany(r.suppliers);
+  await data.products.saveMany(r.products);
+  await data.tags.saveMany(r.tags);
+  await data.tasks.saveMany(r.tasks);
+  await data.spareParts.saveMany(r.spareParts);
+  await data.faqs.saveMany(r.faqs);
+  await data.logEntries.saveMany(r.logEntries);
 }
 
 /**
- * Builds a tiny one-page PDF with two lines of text, so the demo has real
- * documents that open in the browser. Real PDFs can be uploaded in the app.
+ * Called on every app start (before the first screen):
+ * - empty device or older demo version -> (re)load the demo
+ * - same version, new day -> shift the demo diary dates to today
  */
-function makePdf(title: string, subtitle: string): Blob {
-  const esc = (s: string) => s.replace(/[\\()]/g, (c) => '\\' + c).replace(/[^\x20-\x7e]/g, '?');
-  const content = `BT /F1 22 Tf 60 760 Td (${esc(title)}) Tj ET\nBT /F1 14 Tf 60 730 Td (${esc(subtitle)}) Tj ET\nBT /F1 11 Tf 60 690 Td (Demo-Dokument - erzeugt von Tagnera) Tj ET`;
-  const objs = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-  ];
-  let pdf = '%PDF-1.4\n';
-  const offsets: number[] = [];
-  objs.forEach((o, i) => {
-    offsets.push(pdf.length);
-    pdf += `${i + 1} 0 obj\n${o}\nendobj\n`;
-  });
-  const xref = pdf.length;
-  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
-  offsets.forEach((o) => (pdf += String(o).padStart(10, '0') + ' 00000 n \n'));
-  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return new Blob([pdf], { type: 'application/pdf' });
+export async function ensureDemoData(): Promise<'loaded' | 'shifted' | 'unchanged'> {
+  const t = today();
+  const state = readState();
+  const present = (await Promise.all([...DEMO_TAG_IDS].map((id) => data.tags.get(id)))).some(Boolean);
+
+  if (!state || state.version !== DEMO_VERSION || !present) {
+    await removeLegacyDemo();
+    await removeDemo();
+    await writeDemo(t);
+    writeState({ version: DEMO_VERSION, anchor: t });
+    if (!state) saveSettings({ currentUserId: DEMO_USERS[0].id });
+    return 'loaded';
+  }
+  if (state.anchor !== t) {
+    // only update demo entries that still exist (deleted ones stay deleted until reset)
+    const fresh = buildRecords(t).logEntries;
+    const existing = await Promise.all(fresh.map((e) => data.logEntries.get(e.id)));
+    const shifted: LogEntry[] = [];
+    fresh.forEach((e, i) => {
+      const old = existing[i];
+      if (old) shifted.push({ ...old, date: e.date, createdAt: e.createdAt });
+    });
+    await data.logEntries.saveMany(shifted);
+    // commissioning date moves along, too
+    const tags = await Promise.all(DEMO_DEFS.map((d) => data.tags.get(d.uuid)));
+    await data.tags.saveMany(
+      tags.filter((x): x is Tag => !!x).map((x) => ({ ...x, commissionedAt: COMMISSIONING(t) })),
+    );
+    writeState({ version: DEMO_VERSION, anchor: t });
+    return 'shifted';
+  }
+  return 'unchanged';
+}
+
+/** "Demo zurücksetzen": original demo state; own tags (other UUIDs) stay. */
+export async function resetDemo(): Promise<void> {
+  await removeDemo();
+  await writeDemo(today());
+  writeState({ version: DEMO_VERSION, anchor: today() });
 }

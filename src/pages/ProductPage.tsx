@@ -9,6 +9,7 @@ import { Empty, Field, toast } from '../components/ui';
 import { data } from '../data';
 import type { Product } from '../data/types';
 import { byString, nowIso } from '../lib/util';
+import { staticDocsFor } from '../services/staticDocs';
 import { deleteProduct, loadDocuments } from '../services/tags';
 
 export function ProductPage() {
@@ -25,7 +26,10 @@ function ProductView({ initial }: { initial: Product }) {
   const [p, setP] = useState(initial);
   const [dirty, setDirty] = useState(false);
   const suppliers = useData(() => data.suppliers.list(), []);
-  const docs = useData(() => loadDocuments([{ ownerType: 'product', ownerId: p.id }]), [p.id]);
+  const docs = useData(
+    async () => [...(await staticDocsFor(p, null)), ...(await loadDocuments([{ ownerType: 'product', ownerId: p.id }]))],
+    [p.id, p.articleNumber],
+  );
   const tags = useData(
     () => data.tags.findBy('productId', p.id).then((l) => l.sort(byString((t) => t.tagNumber))),
     [p.id],

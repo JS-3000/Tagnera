@@ -8,7 +8,11 @@ import { data } from '../data';
 import type { Tag } from '../data/types';
 import { byString } from '../lib/util';
 import { LABEL_FORMATS, perSheet, type LabelFormat } from '../services/labelFormats';
+import { DEMO_DEFS } from '../services/demoData';
 import { appBaseUrl, loadSettings, saveSettings, tagUrl } from '../services/settings';
+
+type SecondLine = 'plant' | 'type' | 'description';
+const DEMO_ORDER = DEMO_DEFS.map((d) => d.uuid);
 
 const FORMAT_KEY = 'tagnera.labelFormat';
 
@@ -17,10 +21,15 @@ export function LabelsPage() {
   const tags = useData(() => data.tags.list().then((l) => l.sort(byString((t) => t.tagNumber))), []);
   const [formatId, setFormatId] = useState(() => localStorage.getItem(FORMAT_KEY) || 'L6011');
   const format = LABEL_FORMATS.find((f) => f.id === formatId) ?? LABEL_FORMATS[0];
+  const demoMode = params.get('demo') === '1';
   const [selected, setSelected] = useState<Set<string> | null>(() => {
+    if (demoMode) return new Set(DEMO_ORDER);
     const p = params.get('tags');
     return p ? new Set(p.split(',')) : null; // null = all
   });
+  // demo labels keep the order of the printed list
+  const [order, setOrder] = useState<string[] | null>(demoMode ? DEMO_ORDER : null);
+  const [line, setLine] = useState<SecondLine>(demoMode ? 'type' : 'plant');
   const [skip, setSkip] = useState(0);
   const [copies, setCopies] = useState(1);
   const [outline, setOutline] = useState(false);
@@ -29,7 +38,18 @@ export function LabelsPage() {
   const [plantFilter, setPlantFilter] = useState('');
 
   const plants = useMemo(() => [...new Set((tags ?? []).map((t) => t.plant).filter(Boolean))].sort(), [tags]);
-  const chosen = useMemo(() => (tags ?? []).filter((t) => (selected ? selected.has(t.id) : true)), [tags, selected]);
+  const chosen = useMemo(() => {
+    const list = (tags ?? []).filter((t) => (selected ? selected.has(t.id) : true));
+    if (!order) return list;
+    const pos = (id: string) => (order.includes(id) ? order.indexOf(id) : 1e6);
+    return [...list].sort((a, b) => pos(a.id) - pos(b.id));
+  }, [tags, selected, order]);
+
+  const demoLabels = () => {
+    setSelected(new Set(DEMO_ORDER));
+    setOrder(DEMO_ORDER);
+    setLine('type');
+  };
 
   // the sequence of labels (empty slots for already used labels on the first sheet)
   const slots: (Tag | null)[] = useMemo(() => {
@@ -56,6 +76,9 @@ export function LabelsPage() {
       <div className="no-print">
         <div className="page-head">
           <h1>QR-Etiketten</h1>
+          <button className="btn" onClick={demoLabels}>
+            <Icon name="qr" /> Demo-Etiketten
+          </button>
           <button className="btn btn-primary" onClick={() => window.print()} disabled={chosen.length === 0}>
             <Icon name="printer" /> Drucken ({sheets.length} {sheets.length === 1 ? 'Blatt' : 'Blätter'})
           </button>
@@ -84,6 +107,13 @@ export function LabelsPage() {
               </select>
             </Field>
             <div className="form-grid">
+              <Field label="Zweite Zeile">
+                <select value={line} onChange={(e) => setLine(e.target.value as SecondLine)}>
+                  <option value="plant">Anlage</option>
+                  <option value="type">Typ (Kurzbezeichnung)</option>
+                  <option value="description">Bezeichnung / Funktion</option>
+                </select>
+              </Field>
               <Field label="Erste freie Position" hint={`Bei angebrochenem Bogen: 1–${perSheet(format)}`}>
                 <input
                   type="number"
@@ -135,7 +165,7 @@ export function LabelsPage() {
             </label>
             <p className="small muted" style={{ marginBottom: 0 }}>
               Im Druckdialog <b>Skalierung 100 % / „Tatsächliche Größe“</b> und <b>Ränder: keine</b> wählen, Kopf- und
-              Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse:{' '}
+              Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse (Demo-Tags immer https://js-3000.github.io/Tagnera/):{' '}
               <span className="mono">{appBaseUrl()}</span>
             </p>
           </section>
@@ -190,7 +220,7 @@ export function LabelsPage() {
 
       <div className="sheets">
         {sheets.map((sheet, i) => (
-          <Sheet key={i} format={format} slots={sheet} outline={outline} offX={offX} offY={offY} />
+          <Sheet key={i} format={format} slots={sheet} outline={outline} offX={offX} offY={offY} line={line} />
         ))}
       </div>
     </div>
@@ -203,12 +233,14 @@ function Sheet({
   outline,
   offX,
   offY,
+  line,
 }: {
   format: LabelFormat;
   slots: (Tag | null)[];
   outline: boolean;
   offX: number;
   offY: number;
+  line: SecondLine;
 }) {
   return (
     <div className="sheet">
@@ -226,7 +258,7 @@ function Sheet({
               height: `${f.height}mm`,
             }}
           >
-            {tag && <Label tag={tag} f={f} />}
+            {tag && <Label tag={tag} f={f} line={line} />}
           </div>
         );
       })}
@@ -235,12 +267,14 @@ function Sheet({
 }
 
 /** One label: QR code left; logo, tag number and plant right. */
-function Label({ tag, f }: { tag: Tag; f: LabelFormat }) {
+function Label({ tag, f, line }: { tag: Tag; f: LabelFormat; line: SecondLine }) {
+  const second = line === 'type' ? tag.type : line === 'description' ? tag.description : tag.plant;
   const pad = Math.max(1.2, f.height * 0.07);
   const qr = Math.min(f.height - 2 * pad, f.width * 0.46);
   const textW = f.width - qr - 3 * pad;
   const tagFont = Math.min(f.height * 0.24, textW / (Math.max(tag.tagNumber.length, 5) * 0.62));
-  const plantFont = Math.max(1.9, Math.min(tagFont * 0.52, textW / (Math.max(tag.plant.length, 8) * 0.55)));
+  // second line may wrap onto two lines, so it can be a bit larger
+  const plantFont = Math.max(1.9, Math.min(tagFont * 0.5, (2 * textW) / (Math.max(second.length, 10) * 0.55)));
   const logoH = Math.min(f.height * 0.2, 7);
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: `${pad}mm`, padding: `${pad}mm`, height: '100%' }}>
@@ -265,18 +299,19 @@ function Label({ tag, f }: { tag: Tag; f: LabelFormat }) {
         >
           {tag.tagNumber}
         </div>
-        {tag.plant && (
+        {second && (
           <div
             style={{
               fontSize: `${plantFont}mm`,
               lineHeight: 1.1,
               color: '#222',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
             }}
           >
-            {tag.plant}
+            {second}
           </div>
         )}
       </div>

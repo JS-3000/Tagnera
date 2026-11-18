@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { SessionProvider } from './app/session';
 import { Layout } from './components/Layout';
@@ -16,12 +17,29 @@ import { TagEditPage } from './pages/TagEditPage';
 import { TagPage } from './pages/TagPage';
 import { TagsPage } from './pages/TagsPage';
 
+// The PDF viewer (pdf.js, ~1 MB) is only loaded when a document is opened.
+const PdfViewerPage = lazy(() => import('./pages/PdfViewerPage').then((m) => ({ default: m.PdfViewerPage })));
+
 // Hash routing (#/t/<uuid>) works on any static hosting such as GitHub Pages.
 export function App() {
   return (
     <HashRouter>
       <SessionProvider>
         <Routes>
+          <Route
+            path="viewer"
+            element={
+              <Suspense
+                fallback={
+                  <div className="pdfv">
+                    <div className="pdfv-msg">Viewer wird geladen …</div>
+                  </div>
+                }
+              >
+                <PdfViewerPage />
+              </Suspense>
+            }
+          />
           <Route element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="scan" element={<ScanPage />} />

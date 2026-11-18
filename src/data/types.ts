@@ -38,6 +38,8 @@ export interface Product {
   id: string;
   manufacturer: string;
   articleNumber: string;
+  /** further numbers that identify this product (e.g. order code, long type key) */
+  aliases?: string[];
   name: string;
   type: string;
   description: string;
@@ -114,7 +116,8 @@ export interface DocumentItem extends Owned {
 export interface DocumentVersion {
   id: string;
   documentId: string;
-  fileId: string;
+  fileId: string; // '' when the file is served by URL (documents shipped with the app)
+  url?: string;
   fileName: string;
   mimeType: string;
   size: number;
@@ -122,7 +125,7 @@ export interface DocumentVersion {
   addedAt: string;
 }
 
-export type LogKind = 'wartung' | 'reparatur' | 'pruefung' | 'umbau';
+export type LogKind = 'inbetriebnahme' | 'wartung' | 'reparatur' | 'pruefung' | 'umbau';
 
 export interface LogEntry {
   id: string;
@@ -153,6 +156,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const LOG_KIND_LABELS: Record<LogKind, string> = {
+  inbetriebnahme: 'Inbetriebnahme',
   wartung: 'Wartung',
   reparatur: 'Reparatur',
   pruefung: 'Prüfung',

@@ -74,11 +74,11 @@ export function ScanPage() {
             <div className="title">Noch keine Daten auf diesem Gerät</div>
             {can('admin') ? (
               <>
-                Lade in den <Link to="/einstellungen">Einstellungen</Link> die Demo-Daten oder lege unter{' '}
+                Stelle in den <Link to="/einstellungen">Einstellungen</Link> die Demo wieder her („Demo zurücksetzen“) oder lege unter{' '}
                 <Link to="/tags">Tags</Link> den ersten Tag an.
               </>
             ) : (
-              <>Wechsle in den Einstellungen zur Rolle Administrator, um Demo-Daten zu laden.</>
+              <>In den Einstellungen stellt „Demo zurücksetzen“ die Demo wieder her.</>
             )}
           </div>
         </div>

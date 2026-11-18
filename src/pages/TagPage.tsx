@@ -10,6 +10,7 @@ import { Empty, FileViewer, Modal, StatusBadge, StoredImage } from '../component
 import { LOG_KIND_LABELS, type LogEntry, type SparePart, type Supplier } from '../data/types';
 import { fmtDate, isUuid } from '../lib/util';
 import { describeDue, intervalLabel, worstStatus, type TaskStatus } from '../services/maintenance';
+import { isDemoTag } from '../services/demoData';
 import { rememberScan, tagUrl } from '../services/settings';
 import { deleteLogEntry, loadTagDetail, type TagDetail } from '../services/tags';
 
@@ -116,6 +117,11 @@ function TagView({ d }: { d: TagDetail }) {
                 {tag.description && <span style={{ fontWeight: 400, opacity: 0.85 }}> – {tag.description}</span>}
               </div>
               {tag.plant && <div className="plant">{tag.plant}</div>}
+              {isDemoTag(tag.id) && (
+                <div className="demo-note" title="Wartungsintervalle, FAQ und Ersatzteile sind Beispielwerte">
+                  Demo-Daten · Intervalle, FAQ und Ersatzteile sind Beispielwerte
+                </div>
+              )}
             </div>
             <StatusBadge status={status} />
           </div>

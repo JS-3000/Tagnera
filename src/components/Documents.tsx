@@ -1,5 +1,6 @@
 // Document list with version history ("Neu hinzugefügt am …", "Ältere Versionen").
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { DocumentVersion, OwnerType } from '../data/types';
 import { daysBetween, fmtDate, fmtSize, today, toDateStr } from '../lib/util';
 import { addDocument, addDocumentVersion, removeDocument, type DocWithVersions } from '../services/tags';
@@ -24,20 +25,52 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
   const [view, setView] = useState<DocumentVersion | null>(null);
   const [adding, setAdding] = useState(false);
   const [versionFor, setVersionFor] = useState<DocWithVersions | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // PDFs open in the in-app viewer, images in the lightbox
+  const open = (v: DocumentVersion, title: string) => {
+    if (v.mimeType === 'application/pdf') {
+      const src = v.url ?? `idb:${v.fileId}`;
+      const q = new URLSearchParams({ src, name: title, back: location.pathname });
+      navigate(`/viewer?${q.toString()}`);
+    } else {
+      setView(v);
+    }
+  };
 
   return (
     <>
       {docs.length === 0 && <Empty>Keine Dokumente vorhanden.</Empty>}
       <ul className="list">
         {docs.map((d) => {
-          const isNew = daysBetween(dateOf(d.current.addedAt), today()) <= NEW_DAYS;
+          if (d.request) {
+            return (
+              <li key={d.doc.id} style={{ padding: '10px 0' }}>
+                <div className="list-item wrap" style={{ padding: 0 }}>
+                  <Icon name="doc" size={28} className="muted" />
+                  <span className="grow">
+                    <span className="title">{d.doc.title}</span>
+                    <br />
+                    <span className="small muted">Bei {d.request.manufacturer} noch nicht öffentlich verfügbar</span>
+                  </span>
+                  <div className="item-actions no-print">
+                    <a className="btn btn-sm" href={d.request.mailto}>
+                      <Icon name="mail" size={18} /> Beim Hersteller anfragen
+                    </a>
+                  </div>
+                </div>
+              </li>
+            );
+          }
+          const isNew = !d.shipped && daysBetween(dateOf(d.current.addedAt), today()) <= NEW_DAYS;
           return (
             <li key={d.doc.id} style={{ padding: '10px 0' }}>
               <div className="list-item wrap" style={{ padding: 0 }}>
                 <button
                   className="btn btn-ghost"
                   style={{ padding: 0, minHeight: 0, textAlign: 'left', flex: 1, justifyContent: 'flex-start' }}
-                  onClick={() => setView(d.current)}
+                  onClick={() => open(d.current, d.doc.title)}
                 >
                   <Icon name="doc" size={28} />
                   <span className="grow" style={{ fontWeight: 400 }}>
@@ -48,18 +81,21 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                     <br />
                     <span className="small muted">
                       {d.doc.category}
-                      {d.inherited && ' · aus Produktvorlage'} · {fmtSize(d.current.size)}
+                      {d.shipped ? ' · Herstellerdokument' : d.inherited ? ' · aus Produktvorlage' : ''}
+                      {d.current.size > 0 && ` · ${fmtSize(d.current.size)}`}
                     </span>
                     <br />
                     <span className="small">
-                      {d.older.length === 0
-                        ? `Neu hinzugefügt am ${fmtDate(dateOf(d.current.addedAt))}`
-                        : `Neue Version vom ${fmtDate(dateOf(d.current.addedAt))}`}
+                      {d.shipped
+                        ? `Stand ${fmtDate(dateOf(d.current.addedAt))}`
+                        : d.older.length === 0
+                          ? `Neu hinzugefügt am ${fmtDate(dateOf(d.current.addedAt))}`
+                          : `Neue Version vom ${fmtDate(dateOf(d.current.addedAt))}`}
                       {d.current.note && ` – ${d.current.note}`}
                     </span>
                   </span>
                 </button>
-                {canManage(d) && (
+                {!d.shipped && canManage(d) && (
                   <div className="btn-row no-print item-actions">
                     <button className="btn btn-sm" onClick={() => setVersionFor(d)}>
                       <Icon name="upload" size={18} /> Neue Version
@@ -85,7 +121,7 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                         <button
                           className="btn btn-ghost btn-sm"
                           style={{ justifyContent: 'flex-start', width: '100%', textAlign: 'left' }}
-                          onClick={() => setView(v)}
+                          onClick={() => open(v, `${d.doc.title} (${fmtDate(dateOf(v.addedAt))})`)}
                         >
                           <Icon name="file" size={18} />
                           <span style={{ fontWeight: 500 }}>

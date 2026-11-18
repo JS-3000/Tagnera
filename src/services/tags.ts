@@ -14,6 +14,7 @@ import type {
 } from '../data/types';
 import { byString, compressImage, normalizeKey, nowIso, today, uuid } from '../lib/util';
 import { computeTaskStatus, tasksForTag, type TaskStatus } from './maintenance';
+import { staticDocsFor } from './staticDocs';
 
 // ---------------------------------------------------------------- files
 
@@ -131,10 +132,15 @@ export function emptyProduct(): Product {
  * "Produkt erkannt": find a product template by article number
  * (manufacturer is used to decide between several hits).
  */
+/** All normalised numbers a product can be recognised by (article number + aliases). */
+export function productKeys(p: Product): string[] {
+  return [p.articleNumber, ...(p.aliases ?? [])].map(normalizeKey).filter(Boolean);
+}
+
 export async function findProduct(articleNumber: string, manufacturer = ''): Promise<Product | undefined> {
   const key = normalizeKey(articleNumber);
   if (!key) return undefined;
-  const hits = (await data.products.list()).filter((p) => normalizeKey(p.articleNumber) === key);
+  const hits = (await data.products.list()).filter((p) => productKeys(p).includes(key));
   if (hits.length <= 1) return hits[0];
   const m = normalizeKey(manufacturer);
   return hits.find((p) => normalizeKey(p.manufacturer) === m) ?? hits[0];
@@ -166,6 +172,10 @@ export interface DocWithVersions {
   current: DocumentVersion;
   older: DocumentVersion[];
   inherited: boolean; // comes from the product template
+  /** shipped with the app (public/docs) – read-only */
+  shipped?: boolean;
+  /** no file available: "beim Hersteller anfragen" (opens a prepared e-mail) */
+  request?: { manufacturer: string; mailto: string };
 }
 
 export async function addDocument(
@@ -278,7 +288,8 @@ export async function loadTagDetail(tagId: string): Promise<TagDetail | null> {
   const tag = await data.tags.get(tagId);
   if (!tag) return null;
   const product = tag.productId ? ((await data.products.get(tag.productId)) ?? null) : null;
-  const [documents, faqs, parts, allTasks, entries, suppliers] = await Promise.all([
+  const [shippedDocs, dbDocs, faqs, parts, allTasks, entries, suppliers] = await Promise.all([
+    staticDocsFor(product, tag),
     loadDocuments([
       { ownerType: 'product', ownerId: tag.productId },
       { ownerType: 'tag', ownerId: tag.id },
@@ -310,7 +321,7 @@ export async function loadTagDetail(tagId: string): Promise<TagDetail | null> {
     tag,
     product,
     orderNumber: tag.orderNumber || product?.orderNumber || '',
-    documents,
+    documents: [...shippedDocs, ...dbDocs],
     faqs: faqs.sort((a, b) => a.sort - b.sort),
     spareParts: parts.map((p) => ({ ...p, supplier: p.supplierId ? (supplierById.get(p.supplierId) ?? null) : null })),
     tasks,

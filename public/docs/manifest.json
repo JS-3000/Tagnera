@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "info": "Dokumente, die mit der App ausgeliefert werden. Zuordnung über 'articleNumbers' (Artikelnummer einer Produktvorlage, gilt für alle Tags dieses Produkts) und/oder 'tags' (Tag-Nummern). 'file' ist relativ zum Ordner docs/. Optional: 'startPage' = Seite, auf der der Viewer das PDF öffnet.",
+  "documents": [
+    {
+      "id": "kieselmann-scheibenventile-ba",
+      "file": "Kieselmann/Scheibenventile_2020_DE.pdf",
+      "title": "Betriebsanleitung Scheibenventile Typ 2020",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://www.kieselmann.de/fileadmin/user_upload/14_Downloads/Dokumentationen/07-Gruppe-S4/Scheibenventile_2020_DE.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "4310025130-041",
+        "4510100130-041"
+      ],
+      "tags": [],
+      "size": 8342257
+    },
+    {
+      "id": "kieselmann-drehantriebe-ba",
+      "file": "Kieselmann/4x00_Drehantriebe_DE.pdf",
+      "title": "Betriebsanleitung Drehantriebe Typ 4x00 (pneumatisch)",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://www.kieselmann.de/fileadmin/user_upload/14_Downloads/Dokumentationen/06-Gruppe-K4/4x00_Drehantriebe_DE.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "4510100130-041"
+      ],
+      "tags": [],
+      "size": 1713016
+    },
+    {
+      "id": "kieselmann-5091-ba",
+      "file": "Kieselmann/5091_DE.pdf",
+      "title": "Betriebsanleitung Tellerrückschlagventil Typ 5091",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://www.kieselmann.de/fileadmin/user_upload/14_Downloads/Dokumentationen/09-Gruppe-E5/5091_DE.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "5091032000-041"
+      ],
+      "tags": [],
+      "size": 2447903
+    },
+    {
+      "id": "grundfos-dda-ba",
+      "file": "Grundfos/Grundfosliterature-5616495.pdf",
+      "title": "Montage- und Betriebsanleitung SMART Digital S DDA (bis 30 l/h)",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://api.grundfos.com/literature/Grundfosliterature-5616495.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "DDA 7.5-16 FCM-C-PV/V/C F-31U2U2FG"
+      ],
+      "tags": [],
+      "size": 1924507
+    },
+    {
+      "id": "grundfos-cr-ba",
+      "file": "Grundfos/Grundfosliterature-3929725.pdf",
+      "title": "Montage- und Betriebsanleitung CR, CRI, CRN",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://api.grundfos.com/literature/Grundfosliterature-3929725.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "CRN32-4-2 A-F-A-E-HQQE 3x400/690"
+      ],
+      "tags": [],
+      "size": 9670781,
+      "startPage": 4
+    },
+    {
+      "id": "endress-cps16e-ti",
+      "file": "Endress-Hauser/TI01600CDE_0225-00.pdf",
+      "title": "Technische Information Memosens CPS16E (TI01600C)",
+      "type": "Technische Information",
+      "language": "de",
+      "sourceUrl": "https://bdih-download.endress.com/file/e63c6418f9f0be4167bd13e884e14ecf/TI01600CDE_0225-00.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "CPS16E-AA7BTA2+Z1"
+      ],
+      "tags": [],
+      "size": 842294
+    },
+    {
+      "id": "endress-cps16e-ba",
+      "file": "Endress-Hauser/BA02142CDE_0326-00.pdf",
+      "title": "Betriebsanleitung pH-/Redox-Sensoren CPS16E, CPS76E, CPS96E (BA02142C)",
+      "type": "Betriebsanleitung",
+      "language": "de",
+      "sourceUrl": "https://bdih-download.endress.com/file/8423b697f0af69711fa019be5a13f74a/BA02142CDE_0326-00.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "CPS16E-AA7BTA2+Z1"
+      ],
+      "tags": [],
+      "size": 781397
+    },
+    {
+      "id": "schubert-7020-ba",
+      "file": "Schubert-Salzer/7020_-_Anleitung_-_Operating_Instructions_-_Manuel.pdf",
+      "title": "Betriebsanleitung Schrägsitz-Stellventil Typ 7020 (DE/EN/FR)",
+      "type": "Betriebsanleitung",
+      "language": "de/en/fr",
+      "sourceUrl": "https://controlsystems.schubert-salzer.com/fileadmin/user_upload/ControlSystems/Produkte/Typen/7020/DE/7020_-_Anleitung_-_Operating_Instructions_-_Manuel.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "4016123"
+      ],
+      "tags": [],
+      "size": 1307688
+    },
+    {
+      "id": "schubert-7020-db",
+      "file": "Schubert-Salzer/7020_-_Datenblatt.pdf",
+      "title": "Datenblatt Schrägsitz-Stellventil Typ 7020",
+      "type": "Datenblatt",
+      "language": "de",
+      "sourceUrl": "https://controlsystems.schubert-salzer.com/fileadmin/user_upload/ControlSystems/Produkte/Typen/7020/DE/7020_-_Datenblatt.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "4016123"
+      ],
+      "tags": [],
+      "size": 775451
+    },
+    {
+      "id": "sus-filtraline-db",
+      "file": "Sommer-Strassburger/Datenblatt_A4_Beutelfiltergehaeuse_deutsch.pdf",
+      "title": "Datenblatt FiltraLine® Beutelfiltergehäuse",
+      "type": "Datenblatt",
+      "language": "de",
+      "sourceUrl": "https://www.sus-bretten.de/wp-content/uploads/Datenblatt_A4_Beutelfiltergehaeuse_deutsch.pdf",
+      "retrievedAt": "2026-11-18",
+      "articleNumbers": [
+        "FiltraLine® Größe 2 F&B"
+      ],
+      "tags": [],
+      "size": 361711
+    }
+  ],
+  "requests": [
+    {
+      "id": "sus-filtraline-ba-request",
+      "title": "Betriebsanleitung – beim Hersteller anfragen",
+      "type": "Betriebsanleitung",
+      "manufacturer": "Sommer & Strassburger GmbH",
+      "email": "info@sus-bretten.de",
+      "articleNumbers": [
+        "FiltraLine® Größe 2 F&B"
+      ],
+      "tags": []
+    },
+    {
+      "id": "voss-purginox-ba-request",
+      "title": "Betriebsanleitung – beim Hersteller anfragen",
+      "type": "Betriebsanleitung",
+      "manufacturer": "VOSS",
+      "email": "",
+      "articleNumbers": [
+        "PURG-INOX 2000"
+      ],
+      "tags": []
+    },
+    {
+      "id": "dassler-dsc-ba-request",
+      "title": "Betriebsanleitung – beim Hersteller anfragen",
+      "type": "Betriebsanleitung",
+      "manufacturer": "Dassler",
+      "email": "",
+      "articleNumbers": [
+        "DSC20C150T"
+      ],
+      "tags": []
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import { data } from '../data';
 import { ROLE_LABELS, type Role, type User } from '../data/types';
 import { uuid } from '../lib/util';
 import { exportAll, importAll } from '../services/backup';
-import { loadDemoData } from '../services/demoData';
+import { DEMO_VERSION, resetDemo } from '../services/demoData';
 import { currentAppUrl, loadSettings, saveSettings } from '../services/settings';
 
 export function SettingsPage() {
@@ -68,8 +68,9 @@ export function SettingsPage() {
         <section className="card">
           <h2>Daten</h2>
           <p className="muted small">
-            Alle Daten liegen nur in diesem Browser auf diesem Gerät. Mit Export/Import überträgst du sie auf ein
-            anderes Gerät.
+            Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur dich.
+            Die „Demoanlage Tagnera“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich jederzeit
+            zurücksetzen.
           </p>
           <div className="actions">
             <button className="btn" disabled={busy} onClick={() => run(exportAll, 'Export erstellt')}>
@@ -98,29 +99,37 @@ export function SettingsPage() {
                 />
               </>
             )}
+            <button
+              className="btn btn-primary"
+              disabled={busy}
+              onClick={() => {
+                if (
+                  !confirm(
+                    'Demo auf den Originalzustand zurücksetzen? Änderungen an den 10 Demo-Tags gehen verloren, eigene Tags bleiben erhalten.',
+                  )
+                )
+                  return;
+                void run(resetDemo, 'Demo zurückgesetzt');
+              }}
+            >
+              <Icon name="back" /> Demo zurücksetzen
+            </button>
             {can('admin') && (
-              <>
-                <button
-                  className="btn btn-primary"
-                  disabled={busy}
-                  onClick={() => {
-                    if (!confirm('Demo-Daten laden? Vorhandene Daten auf diesem Gerät werden gelöscht.')) return;
-                    void run(loadDemoData, 'Demo-Daten geladen');
-                  }}
-                >
-                  <Icon name="list" /> Demo-Daten laden
-                </button>
-                <button
-                  className="btn btn-danger"
-                  disabled={busy}
-                  onClick={() => {
-                    if (!confirm('Wirklich ALLE Daten auf diesem Gerät löschen?')) return;
-                    void run(() => data.clearAll(), 'Alle Daten gelöscht');
-                  }}
-                >
-                  <Icon name="trash" /> Alles löschen
-                </button>
-              </>
+              <button
+                className="btn btn-danger"
+                disabled={busy}
+                onClick={() => {
+                  if (
+                    !confirm(
+                      'Wirklich ALLE Daten auf diesem Gerät löschen? Die Demo wird beim nächsten Start neu geladen.',
+                    )
+                  )
+                    return;
+                  void run(() => data.clearAll(), 'Alle Daten gelöscht');
+                }}
+              >
+                <Icon name="trash" /> Alles löschen
+              </button>
             )}
           </div>
         </section>
