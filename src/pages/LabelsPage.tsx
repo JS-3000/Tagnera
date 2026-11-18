@@ -291,7 +291,7 @@ function Label({ tag, f, line }: { tag: Tag; f: LabelFormat; line: SecondLine })
       >
         <img
           src={`${import.meta.env.BASE_URL}logo.svg`}
-          alt="Tagnera"
+          alt="ConnecTag"
           style={{ height: `${logoH}mm`, width: 'auto', alignSelf: 'flex-start' }}
         />
         <div

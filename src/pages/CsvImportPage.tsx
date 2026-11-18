@@ -64,7 +64,7 @@ export function CsvImportPage() {
                 ],
                 { type: 'text/csv;charset=utf-8' },
               ),
-              'tagnera-vorlage.csv',
+              'connectag-vorlage.csv',
             )
           }
         >

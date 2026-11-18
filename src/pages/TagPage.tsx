@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useData } from '../app/hooks';
+import { useData, useTitle } from '../app/hooks';
 import { useSession } from '../app/session';
 import { DocumentList } from '../components/Documents';
 import { Icon } from '../components/Icon';
@@ -69,6 +69,7 @@ function TagView({ d }: { d: TagDetail }) {
   const [order, setOrder] = useState<{ part: SparePart; supplier: Supplier | null } | null>(null);
   const [showQr, setShowQr] = useState(false);
   const status = d.tasks.length ? worstStatus(d.tasks) : null;
+  useTitle(tag.tagNumber);
 
   const supportSection = (cls: string, id?: string) => (
     <section className={`card ${cls}`} id={id}>

@@ -16,11 +16,11 @@ export default defineConfig(({ mode }) => ({
     ...(mode === 'https' ? [basicSsl()] : []),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'logo.svg'],
+      includeAssets: ['favicon.svg', 'favicon-48.png', 'apple-touch-icon.png', 'logo.svg'],
       manifest: {
-        name: 'Tagnera',
-        short_name: 'Tagnera',
-        description: 'Tagnera – brings your tag a level up',
+        name: 'ConnecTag',
+        short_name: 'ConnecTag',
+        description: 'ConnecTag – brings your tag a level up',
         lang: 'de',
         theme_color: '#1F2A36',
         background_color: '#F4F5F7',

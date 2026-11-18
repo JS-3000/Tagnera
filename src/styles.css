@@ -1,4 +1,4 @@
-/* Tagnera – simple, industrial styling. All colours as variables. */
+/* ConnecTag – simple, industrial styling. All colours as variables. */
 :root {
   --primary: #1f2a36;
   --primary-2: #2c3a4a;
@@ -1499,4 +1499,40 @@ table.table {
   .pdfv-sep {
     width: 2px;
   }
+}
+
+/* ------------------------------------------------------------ logo */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--logo-h) * 0.3);
+  line-height: 1;
+}
+.logo-mark {
+  height: var(--logo-h);
+  width: calc(var(--logo-h) * 1.2);
+  flex: none;
+}
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--logo-h) * 0.12);
+}
+.logo-word {
+  font-weight: 600;
+  font-size: calc(var(--logo-h) * 0.8);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.logo-slogan {
+  font-size: max(9px, calc(var(--logo-h) * 0.24));
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.scan-brand {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 12px;
 }

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
+import { Logo } from '../components/Logo';
 import { Field, toast } from '../components/ui';
 import { data } from '../data';
 import { ROLE_LABELS, type Role, type User } from '../data/types';
@@ -69,7 +70,7 @@ export function SettingsPage() {
           <h2>Daten</h2>
           <p className="muted small">
             Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur dich.
-            Die „Demoanlage Tagnera“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich jederzeit
+            Die „Demoanlage ConnecTag“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich jederzeit
             zurücksetzen.
           </p>
           <div className="actions">
@@ -155,7 +156,9 @@ export function SettingsPage() {
         <section className="card">
           <h2>Über</h2>
           <p style={{ margin: 0 }}>
-            <b>Tagnera</b> – brings your tag a level up. Prototyp-Version {__APP_VERSION__}.
+            <Logo showSlogan size={36} />
+            <br />
+            <span className="small muted">Prototyp-Version {__APP_VERSION__}</span>
           </p>
         </section>
       </div>

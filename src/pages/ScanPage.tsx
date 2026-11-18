@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../app/hooks';
 import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
+import { Logo } from '../components/Logo';
 import { QrScanner } from '../components/QrScanner';
 import { Empty, StatusBadge } from '../components/ui';
 import { data } from '../data';
@@ -84,12 +85,15 @@ export function ScanPage() {
         </div>
       )}
 
+      <div className="scan-brand">
+        <Logo showSlogan size={26} />
+      </div>
       <QrScanner key={attempt} active={active} onResult={onResult} onStart={start} />
 
       {foreign && (
         <div className="alert due">
           <div>
-            <div className="title">Kein Tagnera-Code</div>
+            <div className="title">Kein ConnecTag-Code</div>
             <div className="small" style={{ wordBreak: 'break-all' }}>
               Inhalt: {foreign}
             </div>

@@ -66,3 +66,10 @@ export function useFileUrl(fileId: string | null | undefined): string | null {
   }, [fileId]);
   return url;
 }
+
+/** Browser tab / window title: "<page> · ConnecTag". */
+export function useTitle(title: string | null | undefined): void {
+  useEffect(() => {
+    document.title = title ? `${title} · ConnecTag` : 'ConnecTag';
+  }, [title]);
+}

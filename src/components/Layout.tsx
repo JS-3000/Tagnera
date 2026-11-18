@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useData } from '../app/hooks';
+import { useData, useTitle } from '../app/hooks';
 import { useSession } from '../app/session';
 import { ROLE_LABELS } from '../data/types';
 import { loadAllTaskStatuses } from '../services/maintenance';
 import { HeaderSearch } from './HeaderSearch';
 import { Icon, type IconName } from './Icon';
+import { Logo } from './Logo';
 import { ToastHost } from './ui';
 
 interface NavItem {
@@ -48,6 +49,10 @@ export function Layout() {
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
   }, [pathname]);
+  const routeTitle = [...FIELD, ...MANAGE, { to: '/einstellungen', label: 'Einstellungen' }].find(
+    (n) => n.to !== '/' && pathname.startsWith(n.to),
+  )?.label;
+  useTitle(pathname.startsWith('/t/') ? undefined : (routeTitle ?? (pathname === '/' ? 'Übersicht' : undefined)));
 
   const link = (n: NavItem) => (
     <NavLink key={n.to} to={n.to} end={n.to === '/'}>
@@ -60,11 +65,8 @@ export function Layout() {
   return (
     <div className="app">
       <header className="topbar">
-        <Link to="/" className="brand" aria-label="Tagnera Startseite">
-          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
-          <span>
-            Tag<span className="accent">nera</span>
-          </span>
+        <Link to="/" className="brand" aria-label="ConnecTag Startseite">
+          <Logo variant="dark" size={30} />
         </Link>
         <HeaderSearch />
         <div className="spacer" />

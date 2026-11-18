@@ -24,14 +24,14 @@ export async function exportAll(): Promise<void> {
   }
   tables.files = files;
   const json = JSON.stringify({ format: FORMAT, version: VERSION, exportedAt: nowIso(), tables });
-  downloadBlob(new Blob([json], { type: 'application/json' }), `tagnera-export-${toDateStr(new Date())}.json`);
+  downloadBlob(new Blob([json], { type: 'application/json' }), `connectag-export-${toDateStr(new Date())}.json`);
 }
 
 /** Replaces ALL local data with the content of the file. */
 export async function importAll(file: File): Promise<{ tags: number; files: number }> {
   const parsed = JSON.parse(await file.text());
   if (parsed?.format !== FORMAT || !parsed.tables) {
-    throw new Error('Das ist keine Tagnera-Exportdatei.');
+    throw new Error('Das ist keine ConnecTag-Exportdatei.');
   }
   const tables = parsed.tables as Record<TableName, unknown[]>;
   // Convert files first, so a broken file does not leave us with half-deleted data.

@@ -97,7 +97,7 @@ export function ReportPage() {
           <div className="report-title">
             <img
               src={`${import.meta.env.BASE_URL}logo.svg`}
-              alt="Tagnera"
+              alt="ConnecTag"
               className="print-only"
               style={{ height: 28, marginBottom: 8 }}
             />

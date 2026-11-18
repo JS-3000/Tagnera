@@ -1,4 +1,4 @@
-// Domain model of Tagnera.
+// Domain model of ConnecTag.
 //
 // The shapes are deliberately "flat" (no nested objects, foreign keys as ids)
 // so that each type maps 1:1 to a PostgreSQL / Supabase table later on.

@@ -1,4 +1,4 @@
-// Fixed demo dataset "Demoanlage Tagnera".
+// Fixed demo dataset "Demoanlage ConnecTag" (formerly "Demoanlage Tagnera").
 //
 // - The 10 tags have FIXED UUIDs (the QR codes are printed – never change them).
 // - All other demo records get stable IDs derived from a name (demoId), so a newer
@@ -25,7 +25,8 @@ import { registerFixedQrTags, saveSettings } from './settings';
 
 /** Increase when the demo content changes – devices then replace their demo data. */
 export const DEMO_VERSION = 1;
-export const DEMO_PLANT = 'Demoanlage Tagnera';
+export const DEMO_PLANT = 'Demoanlage ConnecTag';
+const OLD_DEMO_PLANT = 'Demoanlage Tagnera'; // renamed in place, without a new demo version
 const STATE_KEY = 'tagnera.demo.v1';
 
 // ---------------------------------------------------------------- stable ids
@@ -949,6 +950,7 @@ export async function ensureDemoData(): Promise<'loaded' | 'shifted' | 'unchange
     if (!state) saveSettings({ currentUserId: DEMO_USERS[0].id });
     return 'loaded';
   }
+  await renameOldDemoPlant();
   if (state.anchor !== t) {
     // only update demo entries that still exist (deleted ones stay deleted until reset)
     const fresh = buildRecords(t).logEntries;
@@ -968,6 +970,14 @@ export async function ensureDemoData(): Promise<'loaded' | 'shifted' | 'unchange
     return 'shifted';
   }
   return 'unchanged';
+}
+
+/** Rename "Demoanlage Tagnera" -> "Demoanlage ConnecTag" on the demo tags, keeping all entries. */
+async function renameOldDemoPlant(): Promise<void> {
+  const tags = (await Promise.all([...DEMO_TAG_IDS].map((id) => data.tags.get(id)))).filter(
+    (t): t is Tag => !!t && t.plant === OLD_DEMO_PLANT,
+  );
+  if (tags.length) await data.tags.saveMany(tags.map((t) => ({ ...t, plant: DEMO_PLANT })));
 }
 
 /** "Demo zurücksetzen": original demo state; own tags (other UUIDs) stay. */
