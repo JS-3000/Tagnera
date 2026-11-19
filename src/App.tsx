@@ -7,6 +7,7 @@ import { CsvImportPage } from './pages/CsvImportPage';
 import { IssueFormPage } from './pages/IssueFormPage';
 import { IssuesPage } from './pages/IssuesPage';
 import { LoginPage } from './pages/LoginPage';
+import { MonitorPage } from './pages/MonitorPage';
 import { HomePage } from './pages/DashboardPage';
 import { LabelsPage } from './pages/LabelsPage';
 import { LogEntryPage } from './pages/LogEntryPage';
@@ -44,6 +45,7 @@ export function App() {
               </Suspense>
             }
           />
+          <Route path="monitor" element={<MonitorPage />} />
           <Route element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="scan" element={<ScanPage />} />

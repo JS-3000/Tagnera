@@ -94,6 +94,16 @@ export function DashboardPage() {
         <Link className="btn" to="/report">
           <Icon name="printer" /> Wartungsreport
         </Link>
+        <button
+          className="btn btn-dark"
+          onClick={() => {
+            // fullscreen needs a user click; then switch to the monitor view
+            void document.documentElement.requestFullscreen?.().catch(() => {});
+            navigate('/monitor');
+          }}
+        >
+          <Icon name="report" /> Hallen-Monitor starten
+        </button>
       </div>
 
       {d.total === 0 && (
