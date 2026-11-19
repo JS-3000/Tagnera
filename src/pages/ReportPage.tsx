@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useData } from '../app/hooks';
+import { useData, useMedia } from '../app/hooks';
 import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
-import { Empty } from '../components/ui';
+import { Empty, StatusBadge } from '../components/ui';
 import { fmtDate, fmtDateTime, nowIso } from '../lib/util';
 import { intervalLabel } from '../services/maintenance';
 import {
@@ -19,6 +19,7 @@ import {
 export function ReportPage() {
   const { user, can } = useSession();
   const [period, setPeriod] = useState<Period>(() => currentPeriod('month'));
+  const wide = useMedia('(min-width: 900px)');
   const report = useData(() => buildReport(period), [period.kind, period.year, period.index]);
 
   const setKind = (kind: PeriodKind) => setPeriod({ ...currentPeriod(kind), year: period.year });
@@ -61,14 +62,13 @@ export function ReportPage() {
             Quartal
           </button>
         </div>
-        <div className="btn-row">
+        <div className="period-row">
           <button className="btn" onClick={() => step(-1)} aria-label="Zurück">
             ‹
           </button>
           <select
             value={period.index}
             onChange={(e) => setPeriod({ ...period, index: Number(e.target.value) })}
-            style={{ flex: 2, minWidth: 140 }}
             aria-label={period.kind === 'month' ? 'Monat' : 'Quartal'}
           >
             {Array.from({ length: period.kind === 'month' ? 12 : 4 }, (_, i) => i + 1).map((i) => (
@@ -81,7 +81,6 @@ export function ReportPage() {
             type="number"
             value={period.year}
             onChange={(e) => setPeriod({ ...period, year: Number(e.target.value) || period.year })}
-            style={{ flex: 1, minWidth: 100 }}
             aria-label="Jahr"
           />
           <button className="btn" onClick={() => step(1)} aria-label="Weiter">
@@ -116,7 +115,7 @@ export function ReportPage() {
             <h2>Fällige Arbeiten ({report.items.length})</h2>
             {report.items.length === 0 ? (
               <Empty>Keine Wartungen in diesem Zeitraum.</Empty>
-            ) : (
+            ) : wide ? (
               <div className="table-wrap">
                 <table className="table">
                   <thead>
@@ -165,6 +164,28 @@ export function ReportPage() {
                   </tbody>
                 </table>
               </div>
+            ) : (
+              <div>
+                {report.items.map((it, i) => (
+                  <article key={i} className={`report-card ${it.state}`}>
+                    <div className="rc-head">
+                      <div>
+                        <Link to={`/t/${it.status.tag.id}`}>
+                          <b>{it.status.tag.tagNumber}</b>
+                        </Link>{' '}
+                        <span className="small muted">{it.status.tag.description || it.status.tag.type}</span>
+                      </div>
+                      <StatusBadge status={it.state} />
+                    </div>
+                    <div style={{ marginTop: 4, fontWeight: 600 }}>{it.status.task.title}</div>
+                    <div className="small">
+                      Fällig am <b>{fmtDate(it.date)}</b> ·{' '}
+                      {intervalLabel(it.status.task.intervalValue, it.status.task.intervalUnit)}
+                    </div>
+                    {it.parts.length > 0 && <div className="small muted">Ersatzteile: {it.parts.join(', ')}</div>}
+                  </article>
+                ))}
+              </div>
             )}
           </section>
 
@@ -174,7 +195,7 @@ export function ReportPage() {
               <Empty>Für diesen Zeitraum werden keine Ersatzteile benötigt.</Empty>
             ) : (
               <div className="table-wrap">
-                <table className="table">
+                <table className="table stack">
                   <thead>
                     <tr>
                       <th>Menge</th>
@@ -188,14 +209,20 @@ export function ReportPage() {
                   <tbody>
                     {report.parts.map((p) => (
                       <tr key={p.part.id}>
-                        <td>
+                        <td data-label="Menge">
                           <b>{p.quantity}</b>
                         </td>
-                        <td>{p.part.name}</td>
-                        <td className="mono small">{p.part.manufacturerPartNumber}</td>
-                        <td className="mono small">{p.part.supplierOrderNumber}</td>
-                        <td>{p.supplier?.name ?? '–'}</td>
-                        <td className="small">{p.tags.map((t) => t.tagNumber).join(', ')}</td>
+                        <td data-label="Teil">{p.part.name}</td>
+                        <td data-label="Hersteller-Nr." className="mono small">
+                          {p.part.manufacturerPartNumber}
+                        </td>
+                        <td data-label="Bestell-Nr." className="mono small">
+                          {p.part.supplierOrderNumber}
+                        </td>
+                        <td data-label="Lieferant">{p.supplier?.name ?? '–'}</td>
+                        <td data-label="Für Tags" className="small">
+                          {p.tags.map((t) => t.tagNumber).join(', ')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useData, useTitle } from '../app/hooks';
+import { useData, useMedia, useTitle } from '../app/hooks';
+import { Columns } from '../components/Columns';
 import { useSession } from '../app/session';
 import { DocumentList } from '../components/Documents';
 import { Icon } from '../components/Icon';
@@ -69,6 +70,7 @@ function TagView({ d }: { d: TagDetail }) {
   const [order, setOrder] = useState<{ part: SparePart; supplier: Supplier | null } | null>(null);
   const [showQr, setShowQr] = useState(false);
   const status = d.tasks.length ? worstStatus(d.tasks) : null;
+  const wide = useMedia('(min-width: 1100px)');
   useTitle(tag.tagNumber);
 
   const supportSection = (cls: string, id?: string) => (
@@ -108,235 +110,303 @@ function TagView({ d }: { d: TagDetail }) {
 
   return (
     <div className="tag-layout">
-      <aside className="tag-side">
-        <header className="tag-head">
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <div className="tagno">{tag.tagNumber}</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                {tag.type}
-                {tag.description && <span style={{ fontWeight: 400, opacity: 0.85 }}> – {tag.description}</span>}
-              </div>
-              {tag.plant && <div className="plant">{tag.plant}</div>}
-              {isDemoTag(tag.id) && (
-                <div className="demo-note" title="Wartungsintervalle, FAQ und Ersatzteile sind Beispielwerte">
-                  Demo-Daten · Intervalle, FAQ und Ersatzteile sind Beispielwerte
-                </div>
-              )}
-            </div>
-            <StatusBadge status={status} />
-          </div>
-          <dl className="meta">
-            <dt>Hersteller</dt>
-            <dd>{tag.manufacturer || '–'}</dd>
-            <dt>Artikel-Nr.</dt>
-            <dd>
-              {tag.articleNumber || '–'}
-              {product && can('admin') && (
-                <>
-                  {' '}
-                  <Link to={`/katalog/${product.id}`} style={{ color: 'var(--accent)', fontWeight: 400 }}>
-                    (Vorlage)
-                  </Link>
-                </>
-              )}
-            </dd>
-            {d.orderNumber && (
-              <>
-                <dt>Bestell-Nr.</dt>
-                <dd>{d.orderNumber}</dd>
-              </>
-            )}
-            {tag.location && (
-              <>
-                <dt>Standort</dt>
-                <dd>{tag.location}</dd>
-              </>
-            )}
-          </dl>
-        </header>
-
-        <NextMaintenance tasks={d.tasks} tagId={tag.id} />
-        <div className="actions" style={{ marginBottom: 16 }}>
-          {can('edit') && (
-            <Link className="btn btn-primary btn-lg" to={`/t/${tag.id}/eintrag`}>
-              <Icon name="plus" /> Eintrag hinzufügen
-            </Link>
-          )}
-          <Link className="btn btn-dark btn-lg" to="/scan?scan=1">
-            <Icon name="scan" /> Nächstes Bauteil scannen
-          </Link>
-        </div>
-
-        {/* desktop: QR code and support always visible in the left column */}
-        <section className="card desktop-only no-print">
-          <div className="qr-card">
-            <QrCode text={tagUrl(tag.id)} />
-            <div className="actions" style={{ flex: 1, gridTemplateColumns: '1fr' }}>
-              <Link className="btn btn-sm" to={`/etiketten?tags=${tag.id}`}>
-                <Icon name="printer" size={18} /> Etikett drucken
-              </Link>
-              {can('edit') && (
-                <Link className="btn btn-sm" to={`/tags/${tag.id}/bearbeiten`}>
-                  <Icon name="edit" size={18} /> Tag bearbeiten
-                </Link>
-              )}
-            </div>
-          </div>
-        </section>
-        {supportSection('desktop-only')}
-      </aside>
-
-      <div className="tag-main">
-        <nav className="jump no-print" aria-label="Bereiche">
-          <a href="#wartung" onClick={jump}>
-            Wartung
-          </a>
-          <a href="#tagebuch" onClick={jump}>
-            Tagebuch
-          </a>
-          <a href="#dokumente" onClick={jump}>
-            Dokumente
-          </a>
-          <a href="#faq" onClick={jump}>
-            FAQ
-          </a>
-          <a href="#ersatzteile" onClick={jump}>
-            Ersatzteile
-          </a>
-          <a href="#support" onClick={jump}>
-            Support
-          </a>
-        </nav>
-
-        <div className="tag-main-grid">
-          <section className="card span-2" id="wartung">
-            <div className="section-head">
-              <h2>
-                <Icon name="calendar" /> Wartung
-              </h2>
-            </div>
-            {d.tasks.length === 0 && <Empty>Keine Wartungsaufgaben hinterlegt.</Empty>}
-            <ul className="list">
-              {d.tasks.map((s) => (
-                <li key={s.task.id} className="list-item" style={{ alignItems: 'flex-start' }}>
-                  <div className="grow">
-                    <div className="title">{s.task.title}</div>
-                    <div className="small muted">
-                      {intervalLabel(s.task.intervalValue, s.task.intervalUnit)} · zuletzt:{' '}
-                      {s.lastDone ? fmtDate(s.lastDone) : `nie (ab Inbetriebnahme ${fmtDate(s.startDate)})`}
+      <Columns
+        left="0.8fr"
+        right="1.2fr"
+        tiles={[
+          {
+            key: 'head',
+            col: 'left',
+            order: 1,
+            node: (
+              <header className="tag-head">
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div className="tagno">{tag.tagNumber}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                      {tag.type}
+                      {tag.description && <span style={{ fontWeight: 400, opacity: 0.85 }}> – {tag.description}</span>}
                     </div>
-                    <div className="small">
-                      Fällig am <b>{fmtDate(s.dueDate)}</b> ({describeDue(s)})
-                    </div>
+                    {tag.plant && <div className="plant">{tag.plant}</div>}
+                    {isDemoTag(tag.id) && (
+                      <div className="demo-note" title="Wartungsintervalle, FAQ und Ersatzteile sind Beispielwerte">
+                        Demo-Daten · Intervalle, FAQ und Ersatzteile sind Beispielwerte
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                    <StatusBadge status={s.status} />
+                  <StatusBadge status={status} />
+                </div>
+                <dl className="meta">
+                  <dt>Hersteller</dt>
+                  <dd>{tag.manufacturer || '–'}</dd>
+                  <dt>Artikel-Nr.</dt>
+                  <dd>
+                    {tag.articleNumber || '–'}
+                    {product && can('admin') && (
+                      <>
+                        {' '}
+                        <Link to={`/katalog/${product.id}`} style={{ color: 'var(--accent)', fontWeight: 400 }}>
+                          (Vorlage)
+                        </Link>
+                      </>
+                    )}
+                  </dd>
+                  {d.orderNumber && (
+                    <>
+                      <dt>Bestell-Nr.</dt>
+                      <dd>{d.orderNumber}</dd>
+                    </>
+                  )}
+                  {tag.location && (
+                    <>
+                      <dt>Standort</dt>
+                      <dd>{tag.location}</dd>
+                    </>
+                  )}
+                </dl>
+              </header>
+            ),
+          },
+          {
+            key: 'next',
+            col: 'left',
+            order: 2,
+            node: d.tasks.length > 0 && <NextMaintenance tasks={d.tasks} tagId={tag.id} />,
+          },
+          {
+            key: 'actions',
+            col: 'left',
+            order: 4,
+            node: (
+              <div className="actions">
+                {can('edit') && (
+                  <Link className="btn btn-primary btn-lg" to={`/t/${tag.id}/eintrag`}>
+                    <Icon name="plus" /> Eintrag hinzufügen
+                  </Link>
+                )}
+                <Link className="btn btn-dark btn-lg" to="/scan?scan=1">
+                  <Icon name="scan" /> Nächstes Bauteil scannen
+                </Link>
+              </div>
+            ),
+          },
+          {
+            key: 'qr',
+            col: 'left',
+            order: 98,
+            node: wide && (
+              <section className="card no-print">
+                <div className="qr-card">
+                  <QrCode text={tagUrl(tag.id)} />
+                  <div className="actions" style={{ flex: 1, gridTemplateColumns: '1fr' }}>
+                    <Link className="btn btn-sm" to={`/etiketten?tags=${tag.id}`}>
+                      <Icon name="printer" size={18} /> Etikett drucken
+                    </Link>
                     {can('edit') && (
-                      <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag?task=${s.task.id}`}>
-                        <Icon name="check" size={18} /> Erledigt
+                      <Link className="btn btn-sm" to={`/tags/${tag.id}/bearbeiten`}>
+                        <Icon name="edit" size={18} /> Tag bearbeiten
                       </Link>
                     )}
                   </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="card" id="tagebuch">
-            <div className="section-head">
-              <h2>
-                <Icon name="wrench" /> Tagebuch
-              </h2>
-              {can('edit') && (
-                <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag`}>
-                  <Icon name="plus" size={18} /> Eintrag
-                </Link>
-              )}
-            </div>
-            <Diary entries={d.entries} tasks={d.tasks} canDelete={can('admin')} />
-          </section>
-
-          <section className="card" id="dokumente">
-            <div className="section-head">
-              <h2>
-                <Icon name="doc" /> Dokumente
-              </h2>
-            </div>
-            <DocumentList
-              docs={d.documents}
-              owner={{ ownerType: 'tag', ownerId: tag.id }}
-              canAdd={can('edit')}
-              canManage={(doc) => (doc.inherited ? can('admin') : can('edit'))}
-            />
-          </section>
-
-          <section className="card" id="faq">
-            <div className="section-head">
-              <h2>
-                <Icon name="help" /> FAQ
-              </h2>
-            </div>
-            {d.faqs.length === 0 && <Empty>Keine Fragen hinterlegt.</Empty>}
-            {d.faqs.map((f) => (
-              <details key={f.id} className="acc">
-                <summary>{f.question}</summary>
-                <div className="acc-body">{f.answer}</div>
-              </details>
-            ))}
-          </section>
-
-          <section className="card" id="ersatzteile">
-            <div className="section-head">
-              <h2>
-                <Icon name="box" /> Ersatzteile
-              </h2>
-            </div>
-            {d.spareParts.length === 0 && <Empty>Keine Ersatzteile hinterlegt.</Empty>}
-            <ul className="list">
-              {d.spareParts.map((p) => (
-                <li key={p.id} className="list-item wrap" style={{ alignItems: 'flex-start' }}>
-                  <div className="grow">
-                    <div className="title">{p.name}</div>
-                    <dl className="kv small" style={{ margin: '4px 0 0' }}>
-                      <dt>Hersteller-Nr.</dt>
-                      <dd className="mono">{p.manufacturerPartNumber || '–'}</dd>
-                      <dt>Bestell-Nr.</dt>
-                      <dd className="mono">{p.supplierOrderNumber || '–'}</dd>
-                      <dt>Lieferant</dt>
-                      <dd>{p.supplier?.name ?? '–'}</dd>
-                      {p.notes && (
-                        <>
-                          <dt>Hinweis</dt>
-                          <dd>{p.notes}</dd>
-                        </>
-                      )}
-                    </dl>
-                  </div>
+                </div>
+              </section>
+            ),
+          },
+          { key: 'support', col: 'left', order: 90, node: supportSection('', 'support') },
+          {
+            key: 'jump',
+            col: 'right',
+            order: 5,
+            node: !wide && (
+              <nav className="jump no-print" aria-label="Bereiche">
+                <a href="#wartung" onClick={jump}>
+                  Wartung
+                </a>
+                <a href="#tagebuch" onClick={jump}>
+                  Tagebuch
+                </a>
+                <a href="#dokumente" onClick={jump}>
+                  Dokumente
+                </a>
+                <a href="#faq" onClick={jump}>
+                  FAQ
+                </a>
+                <a href="#ersatzteile" onClick={jump}>
+                  Ersatzteile
+                </a>
+                <a href="#support" onClick={jump}>
+                  Support
+                </a>
+              </nav>
+            ),
+          },
+          {
+            key: 'wartung',
+            col: 'right',
+            order: 10,
+            node: (
+              <section className="card" id="wartung">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="calendar" /> Wartung
+                  </h2>
+                </div>
+                {d.tasks.length === 0 && <Empty>Keine Wartungsaufgaben hinterlegt.</Empty>}
+                <ul className="list">
+                  {d.tasks.map((s) => (
+                    <li key={s.task.id} className="list-item" style={{ alignItems: 'flex-start' }}>
+                      <div className="grow">
+                        <div className="title">{s.task.title}</div>
+                        <div className="small muted">
+                          {intervalLabel(s.task.intervalValue, s.task.intervalUnit)} · zuletzt:{' '}
+                          {s.lastDone ? fmtDate(s.lastDone) : `nie (ab Inbetriebnahme ${fmtDate(s.startDate)})`}
+                        </div>
+                        <div className="small">
+                          Fällig am <b>{fmtDate(s.dueDate)}</b> ({describeDue(s)})
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                        <StatusBadge status={s.status} />
+                        {can('edit') && (
+                          <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag?task=${s.task.id}`}>
+                            <Icon name="check" size={18} /> Erledigt
+                          </Link>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+          {
+            key: 'tagebuch',
+            col: 'right',
+            order: 11,
+            node: (
+              <section className="card" id="tagebuch">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="wrench" /> Tagebuch
+                  </h2>
                   {can('edit') && (
-                    <div className="item-actions">
-                      <button className="btn btn-primary" onClick={() => setOrder({ part: p, supplier: p.supplier })}>
-                        <Icon name="cart" /> Bestellen
-                      </button>
-                    </div>
+                    <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag`}>
+                      <Icon name="plus" size={18} /> Eintrag
+                    </Link>
                   )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-        {supportSection('mobile-only', 'support')}
-        <div className="actions two no-print mobile-only" style={{ marginBottom: 24 }}>
-          <button className="btn" onClick={() => setShowQr(true)}>
-            <Icon name="qr" /> QR-Code
-          </button>
-          {can('edit') && (
-            <button className="btn" onClick={() => navigate(`/tags/${tag.id}/bearbeiten`)}>
-              <Icon name="edit" /> Bearbeiten
-            </button>
-          )}
-        </div>
-      </div>
+                </div>
+                <Diary entries={d.entries} tasks={d.tasks} canDelete={can('admin')} />
+              </section>
+            ),
+          },
+          {
+            key: 'dokumente',
+            col: 'right',
+            order: 12,
+            node: (
+              <section className="card" id="dokumente">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="doc" /> Dokumente
+                  </h2>
+                </div>
+                <DocumentList
+                  docs={d.documents}
+                  owner={{ ownerType: 'tag', ownerId: tag.id }}
+                  canAdd={can('edit')}
+                  canManage={(doc) => (doc.inherited ? can('admin') : can('edit'))}
+                />
+              </section>
+            ),
+          },
+          {
+            key: 'ersatzteile',
+            col: 'right',
+            order: 13,
+            node: (
+              <section className="card" id="ersatzteile">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="box" /> Ersatzteile
+                  </h2>
+                </div>
+                {d.spareParts.length === 0 && <Empty>Keine Ersatzteile hinterlegt.</Empty>}
+                <ul className="list">
+                  {d.spareParts.map((p) => (
+                    <li key={p.id} className="list-item wrap" style={{ alignItems: 'flex-start' }}>
+                      <div className="grow">
+                        <div className="title">{p.name}</div>
+                        <dl className="kv small" style={{ margin: '4px 0 0' }}>
+                          <dt>Hersteller-Nr.</dt>
+                          <dd className="mono">{p.manufacturerPartNumber || '–'}</dd>
+                          <dt>Bestell-Nr.</dt>
+                          <dd className="mono">{p.supplierOrderNumber || '–'}</dd>
+                          <dt>Lieferant</dt>
+                          <dd>{p.supplier?.name ?? '–'}</dd>
+                          {p.notes && (
+                            <>
+                              <dt>Hinweis</dt>
+                              <dd>{p.notes}</dd>
+                            </>
+                          )}
+                        </dl>
+                      </div>
+                      {can('edit') && (
+                        <div className="item-actions">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => setOrder({ part: p, supplier: p.supplier })}
+                          >
+                            <Icon name="cart" /> Bestellen
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+          {
+            key: 'faq',
+            col: 'right',
+            order: 14,
+            node: (
+              <section className="card" id="faq">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="help" /> FAQ
+                  </h2>
+                </div>
+                {d.faqs.length === 0 && <Empty>Keine Fragen hinterlegt.</Empty>}
+                {d.faqs.map((f) => (
+                  <details key={f.id} className="acc">
+                    <summary>{f.question}</summary>
+                    <div className="acc-body">{f.answer}</div>
+                  </details>
+                ))}
+              </section>
+            ),
+          },
+          {
+            key: 'more',
+            col: 'left',
+            order: 99,
+            node: !wide && (
+              <div className="actions two no-print">
+                <button className="btn" onClick={() => setShowQr(true)}>
+                  <Icon name="qr" /> QR-Code
+                </button>
+                {can('edit') && (
+                  <button className="btn" onClick={() => navigate(`/tags/${tag.id}/bearbeiten`)}>
+                    <Icon name="edit" /> Bearbeiten
+                  </button>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {order && <OrderModal tag={tag} part={order.part} supplier={order.supplier} onClose={() => setOrder(null)} />}
       {showQr && (

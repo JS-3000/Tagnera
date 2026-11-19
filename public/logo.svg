@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 100">
   <g transform="translate(0 0)">
     <polyline points="15,85 60,55 105,15" fill="none" stroke="#1F2A36" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="15" cy="85" r="12" fill="#1F2A36"/>
     <circle cx="60" cy="55" r="12" fill="#1F2A36"/>
     <circle cx="105" cy="15" r="12" fill="#fff" stroke="#F28C28" stroke-width="6"/>
   </g>
-  <text x="138" y="76" font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="600" fill="#1F2A36">ConnecTag</text>
+  <text x="138" y="76" textLength="336" lengthAdjust="spacingAndGlyphs" font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="600" fill="#1F2A36">ConnecTag</text>
 </svg>

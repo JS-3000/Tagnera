@@ -1,8 +1,8 @@
 // Maintenance report for a month or quarter: all due work + required spare parts.
 import { data } from '../data';
 import type { SparePart, Supplier, Tag } from '../data/types';
-import { addDays, addMonths, today } from '../lib/util';
-import { addInterval, loadAllTaskStatuses, type TaskStatus } from './maintenance';
+import { addDays, addMonths, daysBetween, today } from '../lib/util';
+import { addInterval, loadAllTaskStatuses, warningWindowDays, type MaintStatus, type TaskStatus } from './maintenance';
 
 export type PeriodKind = 'month' | 'quarter';
 
@@ -47,6 +47,10 @@ export interface ReportItem {
   date: string;
   overdue: boolean; // was already due before the period started
   status: TaskStatus;
+  /** status of this occurrence seen from today */
+  state: MaintStatus;
+  /** "2 × Dichtungssatz" … */
+  parts: string[];
 }
 
 export interface ReportPart {
@@ -69,12 +73,12 @@ export async function buildReport(
 
   for (const s of statuses) {
     if (s.dueDate < range.start && range.end >= today()) {
-      items.push({ date: s.dueDate, overdue: true, status: s });
+      items.push({ date: s.dueDate, overdue: true, status: s, state: 'overdue', parts: [] });
     }
     // repeat the interval from the next due date and collect all dates inside the period
     let d = s.dueDate;
     for (let guard = 0; d <= range.end && guard < 1000; guard++) {
-      if (d >= range.start) items.push({ date: d, overdue: false, status: s });
+      if (d >= range.start) items.push({ date: d, overdue: false, status: s, state: 'ok', parts: [] });
       d = addInterval(s.dueDate, s.task.intervalValue, s.task.intervalUnit, guard + 1);
     }
   }
@@ -106,6 +110,13 @@ export async function buildReport(
   const partList = [...need.values()].sort(
     (a, b) => (a.supplier?.name ?? '').localeCompare(b.supplier?.name ?? '') || a.part.name.localeCompare(b.part.name),
   );
+  for (const it of items) {
+    const left = daysBetween(today(), it.date);
+    it.state = it.overdue || left < 0 ? 'overdue' : left <= warningWindowDays(it.status.task) ? 'due' : 'ok';
+    it.parts = it.status.task.requiredParts
+      .map((rp) => (partById.get(rp.sparePartId) ? `${rp.quantity} × ${partById.get(rp.sparePartId)!.name}` : ''))
+      .filter(Boolean);
+  }
   return { items, parts: partList, ...range };
 }
 

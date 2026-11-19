@@ -2,6 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useData, useMedia } from '../app/hooks';
 import { useSession } from '../app/session';
+import { Columns } from '../components/Columns';
 import { Icon } from '../components/Icon';
 import { Empty, StatusBadge } from '../components/ui';
 import { data } from '../data';
@@ -132,117 +133,143 @@ export function DashboardPage() {
         </Link>
       </div>
 
-      <div className="dash">
-        <section className="card" style={{ marginBottom: 0 }}>
-          <div className="section-head">
-            <h2>
-              <Icon name="calendar" /> Wartungen: offen & nächste {HORIZON_DAYS} Tage
-            </h2>
-            <Link className="btn btn-sm" to="/report">
-              Report
-            </Link>
-          </div>
-          {d.upcoming.length === 0 ? (
-            <Empty>Keine anstehenden Wartungen.</Empty>
-          ) : (
-            <div className="table-wrap" style={{ border: 0 }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Tag</th>
-                    <th>Aufgabe</th>
-                    <th>Fällig</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {d.upcoming.map((s) => (
-                    <tr key={s.tag.id + s.task.id} className="clickable" onClick={() => navigate(`/t/${s.tag.id}`)}>
-                      <td>
-                        <b>{s.tag.tagNumber}</b>
-                        <div className="small muted">
-                          {s.tag.type}
-                          {s.tag.plant && ` · ${s.tag.plant}`}
-                        </div>
-                      </td>
-                      <td>{s.task.title}</td>
-                      <td className="nowrap">
-                        {fmtDate(s.dueDate)}
-                        <div className="small muted">{describeDue(s)}</div>
-                      </td>
-                      <td>
-                        <StatusBadge status={s.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        <div>
-          <section className="card">
-            <h2>Anlagen</h2>
-            {d.plants.length === 0 && <Empty>–</Empty>}
-            <ul className="list">
-              {d.plants.map(([name, p]) => (
-                <li key={name} className="list-item">
-                  <Icon name="box" />
-                  <div className="grow">
-                    <div className="title">{name}</div>
-                    <div className="small muted">{p.total} Tags</div>
-                  </div>
-                  <StatusBadge status={p.worst} />
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="card">
-            <h2>Letzte Tagebucheinträge</h2>
-            {d.latest.length === 0 && <Empty>Noch keine Einträge.</Empty>}
-            <ul className="list">
-              {d.latest.map(({ e, tag }) => (
-                <li key={e.id}>
-                  <Link className="list-item" to={`/t/${e.tagId}`} style={{ alignItems: 'flex-start' }}>
-                    <div className="grow">
-                      <div>
-                        <b>{tag?.tagNumber ?? '?'}</b> · {LOG_KIND_LABELS[e.kind]}{' '}
-                        <span className="small muted">
-                          {fmtDate(e.date)} · {e.person}
-                        </span>
-                      </div>
-                      <div
-                        className="small muted"
-                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      >
-                        {e.description}
-                      </div>
-                    </div>
+      <Columns
+        left="2fr"
+        right="1fr"
+        tiles={[
+          {
+            key: 'maint',
+            col: 'left',
+            grow: true,
+            node: (
+              <section className="card">
+                <div className="section-head">
+                  <h2>
+                    <Icon name="calendar" /> Wartungen: offen & nächste {HORIZON_DAYS} Tage
+                  </h2>
+                  <Link className="btn btn-sm" to="/report">
+                    Report
                   </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {d.recent.length > 0 && (
-            <section className="card">
-              <h2>Zuletzt geöffnet</h2>
-              <ul className="list">
-                {d.recent.map((t) => (
-                  <li key={t!.id}>
-                    <Link className="list-item" to={`/t/${t!.id}`}>
-                      <Icon name="tag" size={20} />
-                      <b>{t!.tagNumber}</b> <span className="small muted">{t!.type}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </div>
-      </div>
+                </div>
+                {d.upcoming.length === 0 ? (
+                  <Empty>Keine anstehenden Wartungen.</Empty>
+                ) : (
+                  <div className="table-wrap" style={{ border: 0 }}>
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Tag</th>
+                          <th>Aufgabe</th>
+                          <th>Fällig</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {d.upcoming.map((s) => (
+                          <tr
+                            key={s.tag.id + s.task.id}
+                            className="clickable"
+                            onClick={() => navigate(`/t/${s.tag.id}`)}
+                          >
+                            <td>
+                              <b>{s.tag.tagNumber}</b>
+                              <div className="small muted">
+                                {s.tag.type}
+                                {s.tag.plant && ` · ${s.tag.plant}`}
+                              </div>
+                            </td>
+                            <td>{s.task.title}</td>
+                            <td className="nowrap">
+                              {fmtDate(s.dueDate)}
+                              <div className="small muted">{describeDue(s)}</div>
+                            </td>
+                            <td>
+                              <StatusBadge status={s.status} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            ),
+          },
+          {
+            key: 'plants',
+            col: 'right',
+            node: (
+              <section className="card">
+                <h2>Anlagen</h2>
+                {d.plants.length === 0 && <Empty>–</Empty>}
+                <ul className="list">
+                  {d.plants.map(([name, p]) => (
+                    <li key={name} className="list-item">
+                      <Icon name="box" />
+                      <div className="grow">
+                        <div className="title">{name}</div>
+                        <div className="small muted">{p.total} Tags</div>
+                      </div>
+                      <StatusBadge status={p.worst} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+          {
+            key: 'latest',
+            col: 'right',
+            node: (
+              <section className="card">
+                <h2>Letzte Tagebucheinträge</h2>
+                {d.latest.length === 0 && <Empty>Noch keine Einträge.</Empty>}
+                <ul className="list">
+                  {d.latest.map(({ e, tag }) => (
+                    <li key={e.id}>
+                      <Link className="list-item" to={`/t/${e.tagId}`} style={{ alignItems: 'flex-start' }}>
+                        <div className="grow">
+                          <div>
+                            <b>{tag?.tagNumber ?? '?'}</b> · {LOG_KIND_LABELS[e.kind]}{' '}
+                            <span className="small muted">
+                              {fmtDate(e.date)} · {e.person}
+                            </span>
+                          </div>
+                          <div
+                            className="small muted"
+                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {e.description}
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+          {
+            key: 'recent',
+            col: 'right',
+            node: d.recent.length > 0 && (
+              <section className="card">
+                <h2>Zuletzt geöffnet</h2>
+                <ul className="list">
+                  {d.recent.map((t) => (
+                    <li key={t!.id}>
+                      <Link className="list-item" to={`/t/${t!.id}`}>
+                        <Icon name="tag" size={20} />
+                        <b>{t!.tagNumber}</b> <span className="small muted">{t!.type}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

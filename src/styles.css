@@ -1333,10 +1333,7 @@ table.table {
 /* tag page: two columns on desktop, left column stays in view */
 @media (min-width: 1100px) {
   .tag-layout {
-    display: grid;
-    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
-    gap: 20px;
-    align-items: start;
+    display: block;
   }
   .tag-main-grid {
     display: grid;
@@ -1373,7 +1370,7 @@ table.table {
 }
 @media (min-width: 700px) {
   .inline-form {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) auto;
   }
 }
 @media (min-width: 1100px) {
@@ -1657,8 +1654,9 @@ label.tap {
   min-height: 44px;
   cursor: pointer;
 }
-.check {
-  flex-wrap: wrap;
+.check > span {
+  flex: 1;
+  min-width: 0;
 }
 @media (max-width: 359px) {
   .pdfv-bar.bottom {
@@ -1670,4 +1668,124 @@ label.tap {
 }
 .actions > .btn > svg {
   flex: none;
+}
+
+/* ------------------------------------------------------------ fixed columns (components/Columns) */
+.cols-two {
+  display: grid;
+  gap: clamp(14px, 1.6vw, 20px);
+  align-items: stretch; /* both columns as tall as the taller one */
+}
+.cols-two > .col,
+.cols-one {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.6vw, 20px);
+  min-width: 0;
+}
+.col-tile > .card,
+.col-tile > section,
+.col-tile > .alert {
+  margin-bottom: 0;
+}
+.col-tile.grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.col-tile.grow > .card {
+  flex: 1;
+}
+.cols-one + *,
+.cols-two + * {
+  margin-top: 16px;
+}
+/* labels: tag list fills its box down to the bottom */
+.label-tags {
+  display: flex;
+  flex-direction: column;
+}
+.label-list-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 300px;
+}
+.label-list {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* report: period selector aligned with the Monat/Quartal switch above */
+.period-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1.6fr) minmax(0, 1fr) 52px;
+  gap: 8px;
+}
+.period-row > .btn {
+  padding: 0;
+  font-size: 1.4rem;
+}
+.report-card {
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--ok);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.report-card.due {
+  border-left-color: var(--due);
+}
+.report-card.overdue {
+  border-left-color: var(--overdue);
+}
+.report-card .rc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+/* narrow screens: tables with .stack become one card per row (no sideways scrolling) */
+@media (max-width: 899px) {
+  .table-wrap:has(.table.stack) {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .table.stack thead {
+    display: none;
+  }
+  .table.stack,
+  .table.stack tbody,
+  .table.stack tr,
+  .table.stack td {
+    display: block;
+    width: 100%;
+  }
+  .table.stack tr {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .table.stack td {
+    border: 0;
+    padding: 3px 0;
+    display: grid;
+    grid-template-columns: minmax(90px, 38%) 1fr;
+    gap: 8px;
+    overflow-wrap: anywhere;
+  }
+  .table.stack td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+.col-tile > .tag-head {
+  margin-bottom: 0;
 }

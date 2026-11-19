@@ -152,7 +152,7 @@ export function CsvImportPage() {
           <section className="card">
             <h2>3. Vorschau</h2>
             <div className="table-wrap">
-              <table className="table">
+              <table className="table stack">
                 <thead>
                   <tr>
                     {TARGET_FIELDS.filter((f) => mapped(f.key)).map((f) => (
@@ -165,9 +165,11 @@ export function CsvImportPage() {
                   {preview.map((v, i) => (
                     <tr key={i}>
                       {TARGET_FIELDS.filter((f) => mapped(f.key)).map((f) => (
-                        <td key={f.key}>{v[f.key]}</td>
+                        <td key={f.key} data-label={f.label}>
+                          {v[f.key]}
+                        </td>
                       ))}
-                      <td className="small">
+                      <td className="small" data-label="Hinweis">
                         {!v.tagNumber && <span style={{ color: 'var(--overdue)' }}>keine Tag-Nummer</span>}
                         {v.tagNumber && existingKeys.has(normalizeKey(v.tagNumber)) && (
                           <span className="pill">

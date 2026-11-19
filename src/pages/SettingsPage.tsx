@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
+import { Columns } from '../components/Columns';
 import { Logo } from '../components/Logo';
 import { Field, toast } from '../components/ui';
 import { data } from '../data';
@@ -33,135 +34,161 @@ export function SettingsPage() {
       <div className="page-head">
         <h1>Einstellungen</h1>
       </div>
-      <div className="card-grid">
-        <section className="card">
-          <h2>Benutzer & Rolle</h2>
-          <p className="muted small">
-            Prototyp ohne echten Login: Wähle hier, als wer du die App bedienst. Die Oberfläche blendet Funktionen je
-            nach Rolle aus.
-          </p>
-          <div className="segmented" role="radiogroup" aria-label="Benutzer">
-            {users.map((u) => (
-              <button key={u.id} className={u.id === user?.id ? 'on' : ''} onClick={() => switchUser(u.id)}>
-                {u.name}
-                <br />
-                <span className="small" style={{ fontWeight: 500 }}>
-                  {ROLE_LABELS[u.role]}
-                </span>
-              </button>
-            ))}
-          </div>
-          <ul className="small muted" style={{ marginBottom: 0 }}>
-            <li>
-              <b>Leser:</b> nur ansehen
-            </li>
-            <li>
-              <b>Bearbeiter:</b> Tagebuch, Wartungen, Bestellungen, Tags anlegen
-            </li>
-            <li>
-              <b>Administrator:</b> alles inkl. Katalog, Lieferanten, Import und Benutzerverwaltung
-            </li>
-          </ul>
-        </section>
-
-        {can('admin') && <UserAdmin users={users} />}
-
-        <section className="card">
-          <h2>Daten</h2>
-          <p className="muted small">
-            Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur dich.
-            Die „Demoanlage ConnecTag“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich jederzeit
-            zurücksetzen.
-          </p>
-          <div className="actions">
-            <button className="btn" disabled={busy} onClick={() => run(exportAll, 'Export erstellt')}>
-              <Icon name="download" /> Daten exportieren
-            </button>
-            {can('admin') && (
-              <>
-                <button className="btn" disabled={busy} onClick={() => fileRef.current?.click()}>
-                  <Icon name="upload" /> Daten importieren
-                </button>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="application/json,.json"
-                  hidden
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = '';
-                    if (!f) return;
-                    if (!confirm('Import ersetzt ALLE Daten auf diesem Gerät. Fortfahren?')) return;
-                    void run(async () => {
-                      const r = await importAll(f);
-                      toast(`${r.tags} Tags importiert`);
-                    }, 'Import abgeschlossen');
-                  }}
-                />
-              </>
-            )}
-            <button
-              className="btn btn-primary"
-              disabled={busy}
-              onClick={() => {
-                if (
-                  !confirm(
-                    'Demo auf den Originalzustand zurücksetzen? Änderungen an den 10 Demo-Tags gehen verloren, eigene Tags bleiben erhalten.',
-                  )
-                )
-                  return;
-                void run(resetDemo, 'Demo zurückgesetzt');
-              }}
-            >
-              <Icon name="back" /> Demo zurücksetzen
-            </button>
-            {can('admin') && (
-              <button
-                className="btn btn-danger"
-                disabled={busy}
-                onClick={() => {
-                  if (
-                    !confirm(
-                      'Wirklich ALLE Daten auf diesem Gerät löschen? Die Demo wird beim nächsten Start neu geladen.',
-                    )
-                  )
-                    return;
-                  void run(() => data.clearAll(), 'Alle Daten gelöscht');
-                }}
-              >
-                <Icon name="trash" /> Alles löschen
-              </button>
-            )}
-          </div>
-        </section>
-
-        <section className="card">
-          <h2>QR-Code-Adresse</h2>
-          <p className="muted small">
-            Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (
-            <span className="mono">{currentAppUrl()}</span>). Wichtig, wenn du Etiketten lokal druckst, die App aber
-            über GitHub Pages nutzt.
-          </p>
-          <Field label="Basis-URL für QR-Codes">
-            <input
-              type="url"
-              placeholder="https://js-3000.github.io/Tagnera/"
-              value={qrBase}
-              onChange={(e) => setQrBase(e.target.value)}
-              onBlur={() => saveSettings({ qrBaseUrl: qrBase.trim() })}
-            />
-          </Field>
-        </section>
-
-        <section className="card">
-          <h2>Über</h2>
-          <p style={{ margin: 0 }}>
-            <Logo showSlogan size={36} />
-            <br />
-            <span className="small muted">Prototyp-Version {__APP_VERSION__}</span>
-          </p>
-        </section>
-      </div>
+      <Columns
+        tiles={[
+          {
+            key: 'user',
+            order: 1,
+            col: 'left',
+            node: (
+              <section className="card">
+                <h2>Benutzer & Rolle</h2>
+                <p className="muted small">
+                  Prototyp ohne echten Login: Wähle hier, als wer du die App bedienst. Die Oberfläche blendet Funktionen
+                  je nach Rolle aus.
+                </p>
+                <div className="segmented" role="radiogroup" aria-label="Benutzer">
+                  {users.map((u) => (
+                    <button key={u.id} className={u.id === user?.id ? 'on' : ''} onClick={() => switchUser(u.id)}>
+                      {u.name}
+                      <br />
+                      <span className="small" style={{ fontWeight: 500 }}>
+                        {ROLE_LABELS[u.role]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <ul className="small muted" style={{ marginBottom: 0 }}>
+                  <li>
+                    <b>Leser:</b> nur ansehen
+                  </li>
+                  <li>
+                    <b>Bearbeiter:</b> Tagebuch, Wartungen, Bestellungen, Tags anlegen
+                  </li>
+                  <li>
+                    <b>Administrator:</b> alles inkl. Katalog, Lieferanten, Import und Benutzerverwaltung
+                  </li>
+                </ul>
+              </section>
+            ),
+          },
+          {
+            key: 'data',
+            order: 3,
+            col: 'left',
+            node: (
+              <section className="card">
+                <h2>Daten</h2>
+                <p className="muted small">
+                  Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur
+                  dich. Die „Demoanlage ConnecTag“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich
+                  jederzeit zurücksetzen.
+                </p>
+                <div className="actions">
+                  <button className="btn" disabled={busy} onClick={() => run(exportAll, 'Export erstellt')}>
+                    <Icon name="download" /> Daten exportieren
+                  </button>
+                  {can('admin') && (
+                    <>
+                      <button className="btn" disabled={busy} onClick={() => fileRef.current?.click()}>
+                        <Icon name="upload" /> Daten importieren
+                      </button>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="application/json,.json"
+                        hidden
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          e.target.value = '';
+                          if (!f) return;
+                          if (!confirm('Import ersetzt ALLE Daten auf diesem Gerät. Fortfahren?')) return;
+                          void run(async () => {
+                            const r = await importAll(f);
+                            toast(`${r.tags} Tags importiert`);
+                          }, 'Import abgeschlossen');
+                        }}
+                      />
+                    </>
+                  )}
+                  <button
+                    className="btn btn-primary"
+                    disabled={busy}
+                    onClick={() => {
+                      if (
+                        !confirm(
+                          'Demo auf den Originalzustand zurücksetzen? Änderungen an den 10 Demo-Tags gehen verloren, eigene Tags bleiben erhalten.',
+                        )
+                      )
+                        return;
+                      void run(resetDemo, 'Demo zurückgesetzt');
+                    }}
+                  >
+                    <Icon name="back" /> Demo zurücksetzen
+                  </button>
+                  {can('admin') && (
+                    <button
+                      className="btn btn-danger"
+                      disabled={busy}
+                      onClick={() => {
+                        if (
+                          !confirm(
+                            'Wirklich ALLE Daten auf diesem Gerät löschen? Die Demo wird beim nächsten Start neu geladen.',
+                          )
+                        )
+                          return;
+                        void run(() => data.clearAll(), 'Alle Daten gelöscht');
+                      }}
+                    >
+                      <Icon name="trash" /> Alles löschen
+                    </button>
+                  )}
+                </div>
+              </section>
+            ),
+          },
+          {
+            key: 'about',
+            order: 5,
+            col: 'left',
+            node: (
+              <section className="card">
+                <h2>Über</h2>
+                <p style={{ margin: 0 }}>
+                  <Logo showSlogan size={36} />
+                  <br />
+                  <span className="small muted">Prototyp-Version {__APP_VERSION__}</span>
+                </p>
+              </section>
+            ),
+          },
+          { key: 'admin', order: 2, col: 'right', node: can('admin') && <UserAdmin users={users} /> },
+          {
+            key: 'qr',
+            order: 4,
+            col: 'right',
+            node: (
+              <section className="card">
+                <h2>QR-Code-Adresse</h2>
+                <p className="muted small">
+                  Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (
+                  <span className="mono">{currentAppUrl()}</span>). Wichtig, wenn du Etiketten lokal druckst, die App
+                  aber über GitHub Pages nutzt.
+                </p>
+                <Field label="Basis-URL für QR-Codes">
+                  <input
+                    type="url"
+                    placeholder="https://js-3000.github.io/Tagnera/"
+                    value={qrBase}
+                    onChange={(e) => setQrBase(e.target.value)}
+                    onBlur={() => saveSettings({ qrBaseUrl: qrBase.trim() })}
+                  />
+                </Field>
+              </section>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -183,11 +210,7 @@ function UserAdmin({ users }: { users: User[] }) {
               onBlur={(e) => e.target.value.trim() && update(u, { name: e.target.value.trim() })}
               aria-label="Name"
             />
-            <select
-              value={u.role}
-              onChange={(e) => update(u, { role: e.target.value as Role })}
-              aria-label="Rolle"
-            >
+            <select value={u.role} onChange={(e) => update(u, { role: e.target.value as Role })} aria-label="Rolle">
               {Object.entries(ROLE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}

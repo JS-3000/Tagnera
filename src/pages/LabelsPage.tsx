@@ -165,12 +165,12 @@ export function LabelsPage() {
             </label>
             <p className="small muted" style={{ marginBottom: 0 }}>
               Im Druckdialog <b>Skalierung 100 % / „Tatsächliche Größe“</b> und <b>Ränder: keine</b> wählen, Kopf- und
-              Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse (Demo-Tags immer https://js-3000.github.io/Tagnera/):{' '}
-              <span className="mono">{appBaseUrl()}</span>
+              Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse (Demo-Tags
+              immer https://js-3000.github.io/Tagnera/): <span className="mono">{appBaseUrl()}</span>
             </p>
           </section>
 
-          <section className="card">
+          <section className="card label-tags">
             <div className="section-head">
               <h2>Tags ({chosen.length})</h2>
               <button className="btn btn-sm" onClick={() => setSelected(null)}>
@@ -197,21 +197,23 @@ export function LabelsPage() {
                 ))}
               </select>
             )}
-            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-              {tags?.length === 0 && <Empty>Keine Tags vorhanden.</Empty>}
-              {tags?.map((t) => {
-                const on = selected ? selected.has(t.id) : true;
-                return (
-                  <label
-                    key={t.id}
-                    className={`check${on ? ' checked' : ''}`}
-                    style={{ minHeight: 44, marginBottom: 4 }}
-                  >
-                    <input type="checkbox" checked={on} onChange={() => toggle(t.id)} />
-                    <b>{t.tagNumber}</b> <span className="muted small">{t.plant}</span>
-                  </label>
-                );
-              })}
+            <div className="label-list-wrap">
+              <div className="label-list">
+                {tags?.length === 0 && <Empty>Keine Tags vorhanden.</Empty>}
+                {tags?.map((t) => {
+                  const on = selected ? selected.has(t.id) : true;
+                  return (
+                    <label
+                      key={t.id}
+                      className={`check${on ? ' checked' : ''}`}
+                      style={{ minHeight: 44, marginBottom: 4 }}
+                    >
+                      <input type="checkbox" checked={on} onChange={() => toggle(t.id)} />
+                      <b>{t.tagNumber}</b> <span className="muted small">{t.plant}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </section>
         </div>
