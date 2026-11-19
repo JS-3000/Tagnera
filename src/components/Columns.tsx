@@ -31,11 +31,13 @@ export function Columns({
     const idx = (t: Tile) => t.order ?? (t.col === 'left' ? 0 : 1000) + tiles.indexOf(t);
     return (
       <div className="cols-one">
-        {[...visible].sort((a, b) => idx(a) - idx(b)).map((t) => (
-          <div key={t.key} className="col-tile">
-            {t.node}
-          </div>
-        ))}
+        {[...visible]
+          .sort((a, b) => idx(a) - idx(b))
+          .map((t) => (
+            <div key={t.key} className="col-tile">
+              {t.node}
+            </div>
+          ))}
       </div>
     );
   }

@@ -9,6 +9,7 @@ import { HeaderSearch } from './HeaderSearch';
 import { Icon, type IconName } from './Icon';
 import { Logo } from './Logo';
 import { ToastHost } from './ui';
+import { tr } from '../i18n';
 
 interface NavItem {
   to: string;
@@ -76,12 +77,20 @@ export function Layout() {
     { to: '/einstellungen', label: 'Einstellungen' },
     { to: '/anmelden', label: 'Anmelden' },
   ].find((n) => n.to !== '/' && pathname.startsWith(n.to))?.label;
-  useTitle(pathname.startsWith('/t/') ? undefined : (routeTitle ?? (pathname === '/' ? 'Übersicht' : undefined)));
+  useTitle(
+    pathname.startsWith('/t/')
+      ? undefined
+      : routeTitle
+        ? tr(routeTitle)
+        : pathname === '/'
+          ? tr('Übersicht')
+          : undefined,
+  );
 
   const link = (n: NavItem) => (
     <NavLink key={n.to} to={n.to} end={n.to === '/'}>
       <Icon name={n.icon} size={22} />
-      <span>{n.label}</span>
+      <span>{tr(n.label)}</span>
       {n.to === '/hinweise' && alertCount > 0 && <span className="badge-count">{alertCount}</span>}
       {n.to === '/meldungen' && newIssues > 0 && <span className="badge-count">{newIssues}</span>}
     </NavLink>
@@ -95,7 +104,7 @@ export function Layout() {
   return (
     <div className="app">
       <header className="topbar">
-        <Link to="/" className="brand" aria-label="ConnecTag Startseite">
+        <Link to="/" className="brand" aria-label={tr('ConnecTag Startseite')}>
           <Logo variant="dark" size={30} />
         </Link>
         {!isPublic && <HeaderSearch />}
@@ -111,26 +120,26 @@ export function Layout() {
         )}
         {isPublic ? (
           <Link to={`/anmelden?back=${encodeURIComponent(pathname)}`} className="btn btn-sm btn-primary">
-            Anmelden
+            {tr('Anmelden')}
           </Link>
         ) : (
-          <Link to="/hinweise" className="icon-btn" aria-label="Hinweise">
+          <Link to="/hinweise" className="icon-btn" aria-label={tr('Hinweise')}>
             <Icon name="bell" />
             {alertCount > 0 && <span className="badge-count">{alertCount}</span>}
           </Link>
         )}
       </header>
 
-      <nav className="sidebar" aria-label="Hauptnavigation">
+      <nav className="sidebar" aria-label={tr('Hauptnavigation')}>
         {isPublic ? (
           PUBLIC_NAV.map(link)
         ) : (
           <>
-            <div className="group">Feld</div>
+            <div className="group">{tr('Feld')}</div>
             {FIELD.filter(visible).map(link)}
-            <div className="group">Verwaltung</div>
+            <div className="group">{tr('Verwaltung')}</div>
             {MANAGE.filter(visible).map(link)}
-            <div className="group">System</div>
+            <div className="group">{tr('System')}</div>
             {link({ to: '/einstellungen', label: 'Einstellungen', icon: 'settings' })}
           </>
         )}
@@ -142,7 +151,7 @@ export function Layout() {
         </div>
       </main>
 
-      <nav className="bottomnav" aria-label="Navigation">
+      <nav className="bottomnav" aria-label={tr('Navigation')}>
         {(isPublic ? PUBLIC_NAV : can('admin') ? MOBILE_ADMIN : MOBILE).map(link)}
       </nav>
       <ToastHost />

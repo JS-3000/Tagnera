@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon';
 import { Empty, Field } from '../components/ui';
 import { data } from '../data';
 import { createIssue } from '../services/issues';
+import { speechLang, tr } from '../i18n';
 
 export function IssueFormPage() {
   const { id = '' } = useParams();
@@ -28,7 +29,7 @@ export function IssueFormPage() {
     return () => URL.revokeObjectURL(u);
   }, [photo]);
 
-  if (tag === undefined) return <Empty>Lädt …</Empty>;
+  if (tag === undefined) return <Empty>{tr('Lädt …')}</Empty>;
 
   if (sent) {
     return (
@@ -37,20 +38,20 @@ export function IssueFormPage() {
           <Icon name="check" size={32} />
           <div>
             <div className="title" style={{ fontSize: '1.2rem' }}>
-              Danke, Ihre Meldung ist eingegangen.
+              {tr('Danke, Ihre Meldung ist eingegangen.')}
             </div>
             <div>
-              Störung an <b>{tag.tagNumber}</b> wurde an die Instandhaltung übermittelt.
-              {phone && ' Bei Rückfragen melden wir uns telefonisch.'}
+              {tr('Störung an')} <b>{tag.tagNumber}</b> {tr('wurde an die Instandhaltung übermittelt.')}
+              {phone && tr(' Bei Rückfragen melden wir uns telefonisch.')}
             </div>
           </div>
         </div>
         <div className="actions">
           <Link className="btn btn-primary btn-lg" to="/scan?scan=1">
-            <Icon name="scan" /> Weiteres Bauteil scannen
+            <Icon name="scan" /> {tr('Weiteres Bauteil scannen')}
           </Link>
           <Link className="btn btn-lg" to={`/t/${tag.id}`}>
-            Zurück zum Bauteil
+            {tr('Zurück zum Bauteil')}
           </Link>
         </div>
       </div>
@@ -74,10 +75,12 @@ export function IssueFormPage() {
       }}
     >
       <div className="page-head">
-        <Link to={`/t/${tag.id}`} className="btn btn-sm" aria-label="Zurück">
+        <Link to={`/t/${tag.id}`} className="btn btn-sm" aria-label={tr('Zurück')}>
           <Icon name="back" size={18} />
         </Link>
-        <h1>Störung melden · {tag.tagNumber}</h1>
+        <h1>
+          {tr('Störung melden ·')} {tag.tagNumber}
+        </h1>
       </div>
       <section className="card">
         <p className="small muted" style={{ marginTop: 0 }}>
@@ -86,30 +89,30 @@ export function IssueFormPage() {
         </p>
         <div className="dictate-row">
           <DictateButton
-            lang="de-DE"
+            lang={speechLang()}
             onText={(text) => setDescription((d) => (d.trim() ? `${d.trim()} ${text}` : text))}
           />
         </div>
-        <Field label="Was ist passiert? *">
+        <Field label={tr('Was ist passiert? *')}>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="z. B. tropft an der Welle, ungewöhnliches Geräusch …"
+            placeholder={tr('z. B. tropft an der Welle, ungewöhnliches Geräusch …')}
             required
           />
         </Field>
         <div className="form-grid">
-          <Field label="Ihr Name *">
+          <Field label={tr('Ihr Name *')}>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
           </Field>
-          <Field label="Telefon (optional, für Rückfragen)">
+          <Field label={tr('Telefon (optional, für Rückfragen)')}>
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
           </Field>
         </div>
         <div className="field">
-          <span>Foto (optional)</span>
+          <span>{tr('Foto (optional)')}</span>
           <label className="btn btn-block">
-            <Icon name="camera" /> {photo ? 'Anderes Foto wählen' : 'Foto aufnehmen / auswählen'}
+            <Icon name="camera" /> {photo ? tr('Anderes Foto wählen') : tr('Foto aufnehmen / auswählen')}
             <input
               type="file"
               accept="image/*"
@@ -121,7 +124,7 @@ export function IssueFormPage() {
           {preview && (
             <img
               src={preview}
-              alt="Vorschau"
+              alt={tr('Vorschau')}
               style={{ maxWidth: 160, maxHeight: 120, borderRadius: 8, marginTop: 8 }}
             />
           )}
@@ -132,7 +135,7 @@ export function IssueFormPage() {
         type="submit"
         disabled={busy || !description.trim() || !name.trim()}
       >
-        <Icon name="mail" /> Meldung absenden
+        <Icon name="mail" /> {tr('Meldung absenden')}
       </button>
     </form>
   );

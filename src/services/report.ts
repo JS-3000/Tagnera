@@ -1,5 +1,6 @@
 // Maintenance report for a month or quarter: all due work + required spare parts.
 import { data } from '../data';
+import { t } from '../i18n';
 import type { SparePart, Supplier, Tag } from '../data/types';
 import { addDays, addMonths, daysBetween, today } from '../lib/util';
 import { addInterval, loadAllTaskStatuses, warningWindowDays, type MaintStatus, type TaskStatus } from './maintenance';
@@ -26,13 +27,14 @@ const MONTHS = [
   'November',
   'Dezember',
 ];
-export const monthName = (m: number) => MONTHS[m - 1];
+export const monthName = (m: number) => t(MONTHS[m - 1]);
 
 export function periodRange(p: Period): { start: string; end: string; label: string } {
   const firstMonth = p.kind === 'month' ? p.index : (p.index - 1) * 3 + 1;
   const start = `${p.year}-${String(firstMonth).padStart(2, '0')}-01`;
   const end = addDays(addMonths(start, p.kind === 'month' ? 1 : 3), -1);
-  const label = p.kind === 'month' ? `${monthName(p.index)} ${p.year}` : `${p.index}. Quartal ${p.year}`;
+  const label =
+    p.kind === 'month' ? `${monthName(p.index)} ${p.year}` : t('{{n}}. Quartal {{year}}', { n: p.index, year: p.year });
   return { start, end, label };
 }
 

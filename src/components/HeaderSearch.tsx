@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../app/hooks';
 import { searchTags } from '../services/tags';
 import { Icon } from './Icon';
+import { tr } from '../i18n';
 
 export function HeaderSearch() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function HeaderSearch() {
       <Icon name="search" size={18} />
       <input
         type="search"
-        placeholder="Tag suchen … (z. B. HV-1001, Pumpe, Kieselmann)"
+        placeholder={tr('Tag suchen … (z. B. HV-1001, Pumpe, Kieselmann)')}
         value={q}
         onChange={(e) => {
           setQ(e.target.value);
@@ -39,13 +40,13 @@ export function HeaderSearch() {
           else if (e.key === 'Enter') go(hits[active].id);
           else if (e.key === 'Escape') setOpen(false);
         }}
-        aria-label="Tag suchen"
+        aria-label={tr('Tag suchen')}
       />
       {open && q.trim() && hits && (
         <div className="results">
           {hits.length === 0 && (
             <div className="muted small" style={{ padding: 10 }}>
-              Kein Tag gefunden.
+              {tr('Kein Tag gefunden.')}
             </div>
           )}
           {hits.map((t, i) => (

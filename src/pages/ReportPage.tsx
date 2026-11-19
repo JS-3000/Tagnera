@@ -15,6 +15,7 @@ import {
   type PeriodKind,
   type ReportPart,
 } from '../services/report';
+import { tr } from '../i18n';
 
 export function ReportPage() {
   const { user, can } = useSession();
@@ -35,7 +36,7 @@ export function ReportPage() {
       const q = new URLSearchParams({ src: url, name: `Wartungsreport ${report.label}.pdf`, back: '/report' });
       navigate(`/viewer?${q.toString()}`);
     } catch (e) {
-      alert('PDF konnte nicht erstellt werden: ' + (e instanceof Error ? e.message : String(e)));
+      alert(tr('PDF konnte nicht erstellt werden: ') + (e instanceof Error ? e.message : String(e)));
     } finally {
       setPdfBusy(false);
     }
@@ -66,36 +67,36 @@ export function ReportPage() {
   return (
     <div>
       <div className="page-head no-print">
-        <h1>Wartungsreport</h1>
+        <h1>{tr('Wartungsreport')}</h1>
         <Link className="btn" to="/kalender">
-          <Icon name="calendar" /> Kalender
+          <Icon name="calendar" /> {tr('Kalender')}
         </Link>
         <button className="btn btn-primary" onClick={makePdf} disabled={!report || pdfBusy}>
-          <Icon name="printer" /> {pdfBusy ? 'PDF wird erstellt …' : 'Drucken / PDF'}
+          <Icon name="printer" /> {pdfBusy ? tr('PDF wird erstellt …') : tr('Drucken / PDF')}
         </button>
       </div>
 
       <section className="card no-print">
         <div className="segmented" style={{ marginBottom: 12 }}>
           <button className={period.kind === 'month' ? 'on' : ''} onClick={() => setKind('month')}>
-            Monat
+            {tr('Monat')}
           </button>
           <button className={period.kind === 'quarter' ? 'on' : ''} onClick={() => setKind('quarter')}>
-            Quartal
+            {tr('Quartal')}
           </button>
         </div>
         <div className="period-row">
-          <button className="btn" onClick={() => step(-1)} aria-label="Zurück">
+          <button className="btn" onClick={() => step(-1)} aria-label={tr('Zurück')}>
             ‹
           </button>
           <select
             value={period.index}
             onChange={(e) => setPeriod({ ...period, index: Number(e.target.value) })}
-            aria-label={period.kind === 'month' ? 'Monat' : 'Quartal'}
+            aria-label={period.kind === 'month' ? tr('Monat') : tr('Quartal')}
           >
             {Array.from({ length: period.kind === 'month' ? 12 : 4 }, (_, i) => i + 1).map((i) => (
               <option key={i} value={i}>
-                {period.kind === 'month' ? monthName(i) : `${i}. Quartal`}
+                {period.kind === 'month' ? monthName(i) : tr('{{n}}. Quartal', { n: i })}
               </option>
             ))}
           </select>
@@ -103,51 +104,54 @@ export function ReportPage() {
             type="number"
             value={period.year}
             onChange={(e) => setPeriod({ ...period, year: Number(e.target.value) || period.year })}
-            aria-label="Jahr"
+            aria-label={tr('Jahr')}
           />
-          <button className="btn" onClick={() => step(1)} aria-label="Weiter">
+          <button className="btn" onClick={() => step(1)} aria-label={tr('Weiter')}>
             ›
           </button>
         </div>
       </section>
 
       {!report ? (
-        <Empty>Lädt …</Empty>
+        <Empty>{tr('Lädt …')}</Empty>
       ) : (
         <>
           <div className="report-title">
             <img
               src={`${import.meta.env.BASE_URL}logo.svg`}
-              alt="ConnecTag"
+              alt={tr('ConnecTag')}
               className="print-only"
               style={{ height: 28, marginBottom: 8 }}
             />
             <h2 style={{ fontSize: '1.4rem' }}>
-              Wartungsreport {report.label}{' '}
+              {tr('Wartungsreport')} {report.label}{' '}
               <span className="muted small" style={{ fontWeight: 400 }}>
                 ({fmtDate(report.start)} – {fmtDate(report.end)})
               </span>
             </h2>
             <p className="print-only small">
-              Erstellt am {fmtDateTime(nowIso())} von {user?.name}
+              {tr('Erstellt am')} {fmtDateTime(nowIso())} {tr('von')} {user?.name}
             </p>
           </div>
 
           <section className="card">
-            <h2>Fällige Arbeiten ({report.items.length})</h2>
+            <h2>
+              {tr('Fällige Arbeiten (')}
+              {report.items.length})
+            </h2>
             {report.items.length === 0 ? (
-              <Empty>Keine Wartungen in diesem Zeitraum.</Empty>
+              <Empty>{tr('Keine Wartungen in diesem Zeitraum.')}</Empty>
             ) : wide ? (
               <div className="table-wrap">
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Fällig</th>
-                      <th>Tag</th>
-                      <th>Anlage / Standort</th>
-                      <th>Aufgabe</th>
-                      <th>Intervall</th>
-                      <th>Erledigt</th>
+                      <th>{tr('Fällig')}</th>
+                      <th>{tr('Tag')}</th>
+                      <th>{tr('Anlage / Standort')}</th>
+                      <th>{tr('Aufgabe')}</th>
+                      <th>{tr('Intervall')}</th>
+                      <th>{tr('Erledigt')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -157,7 +161,7 @@ export function ReportPage() {
                           {fmtDate(it.date)}
                           {it.overdue && (
                             <div>
-                              <span className="status status-overdue">Überfällig</span>
+                              <span className="status status-overdue">{tr('Überfällig')}</span>
                             </div>
                           )}
                         </td>
@@ -201,10 +205,14 @@ export function ReportPage() {
                     </div>
                     <div style={{ marginTop: 4, fontWeight: 600 }}>{it.status.task.title}</div>
                     <div className="small">
-                      Fällig am <b>{fmtDate(it.date)}</b> ·{' '}
+                      {tr('Fällig am')} <b>{fmtDate(it.date)}</b> ·{' '}
                       {intervalLabel(it.status.task.intervalValue, it.status.task.intervalUnit)}
                     </div>
-                    {it.parts.length > 0 && <div className="small muted">Ersatzteile: {it.parts.join(', ')}</div>}
+                    {it.parts.length > 0 && (
+                      <div className="small muted">
+                        {tr('Ersatzteile:')} {it.parts.join(', ')}
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
@@ -212,37 +220,37 @@ export function ReportPage() {
           </section>
 
           <section className="card">
-            <h2>Benötigte Ersatzteile</h2>
+            <h2>{tr('Benötigte Ersatzteile')}</h2>
             {report.parts.length === 0 ? (
-              <Empty>Für diesen Zeitraum werden keine Ersatzteile benötigt.</Empty>
+              <Empty>{tr('Für diesen Zeitraum werden keine Ersatzteile benötigt.')}</Empty>
             ) : (
               <div className="table-wrap">
                 <table className="table stack">
                   <thead>
                     <tr>
-                      <th>Menge</th>
-                      <th>Teil</th>
-                      <th>Hersteller-Nr.</th>
-                      <th>Bestell-Nr.</th>
-                      <th>Lieferant</th>
-                      <th>Für Tags</th>
+                      <th>{tr('Menge')}</th>
+                      <th>{tr('Teil')}</th>
+                      <th>{tr('Hersteller-Nr.')}</th>
+                      <th>{tr('Bestell-Nr.')}</th>
+                      <th>{tr('Lieferant')}</th>
+                      <th>{tr('Für Tags')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {report.parts.map((p) => (
                       <tr key={p.part.id}>
-                        <td data-label="Menge">
+                        <td data-label={tr('Menge')}>
                           <b>{p.quantity}</b>
                         </td>
-                        <td data-label="Teil">{p.part.name}</td>
-                        <td data-label="Hersteller-Nr." className="mono small">
+                        <td data-label={tr('Teil')}>{p.part.name}</td>
+                        <td data-label={tr('Hersteller-Nr.')} className="mono small">
                           {p.part.manufacturerPartNumber}
                         </td>
-                        <td data-label="Bestell-Nr." className="mono small">
+                        <td data-label={tr('Bestell-Nr.')} className="mono small">
                           {p.part.supplierOrderNumber}
                         </td>
-                        <td data-label="Lieferant">{p.supplier?.name ?? '–'}</td>
-                        <td data-label="Für Tags" className="small">
+                        <td data-label={tr('Lieferant')}>{p.supplier?.name ?? '–'}</td>
+                        <td data-label={tr('Für Tags')} className="small">
                           {p.tags.map((t) => t.tagNumber).join(', ')}
                         </td>
                       </tr>
@@ -259,7 +267,7 @@ export function ReportPage() {
                     className="btn"
                     href={collectiveOrderMail(list[0].supplier!, list, report.label, user?.name ?? '')}
                   >
-                    <Icon name="mail" /> Sammelbestellung {list[0].supplier!.name}
+                    <Icon name="mail" /> {tr('Sammelbestellung')} {list[0].supplier!.name}
                   </a>
                 ))}
               </div>

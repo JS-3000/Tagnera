@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import { Icon } from '../components/Icon';
 import { data } from '../data';
+import { tr } from '../i18n';
 
 // legacy build = broader browser support (older iPhones)
 type PdfJs = typeof import('pdfjs-dist');
@@ -28,7 +29,7 @@ export function PdfViewerPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const src = params.get('src') ?? '';
-  const name = params.get('name') ?? 'Dokument';
+  const name = params.get('name') ?? tr('Dokument');
   const back = params.get('back');
 
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
@@ -52,7 +53,7 @@ export function PdfViewerPage() {
         let bytes: ArrayBuffer;
         if (src.startsWith('idb:')) {
           const f = await data.files.get(src.slice(4));
-          if (!f) throw new Error('Datei nicht gefunden');
+          if (!f) throw new Error(tr('Datei nicht gefunden'));
           bytes = await f.blob.arrayBuffer();
         } else {
           const res = await fetch(src.split('#')[0]);
@@ -68,7 +69,12 @@ export function PdfViewerPage() {
           setDoc(pdf);
         }
       } catch (e) {
-        if (alive) setError(navigator.onLine ? String(e instanceof Error ? e.message : e) : 'Keine Verbindung und das Dokument wurde auf diesem Gerät noch nicht geöffnet.');
+        if (alive)
+          setError(
+            navigator.onLine
+              ? String(e instanceof Error ? e.message : e)
+              : tr('Keine Verbindung und das Dokument wurde auf diesem Gerät noch nicht geöffnet.'),
+          );
       }
     })();
     return () => {
@@ -134,14 +140,14 @@ export function PdfViewerPage() {
     <div className="pdfv">
       <div className="pdfv-bar">
         <button className="btn btn-sm" onClick={goBack}>
-          <Icon name="back" size={18} /> Zurück
+          <Icon name="back" size={18} /> {tr('Zurück')}
         </button>
         <div className="pdfv-title" title={name}>
           {name}
         </div>
         {blobUrl && (
           <a className="btn btn-sm" href={blobUrl} download={name.endsWith('.pdf') ? name : `${name}.pdf`}>
-            <Icon name="download" size={18} /> <span className="hide-xs">Herunterladen</span>
+            <Icon name="download" size={18} /> <span className="hide-xs">{tr('Herunterladen')}</span>
           </a>
         )}
       </div>
@@ -161,16 +167,16 @@ export function PdfViewerPage() {
       >
         {error ? (
           <div className="pdfv-msg">
-            <p>Das Dokument kann hier nicht angezeigt werden.</p>
+            <p>{tr('Das Dokument kann hier nicht angezeigt werden.')}</p>
             <p className="small">{error}</p>
             {openUrl && (
               <a className="btn btn-primary" href={openUrl} target="_blank" rel="noreferrer">
-                <Icon name="external" /> In neuem Tab öffnen
+                <Icon name="external" /> {tr('In neuem Tab öffnen')}
               </a>
             )}
           </div>
         ) : !doc ? (
-          <div className="pdfv-msg">Dokument wird geladen …</div>
+          <div className="pdfv-msg">{tr('Dokument wird geladen …')}</div>
         ) : (
           <canvas ref={canvasRef} className={rendering ? 'busy' : ''} />
         )}
@@ -178,11 +184,11 @@ export function PdfViewerPage() {
 
       {doc && (
         <div className="pdfv-bar bottom">
-          <button className="btn btn-sm" onClick={() => go(-1)} disabled={page <= 1} aria-label="Vorherige Seite">
+          <button className="btn btn-sm" onClick={() => go(-1)} disabled={page <= 1} aria-label={tr('Vorherige Seite')}>
             ‹
           </button>
           <span className="pdfv-page">
-            <span className="hide-xs">Seite </span>
+            <span className="hide-xs">{tr('Seite')} </span>
             <input
               type="number"
               min={1}
@@ -192,25 +198,44 @@ export function PdfViewerPage() {
                 const v = Number(e.target.value);
                 if (v >= 1 && v <= pages) setPage(v);
               }}
-              aria-label="Seite"
+              aria-label={tr('Seite')}
             />{' '}
             / {pages}
           </span>
-          <button className="btn btn-sm" onClick={() => go(1)} disabled={page >= pages} aria-label="Nächste Seite">
+          <button
+            className="btn btn-sm"
+            onClick={() => go(1)}
+            disabled={page >= pages}
+            aria-label={tr('Nächste Seite')}
+          >
             ›
           </button>
           <span className="pdfv-sep" />
-          <button className="btn btn-sm" onClick={() => setZoom((z) => Math.max(0.5, +(z / 1.25).toFixed(2)))} aria-label="Verkleinern">
+          <button
+            className="btn btn-sm"
+            onClick={() => setZoom((z) => Math.max(0.5, +(z / 1.25).toFixed(2)))}
+            aria-label={tr('Verkleinern')}
+          >
             −
           </button>
-          <button className="btn btn-sm pdfv-zoom" onClick={() => setZoom(1)} aria-label="An Breite anpassen">
+          <button className="btn btn-sm pdfv-zoom" onClick={() => setZoom(1)} aria-label={tr('An Breite anpassen')}>
             {Math.round(zoom * 100)} %
           </button>
-          <button className="btn btn-sm" onClick={() => setZoom((z) => Math.min(5, +(z * 1.25).toFixed(2)))} aria-label="Vergrößern">
+          <button
+            className="btn btn-sm"
+            onClick={() => setZoom((z) => Math.min(5, +(z * 1.25).toFixed(2)))}
+            aria-label={tr('Vergrößern')}
+          >
             +
           </button>
           {openUrl && (
-            <a className="btn btn-sm hide-xs" href={openUrl} target="_blank" rel="noreferrer" title="In neuem Tab öffnen">
+            <a
+              className="btn btn-sm hide-xs"
+              href={openUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={tr('In neuem Tab öffnen')}
+            >
               <Icon name="external" size={18} />
             </a>
           )}

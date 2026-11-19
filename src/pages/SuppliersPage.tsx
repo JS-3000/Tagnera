@@ -6,6 +6,7 @@ import { Empty, Field, Modal } from '../components/ui';
 import { data } from '../data';
 import type { Supplier } from '../data/types';
 import { byString, uuid } from '../lib/util';
+import { tr } from '../i18n';
 
 export function SuppliersPage() {
   const { can } = useSession();
@@ -15,7 +16,7 @@ export function SuppliersPage() {
   return (
     <div className="narrow">
       <div className="page-head">
-        <h1>Lieferanten</h1>
+        <h1>{tr('Lieferanten')}</h1>
         {can('admin') && (
           <button
             className="btn btn-primary"
@@ -23,11 +24,11 @@ export function SuppliersPage() {
               setEdit({ id: uuid(), name: '', orderEmail: '', phone: '', contactPerson: '', customerNumber: '' })
             }
           >
-            <Icon name="plus" /> Neuer Lieferant
+            <Icon name="plus" /> {tr('Neuer Lieferant')}
           </button>
         )}
       </div>
-      {suppliers?.length === 0 && <Empty>Noch keine Lieferanten.</Empty>}
+      {suppliers?.length === 0 && <Empty>{tr('Noch keine Lieferanten.')}</Empty>}
       <div className="card" style={{ padding: '4px 16px' }}>
         <ul className="list">
           {suppliers?.map((s) => (
@@ -36,20 +37,20 @@ export function SuppliersPage() {
               <div className="grow">
                 <div className="title">{s.name}</div>
                 <div className="small muted">
-                  Bestellung: {s.orderEmail || '–'} · Tel. {s.phone || '–'}
+                  {tr('Bestellung:')} {s.orderEmail || '–'} {tr('· Tel.')} {s.phone || '–'}
                   {s.contactPerson && ` · ${s.contactPerson}`}
-                  {s.customerNumber && ` · Kd.-Nr. ${s.customerNumber}`}
+                  {s.customerNumber && ` · ${tr('Kd.-Nr.')} ${s.customerNumber}`}
                 </div>
               </div>
               {can('admin') && (
                 <>
-                  <button className="icon-btn" aria-label="Bearbeiten" onClick={() => setEdit(s)}>
+                  <button className="icon-btn" aria-label={tr('Bearbeiten')} onClick={() => setEdit(s)}>
                     <Icon name="edit" />
                   </button>
                   <button
                     className="icon-btn"
-                    aria-label="Löschen"
-                    onClick={() => confirm(`${s.name} löschen?`) && data.suppliers.remove(s.id)}
+                    aria-label={tr('Löschen')}
+                    onClick={() => confirm(tr('{{name}} löschen?', { name: s.name })) && data.suppliers.remove(s.id)}
                   >
                     <Icon name="trash" />
                   </button>
@@ -68,7 +69,7 @@ function SupplierModal({ supplier, onClose }: { supplier: Supplier; onClose: () 
   const [s, setS] = useState(supplier);
   const set = (patch: Partial<Supplier>) => setS((x) => ({ ...x, ...patch }));
   return (
-    <Modal title="Lieferant" onClose={onClose}>
+    <Modal title={tr('Lieferant')} onClose={onClose}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -76,25 +77,25 @@ function SupplierModal({ supplier, onClose }: { supplier: Supplier; onClose: () 
           onClose();
         }}
       >
-        <Field label="Name *">
+        <Field label={tr('Name *')}>
           <input type="text" value={s.name} onChange={(e) => set({ name: e.target.value })} required />
         </Field>
-        <Field label="Bestell-E-Mail" hint="Empfänger für den Button „Bestellen“">
+        <Field label={tr('Bestell-E-Mail')} hint={tr('Empfänger für den Button „Bestellen“')}>
           <input type="email" value={s.orderEmail} onChange={(e) => set({ orderEmail: e.target.value })} />
         </Field>
         <div className="form-grid">
-          <Field label="Telefon">
+          <Field label={tr('Telefon')}>
             <input type="tel" value={s.phone} onChange={(e) => set({ phone: e.target.value })} />
           </Field>
-          <Field label="Ansprechpartner">
+          <Field label={tr('Ansprechpartner')}>
             <input type="text" value={s.contactPerson} onChange={(e) => set({ contactPerson: e.target.value })} />
           </Field>
-          <Field label="Unsere Kundennummer">
+          <Field label={tr('Unsere Kundennummer')}>
             <input type="text" value={s.customerNumber} onChange={(e) => set({ customerNumber: e.target.value })} />
           </Field>
         </div>
         <button className="btn btn-primary btn-block" type="submit">
-          Speichern
+          {tr('Speichern')}
         </button>
       </form>
     </Modal>

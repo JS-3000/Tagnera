@@ -11,6 +11,7 @@ import { fmtDate, fmtDateTime, today } from '../lib/util';
 import { describeDue, loadAllTaskStatuses, STATUS_RANK, worstStatus, type MaintStatus } from '../services/maintenance';
 import { loadSettings } from '../services/settings';
 import { ScanPage } from './ScanPage';
+import { tr } from '../i18n';
 
 /** "/" shows the scanner on phones and the overview on large screens. */
 export function HomePage() {
@@ -72,27 +73,27 @@ export function DashboardPage() {
     };
   }, []);
 
-  if (!d) return <Empty>Lädt …</Empty>;
+  if (!d) return <Empty>{tr('Lädt …')}</Empty>;
 
   return (
     <div>
       <div className="page-head">
         <h1>
-          Übersicht{' '}
+          {tr('Übersicht')}{' '}
           <span className="muted small" style={{ fontWeight: 400 }}>
             {fmtDate(today())}
           </span>
         </h1>
         {can('edit') && (
           <Link className="btn btn-primary" to="/tags/neu">
-            <Icon name="plus" /> Neuer Tag
+            <Icon name="plus" /> {tr('Neuer Tag')}
           </Link>
         )}
         <Link className="btn" to="/scan">
-          <Icon name="scan" /> Mit Webcam scannen
+          <Icon name="scan" /> {tr('Mit Webcam scannen')}
         </Link>
         <Link className="btn" to="/report">
-          <Icon name="printer" /> Wartungsreport
+          <Icon name="printer" /> {tr('Wartungsreport')}
         </Link>
         <button
           className="btn btn-dark"
@@ -102,21 +103,22 @@ export function DashboardPage() {
             navigate('/monitor');
           }}
         >
-          <Icon name="report" /> Hallen-Monitor starten
+          <Icon name="report" /> {tr('Hallen-Monitor starten')}
         </button>
       </div>
 
       {d.total === 0 && (
         <div className="alert info">
           <div>
-            <div className="title">Noch keine Daten auf diesem Gerät</div>
+            <div className="title">{tr('Noch keine Daten auf diesem Gerät')}</div>
             {can('admin') ? (
               <>
-                In den <Link to="/einstellungen">Einstellungen</Link> „Demo zurücksetzen“ wählen, einen{' '}
-                <Link to="/tags/neu">Tag anlegen</Link> oder Tags per <Link to="/import">CSV importieren</Link>.
+                {tr('In den')} <Link to="/einstellungen">{tr('Einstellungen')}</Link>{' '}
+                {tr('„Demo zurücksetzen“ wählen, einen')} <Link to="/tags/neu">{tr('Tag anlegen')}</Link>{' '}
+                {tr('oder Tags per')} <Link to="/import">{tr('CSV importieren')}</Link>.
               </>
             ) : (
-              'Die Demo lässt sich in den Einstellungen mit „Demo zurücksetzen“ wiederherstellen.'
+              tr('Die Demo lässt sich in den Einstellungen mit „Demo zurücksetzen“ wiederherstellen.')
             )}
           </div>
         </div>
@@ -125,25 +127,25 @@ export function DashboardPage() {
       <div className="kpis">
         <Link className="kpi" to="/tags">
           <div className="num">{d.total}</div>
-          <div className="lbl">Tags gesamt</div>
+          <div className="lbl">{tr('Tags gesamt')}</div>
         </Link>
         <Link className="kpi overdue" to="/hinweise">
           <div className="num" style={{ color: 'var(--overdue)' }}>
             {d.overdue}
           </div>
-          <div className="lbl">Tags mit überfälliger Wartung</div>
+          <div className="lbl">{tr('Tags mit überfälliger Wartung')}</div>
         </Link>
         <Link className="kpi due" to="/hinweise">
           <div className="num" style={{ color: '#a8560b' }}>
             {d.due}
           </div>
-          <div className="lbl">Tags mit fälliger Wartung</div>
+          <div className="lbl">{tr('Tags mit fälliger Wartung')}</div>
         </Link>
         <Link className="kpi ok" to="/tags">
           <div className="num" style={{ color: 'var(--ok)' }}>
             {d.ok}
           </div>
-          <div className="lbl">Tags ohne offene Wartung</div>
+          <div className="lbl">{tr('Tags ohne offene Wartung')}</div>
         </Link>
       </div>
 
@@ -159,23 +161,23 @@ export function DashboardPage() {
               <section className="card">
                 <div className="section-head">
                   <h2>
-                    <Icon name="calendar" /> Wartungen: offen & nächste {HORIZON_DAYS} Tage
+                    <Icon name="calendar" /> {tr('Wartungen: offen & nächste {{n}} Tage', { n: HORIZON_DAYS })}
                   </h2>
                   <Link className="btn btn-sm" to="/report">
-                    Report
+                    {tr('Report')}
                   </Link>
                 </div>
                 {d.upcoming.length === 0 ? (
-                  <Empty>Keine anstehenden Wartungen.</Empty>
+                  <Empty>{tr('Keine anstehenden Wartungen.')}</Empty>
                 ) : (
                   <div className="table-wrap" style={{ border: 0 }}>
                     <table className="table">
                       <thead>
                         <tr>
-                          <th>Tag</th>
-                          <th>Aufgabe</th>
-                          <th>Fällig</th>
-                          <th>Status</th>
+                          <th>{tr('Tag')}</th>
+                          <th>{tr('Aufgabe')}</th>
+                          <th>{tr('Fällig')}</th>
+                          <th>{tr('Status')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -215,9 +217,12 @@ export function DashboardPage() {
             node: can('admin') && d.issues.length > 0 && (
               <section className="card">
                 <div className="section-head">
-                  <h2>Offene Meldungen ({d.issues.length})</h2>
+                  <h2>
+                    {tr('Offene Meldungen (')}
+                    {d.issues.length})
+                  </h2>
                   <Link className="btn btn-sm" to="/meldungen">
-                    Alle
+                    {tr('Alle')}
                   </Link>
                 </div>
                 <ul className="list">
@@ -246,7 +251,7 @@ export function DashboardPage() {
             col: 'right',
             node: (
               <section className="card">
-                <h2>Anlagen</h2>
+                <h2>{tr('Anlagen')}</h2>
                 {d.plants.length === 0 && <Empty>–</Empty>}
                 <ul className="list">
                   {d.plants.map(([name, p]) => (
@@ -268,8 +273,8 @@ export function DashboardPage() {
             col: 'right',
             node: (
               <section className="card">
-                <h2>Letzte Tagebucheinträge</h2>
-                {d.latest.length === 0 && <Empty>Noch keine Einträge.</Empty>}
+                <h2>{tr('Letzte Tagebucheinträge')}</h2>
+                {d.latest.length === 0 && <Empty>{tr('Noch keine Einträge.')}</Empty>}
                 <ul className="list">
                   {d.latest.map(({ e, tag }) => (
                     <li key={e.id}>
@@ -300,7 +305,7 @@ export function DashboardPage() {
             col: 'right',
             node: d.recent.length > 0 && (
               <section className="card">
-                <h2>Zuletzt geöffnet</h2>
+                <h2>{tr('Zuletzt geöffnet')}</h2>
                 <ul className="list">
                   {d.recent.map((t) => (
                     <li key={t!.id}>

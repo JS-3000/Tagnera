@@ -2,6 +2,7 @@
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
+import { tr } from '../i18n';
 
 interface Props {
   active: boolean;
@@ -72,10 +73,10 @@ export function QrScanner({ active, onResult, onStart }: Props) {
           const msg = String(e instanceof Error ? e.message : e);
           setError(
             /NotAllowed|Permission/i.test(msg)
-              ? 'Kein Zugriff auf die Kamera. Bitte Kamera-Berechtigung im Browser erlauben.'
+              ? tr('Kein Zugriff auf die Kamera. Bitte Kamera-Berechtigung im Browser erlauben.')
               : /secure|https/i.test(msg) || !window.isSecureContext
-                ? 'Die Kamera funktioniert nur über HTTPS.'
-                : 'Kamera konnte nicht gestartet werden: ' + msg,
+                ? tr('Die Kamera funktioniert nur über HTTPS.')
+                : tr('Kamera konnte nicht gestartet werden: ') + msg,
           );
         });
     };
@@ -111,11 +112,11 @@ export function QrScanner({ active, onResult, onStart }: Props) {
       )}
       {state !== 'running' && (
         <div className="scan-overlay">
-          {state === 'starting' && <span>Kamera wird gestartet …</span>}
+          {state === 'starting' && <span>{tr('Kamera wird gestartet …')}</span>}
           {state === 'error' && <span>{error}</span>}
           {(state === 'idle' || state === 'error') && (
             <button className="btn btn-primary btn-lg" onClick={onStart}>
-              <Icon name="camera" /> Kamera starten
+              <Icon name="camera" /> {tr('Kamera starten')}
             </button>
           )}
         </div>
@@ -124,7 +125,7 @@ export function QrScanner({ active, onResult, onStart }: Props) {
         <button
           className={`torch${torchOn ? ' on' : ''}`}
           onClick={toggleTorch}
-          aria-label="Taschenlampe"
+          aria-label={tr('Taschenlampe')}
           aria-pressed={torchOn}
         >
           <Icon name="flash" size={28} />

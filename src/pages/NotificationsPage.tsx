@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { Empty, StatusBadge } from '../components/ui';
 import { fmtDate } from '../lib/util';
 import { describeDue, loadAllTaskStatuses, STATUS_RANK } from '../services/maintenance';
+import { tr } from '../i18n';
 
 /** In-app notifications (no push): all due and overdue maintenance tasks. */
 export function NotificationsPage() {
@@ -20,20 +21,23 @@ export function NotificationsPage() {
   return (
     <div>
       <div className="page-head">
-        <h1>Hinweise</h1>
+        <h1>{tr('Hinweise')}</h1>
       </div>
       <p className="muted small">
-        Fällige und überfällige Wartungen. Im Prototyp gibt es keine Push-Nachrichten – die Hinweise erscheinen nur hier
-        und als Zähler an der Glocke.
+        {tr(
+          tr(
+            'Fällige und überfällige Wartungen. Im Prototyp gibt es keine Push-Nachrichten – die Hinweise erscheinen nur hier und als Zähler an der Glocke.',
+          ),
+        )}
       </p>
       {list === undefined ? (
-        <Empty>Lädt …</Empty>
+        <Empty>{tr('Lädt …')}</Empty>
       ) : list.length === 0 ? (
         <div className="alert">
           <Icon name="check" />
           <div>
-            <div className="title">Alles erledigt</div>
-            Keine fälligen Wartungen.
+            <div className="title">{tr('Alles erledigt')}</div>
+            {tr('Keine fälligen Wartungen.')}
           </div>
         </div>
       ) : (
@@ -55,7 +59,7 @@ export function NotificationsPage() {
                   {s.tag.plant && ` · ${s.tag.plant}`}
                 </div>
                 <div className="small">
-                  Fällig am {fmtDate(s.dueDate)} – {describeDue(s)}
+                  {tr('Fällig am')} {fmtDate(s.dueDate)} – {describeDue(s)}
                 </div>
               </div>
               <StatusBadge status={s.status} />

@@ -11,6 +11,7 @@ import { LOG_KIND_LABELS, type IssueReport, type LogEntry, type Tag } from '../d
 import { addDays, fmtDate, today } from '../lib/util';
 import { loadAllTaskStatuses, type TaskStatus } from '../services/maintenance';
 import { loadOccurrences, type Occurrence } from '../services/report';
+import { locale, tr } from '../i18n';
 
 const REFRESH_MS = 60_000;
 const PAGE_MS = 9_000;
@@ -110,7 +111,7 @@ export function MonitorPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Hallen-Monitor · ConnecTag';
+    document.title = `${tr('Hallen-Monitor')} · ConnecTag`;
   }, []);
 
   const t = today();
@@ -120,35 +121,35 @@ export function MonitorPage() {
     <div className="mon">
       <header className="mon-head">
         <Logo variant="dark" size={56} />
-        <div className="mon-plant">{d ? d.plants.join(' · ') || 'Alle Anlagen' : ''}</div>
+        <div className="mon-plant">{d ? d.plants.join(' · ') || tr('Alle Anlagen') : ''}</div>
         <div className="mon-clock">
-          <div className="mon-time">{now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</div>
+          <div className="mon-time">{now.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}</div>
           <div className="mon-date">
-            {now.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+            {now.toLocaleDateString(locale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
           </div>
         </div>
       </header>
 
       <main className="mon-main">
-        <Column title="Überfällig" tone="overdue" count={d?.overdue.length}>
+        <Column title={tr('Überfällig')} tone="overdue" count={d?.overdue.length}>
           <Paged
             items={d?.overdue ?? []}
-            empty="Keine überfälligen Wartungen"
+            empty={tr('Keine überfälligen Wartungen')}
             render={(s) => (
               <Row
                 key={s.tag.id + s.task.id}
                 tag={s.tag.tagNumber}
                 title={s.task.title}
                 sub={s.tag.description || s.tag.type}
-                right={`seit ${-daysLeft(s)} T.`}
+                right={tr('seit {{n}} T.', { n: -daysLeft(s) })}
               />
             )}
           />
         </Column>
-        <Column title="Heute fällig" tone="due" count={d?.dueToday.length}>
+        <Column title={tr('Heute fällig')} tone="due" count={d?.dueToday.length}>
           <Paged
             items={d?.dueToday ?? []}
-            empty="Heute ist nichts fällig"
+            empty={tr('Heute ist nichts fällig')}
             render={(s) => (
               <Row
                 key={s.tag.id + s.task.id}
@@ -159,17 +160,17 @@ export function MonitorPage() {
             )}
           />
         </Column>
-        <Column title="Heute erledigt" tone="ok" count={d?.doneToday.length}>
+        <Column title={tr('Heute erledigt')} tone="ok" count={d?.doneToday.length}>
           <Paged
             items={d?.doneToday ?? []}
-            empty="Noch nichts erledigt"
+            empty={tr('Noch nichts erledigt')}
             render={({ entry, tag }) => (
               <Row
                 key={entry.id}
                 tag={tag?.tagNumber ?? '?'}
                 title={entry.description || LOG_KIND_LABELS[entry.kind]}
                 sub={`${LOG_KIND_LABELS[entry.kind]} · ${entry.person}`}
-                right={new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                right={new Date(entry.createdAt).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}
               />
             )}
           />
@@ -177,25 +178,25 @@ export function MonitorPage() {
       </main>
 
       <section className="mon-bottom">
-        <Column title="Offene Störmeldungen" tone="overdue" count={d?.issues.length}>
+        <Column title={tr('Offene Störmeldungen')} tone="overdue" count={d?.issues.length}>
           <Paged
             items={d?.issues ?? []}
-            empty="Keine offenen Meldungen"
+            empty={tr('Keine offenen Meldungen')}
             render={(i) => (
               <Row
                 key={i.id}
                 tag={i.tagNumber}
                 title={i.description}
-                sub={`${i.name} · ${new Date(i.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
+                sub={`${i.name} · ${new Date(i.createdAt).toLocaleString(locale(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
               />
             )}
           />
         </Column>
-        <Column title="Nächste 7 Tage" tone="neutral" count={d?.week.length}>
+        <Column title={tr('Nächste 7 Tage')} tone="neutral" count={d?.week.length}>
           <div className="mon-week">
             {days.map((day) => {
               const items = (d?.week ?? []).filter((o) => o.date === day);
-              const wd = WEEKDAY[new Date(day + 'T12:00:00').getDay()];
+              const wd = tr(WEEKDAY[new Date(day + 'T12:00:00').getDay()]);
               return (
                 <div key={day} className="mon-day">
                   <div className="mon-day-head">
@@ -215,7 +216,12 @@ export function MonitorPage() {
         </Column>
       </section>
 
-      <button className="mon-exit" onClick={leave} aria-label="Hallen-Monitor beenden" title="Beenden (Esc)">
+      <button
+        className="mon-exit"
+        onClick={leave}
+        aria-label={tr('Hallen-Monitor beenden')}
+        title={tr('Beenden (Esc)')}
+      >
         ✕
       </button>
     </div>

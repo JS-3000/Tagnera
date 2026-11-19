@@ -10,6 +10,7 @@ import { byString } from '../lib/util';
 import { LABEL_FORMATS, perSheet, type LabelFormat } from '../services/labelFormats';
 import { DEMO_DEFS } from '../services/demoData';
 import { appBaseUrl, loadSettings, saveSettings, tagUrl } from '../services/settings';
+import { tr } from '../i18n';
 
 type SecondLine = 'plant' | 'type' | 'description';
 const DEMO_ORDER = DEMO_DEFS.map((d) => d.uuid);
@@ -75,19 +76,20 @@ export function LabelsPage() {
 
       <div className="no-print">
         <div className="page-head">
-          <h1>QR-Etiketten</h1>
+          <h1>{tr('QR-Etiketten')}</h1>
           <button className="btn" onClick={demoLabels}>
-            <Icon name="qr" /> Demo-Etiketten
+            <Icon name="qr" /> {tr('Demo-Etiketten')}
           </button>
           <button className="btn btn-primary" onClick={() => window.print()} disabled={chosen.length === 0}>
-            <Icon name="printer" /> Drucken ({sheets.length} {sheets.length === 1 ? 'Blatt' : 'Blätter'})
+            <Icon name="printer" /> {tr('Drucken (')}
+            {sheets.length} {sheets.length === 1 ? tr('Blatt') : tr('Blätter')})
           </button>
         </div>
 
         <div className="grid-2">
           <section className="card">
-            <h2>Format</h2>
-            <Field label="Etikettenbogen">
+            <h2>{tr('Format')}</h2>
+            <Field label={tr('Etikettenbogen')}>
               <select
                 value={format.id}
                 onChange={(e) => {
@@ -107,14 +109,17 @@ export function LabelsPage() {
               </select>
             </Field>
             <div className="form-grid">
-              <Field label="Zweite Zeile">
+              <Field label={tr('Zweite Zeile')}>
                 <select value={line} onChange={(e) => setLine(e.target.value as SecondLine)}>
-                  <option value="plant">Anlage</option>
-                  <option value="type">Typ (Kurzbezeichnung)</option>
-                  <option value="description">Bezeichnung / Funktion</option>
+                  <option value="plant">{tr('Anlage')}</option>
+                  <option value="type">{tr('Typ (Kurzbezeichnung)')}</option>
+                  <option value="description">{tr('Bezeichnung / Funktion')}</option>
                 </select>
               </Field>
-              <Field label="Erste freie Position" hint={`Bei angebrochenem Bogen: 1–${perSheet(format)}`}>
+              <Field
+                label={tr('Erste freie Position')}
+                hint={tr('Bei angebrochenem Bogen: 1–{{n}}', { n: perSheet(format) })}
+              >
                 <input
                   type="number"
                   min={1}
@@ -125,7 +130,7 @@ export function LabelsPage() {
                   }
                 />
               </Field>
-              <Field label="Etiketten pro Tag">
+              <Field label={tr('Etiketten pro Tag')}>
                 <input
                   type="number"
                   min={1}
@@ -134,7 +139,7 @@ export function LabelsPage() {
                   onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
                 />
               </Field>
-              <Field label="Versatz X (mm)" hint="+ = nach rechts">
+              <Field label={tr('Versatz X (mm)')} hint={tr('+ = nach rechts')}>
                 <input
                   type="number"
                   step={0.5}
@@ -146,7 +151,7 @@ export function LabelsPage() {
                   }}
                 />
               </Field>
-              <Field label="Versatz Y (mm)" hint="+ = nach unten">
+              <Field label={tr('Versatz Y (mm)')} hint={tr('+ = nach unten')}>
                 <input
                   type="number"
                   step={0.5}
@@ -161,23 +166,29 @@ export function LabelsPage() {
             </div>
             <label className={`check${outline ? ' checked' : ''}`}>
               <input type="checkbox" checked={outline} onChange={(e) => setOutline(e.target.checked)} />
-              Umrisse mitdrucken (für Probedruck auf Normalpapier)
+              {tr('Umrisse mitdrucken (für Probedruck auf Normalpapier)')}
             </label>
             <p className="small muted" style={{ marginBottom: 0 }}>
-              Im Druckdialog <b>Skalierung 100 % / „Tatsächliche Größe“</b> und <b>Ränder: keine</b> wählen, Kopf- und
-              Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse (Demo-Tags
-              immer https://js-3000.github.io/Tagnera/): <span className="mono">{appBaseUrl()}</span>
+              {tr('Im Druckdialog')} <b>{tr('Skalierung 100 % / „Tatsächliche Größe“')}</b> {tr('und')}{' '}
+              <b>{tr('Ränder: keine')}</b>{' '}
+              {tr(
+                'wählen, Kopf- und Fußzeilen ausschalten. Erst auf Normalpapier testen und gegen den Bogen halten. QR-Adresse (Demo-Tags immer https://js-3000.github.io/Tagnera/):',
+              )}{' '}
+              <span className="mono">{appBaseUrl()}</span>
             </p>
           </section>
 
           <section className="card label-tags">
             <div className="section-head">
-              <h2>Tags ({chosen.length})</h2>
+              <h2>
+                {tr('Tags (')}
+                {chosen.length})
+              </h2>
               <button className="btn btn-sm" onClick={() => setSelected(null)}>
-                Alle
+                {tr('Alle')}
               </button>
               <button className="btn btn-sm" onClick={() => setSelected(new Set())}>
-                Keine
+                {tr('Keine')}
               </button>
             </div>
             {plants.length > 1 && (
@@ -189,9 +200,9 @@ export function LabelsPage() {
                     setSelected(new Set((tags ?? []).filter((t) => t.plant === e.target.value).map((t) => t.id)));
                 }}
                 style={{ marginBottom: 8 }}
-                aria-label="Anlage"
+                aria-label={tr('Anlage')}
               >
-                <option value="">Nach Anlage auswählen …</option>
+                <option value="">{tr('Nach Anlage auswählen …')}</option>
                 {plants.map((p) => (
                   <option key={p}>{p}</option>
                 ))}
@@ -199,7 +210,7 @@ export function LabelsPage() {
             )}
             <div className="label-list-wrap">
               <div className="label-list">
-                {tags?.length === 0 && <Empty>Keine Tags vorhanden.</Empty>}
+                {tags?.length === 0 && <Empty>{tr('Keine Tags vorhanden.')}</Empty>}
                 {tags?.map((t) => {
                   const on = selected ? selected.has(t.id) : true;
                   return (
@@ -217,7 +228,7 @@ export function LabelsPage() {
             </div>
           </section>
         </div>
-        <h2>Vorschau</h2>
+        <h2>{tr('Vorschau')}</h2>
       </div>
 
       <div className="sheets">
@@ -293,7 +304,7 @@ function Label({ tag, f, line }: { tag: Tag; f: LabelFormat; line: SecondLine })
       >
         <img
           src={`${import.meta.env.BASE_URL}logo.svg`}
-          alt="ConnecTag"
+          alt={tr('ConnecTag')}
           style={{ height: `${logoH}mm`, width: 'auto', alignSelf: 'flex-start' }}
         />
         <div

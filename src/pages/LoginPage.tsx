@@ -4,6 +4,7 @@ import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
 import { Logo } from '../components/Logo';
 import { ROLE_LABELS, type Role } from '../data/types';
+import { tr } from '../i18n';
 
 const ROLE_INFO: Record<Role, string> = {
   admin: 'alles, inkl. Meldungen, Katalog und Benutzerverwaltung',
@@ -24,10 +25,13 @@ export function LoginPage() {
         <Logo showSlogan size={40} />
       </div>
       <section className="card">
-        <h1>Anmelden (Demo)</h1>
+        <h1>{tr('Anmelden (Demo)')}</h1>
         <p className="muted small">
-          Im Prototyp gibt es keine Passwörter. Wähle einen Demo-Benutzer – später meldet man sich hier mit dem eigenen
-          Account an.
+          {tr(
+            tr(
+              'Im Prototyp gibt es keine Passwörter. Wähle einen Demo-Benutzer – später meldet man sich hier mit dem eigenen Account an.',
+            ),
+          )}
         </p>
         <div className="actions" style={{ gridTemplateColumns: '1fr' }}>
           {[...users]
@@ -46,7 +50,7 @@ export function LoginPage() {
                   {u.name} · <span style={{ color: 'var(--accent-dark)' }}>{ROLE_LABELS[u.role]}</span>
                   <br />
                   <span className="small muted" style={{ fontWeight: 500 }}>
-                    {ROLE_INFO[u.role]}
+                    {tr(ROLE_INFO[u.role])}
                   </span>
                 </span>
               </button>
@@ -54,7 +58,7 @@ export function LoginPage() {
         </div>
       </section>
       <p className="small muted" style={{ textAlign: 'center' }}>
-        Ohne Anmeldung können Sie nach dem Scan eines QR-Codes eine Störung melden.
+        {tr('Ohne Anmeldung können Sie nach dem Scan eines QR-Codes eine Störung melden.')}
       </p>
     </div>
   );

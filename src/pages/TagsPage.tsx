@@ -14,6 +14,7 @@ import {
   type MaintStatus,
   type TaskStatus,
 } from '../services/maintenance';
+import { tr } from '../i18n';
 
 interface Row {
   tag: Tag;
@@ -97,21 +98,21 @@ export function TagsPage() {
     <div>
       <div className="page-head">
         <h1>
-          Tags{' '}
+          {tr('Tags')}{' '}
           {rows && (
             <span className="muted small">
-              ({visible.length} von {rows.length})
+              ({visible.length} {tr('von')} {rows.length})
             </span>
           )}
         </h1>
         {can('edit') && (
           <Link className="btn btn-primary" to="/tags/neu">
-            <Icon name="plus" /> Neuer Tag
+            <Icon name="plus" /> {tr('Neuer Tag')}
           </Link>
         )}
         {can('admin') && wide && (
           <Link className="btn" to="/import">
-            <Icon name="upload" /> CSV-Import
+            <Icon name="upload" /> {tr('CSV-Import')}
           </Link>
         )}
         <button
@@ -119,26 +120,27 @@ export function TagsPage() {
           disabled={selected.size === 0}
           onClick={() => navigate(`/etiketten?tags=${[...selected].join(',')}`)}
         >
-          <Icon name="printer" /> Etiketten ({selected.size})
+          <Icon name="printer" /> {tr('Etiketten (')}
+          {selected.size})
         </button>
       </div>
 
       <div className="card" style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         <input
           type="search"
-          placeholder="Suche: Tag, Typ, Hersteller, Art.-Nr., Bestellnummer …"
+          placeholder={tr('Suche: Tag, Typ, Hersteller, Art.-Nr., Bestellnummer …')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           style={{ flex: '3 1 260px' }}
-          aria-label="Suche"
+          aria-label={tr('Suche')}
         />
         <select
           value={plant}
           onChange={(e) => setPlant(e.target.value)}
           style={{ flex: '1 1 160px' }}
-          aria-label="Anlage"
+          aria-label={tr('Anlage')}
         >
-          <option value="">Alle Anlagen</option>
+          <option value="">{tr('Alle Anlagen')}</option>
           {plants.map((p) => (
             <option key={p}>{p}</option>
           ))}
@@ -147,19 +149,19 @@ export function TagsPage() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as '' | MaintStatus)}
           style={{ flex: '1 1 140px' }}
-          aria-label="Status"
+          aria-label={tr('Status')}
         >
-          <option value="">Alle Status</option>
-          <option value="overdue">Überfällig</option>
-          <option value="due">Fällig</option>
-          <option value="ok">OK</option>
+          <option value="">{tr('Alle Status')}</option>
+          <option value="overdue">{tr('Überfällig')}</option>
+          <option value="due">{tr('Fällig')}</option>
+          <option value="ok">{tr('OK')}</option>
         </select>
       </div>
 
       {rows === undefined ? (
-        <Empty>Lädt …</Empty>
+        <Empty>{tr('Lädt …')}</Empty>
       ) : visible.length === 0 ? (
-        <Empty>Keine Tags gefunden.</Empty>
+        <Empty>{tr('Keine Tags gefunden.')}</Empty>
       ) : wide ? (
         <div className="table-wrap">
           <table className="table">
@@ -171,17 +173,17 @@ export function TagsPage() {
                       type="checkbox"
                       checked={allSelected}
                       onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.tag.id)))}
-                      aria-label="Alle auswählen"
+                      aria-label={tr('Alle auswählen')}
                     />
                   </label>
                 </th>
-                {th('tag', 'Tag')}
-                {th('type', 'Typ')}
-                {th('plant', 'Anlage')}
-                <th>Hersteller / Art.-Nr.</th>
-                <th>Bestellnummer</th>
-                {th('due', 'Nächste Wartung')}
-                {th('status', 'Status')}
+                {th('tag', tr('Tag'))}
+                {th('type', tr('Typ'))}
+                {th('plant', tr('Anlage'))}
+                <th>{tr('Hersteller / Art.-Nr.')}</th>
+                <th>{tr('Bestellnummer')}</th>
+                {th('due', tr('Nächste Wartung'))}
+                {th('status', tr('Status'))}
               </tr>
             </thead>
             <tbody>
@@ -208,7 +210,7 @@ export function TagsPage() {
                     {r.tag.articleNumber && <span className="muted"> / {r.tag.articleNumber}</span>}
                     {r.tag.productId && (
                       <span className="pill" style={{ marginLeft: 6 }}>
-                        Vorlage
+                        {tr('Vorlage')}
                       </span>
                     )}
                   </td>
@@ -251,7 +253,11 @@ export function TagsPage() {
                     <div className="small muted">
                       {r.tag.type} · {r.tag.manufacturer} {r.tag.articleNumber}
                     </div>
-                    {r.next && <div className="small">Nächste Wartung: {fmtDate(r.next.dueDate)}</div>}
+                    {r.next && (
+                      <div className="small">
+                        {tr('Nächste Wartung:')} {fmtDate(r.next.dueDate)}
+                      </div>
+                    )}
                   </div>
                   <StatusBadge status={r.status} />
                 </Link>

@@ -9,6 +9,7 @@ import { data } from '../data';
 import { ISSUE_STATUS_LABELS, type IssueReport, type IssueStatus } from '../data/types';
 import { fmtDateTime } from '../lib/util';
 import { setIssueStatus, takeOverIssue } from '../services/issues';
+import { tr } from '../i18n';
 
 type Filter = 'open' | 'done' | 'all';
 
@@ -18,34 +19,43 @@ export function IssuesPage() {
   const [photo, setPhoto] = useState<string | null>(null);
   const issues = useData(
     () =>
-      data.issues.list().then((l) =>
-        l.sort((a, b) => (a.status === 'new' ? 0 : 1) - (b.status === 'new' ? 0 : 1) || b.createdAt.localeCompare(a.createdAt)),
-      ),
+      data.issues
+        .list()
+        .then((l) =>
+          l.sort(
+            (a, b) =>
+              (a.status === 'new' ? 0 : 1) - (b.status === 'new' ? 0 : 1) || b.createdAt.localeCompare(a.createdAt),
+          ),
+        ),
     [],
   );
   const tags = useData(() => data.tags.list(), []);
-  if (!can('admin')) return <Empty>Meldungen sind Administratoren vorbehalten.</Empty>;
+  if (!can('admin')) return <Empty>{tr('Meldungen sind Administratoren vorbehalten.')}</Empty>;
 
   const tagOf = (i: IssueReport) => tags?.find((t) => t.id === i.tagId);
-  const visible = (issues ?? []).filter((i) => (filter === 'all' ? true : filter === 'done' ? i.status === 'done' : i.status !== 'done'));
-  const count = (f: Filter) => (issues ?? []).filter((i) => (f === 'all' ? true : f === 'done' ? i.status === 'done' : i.status !== 'done')).length;
+  const visible = (issues ?? []).filter((i) =>
+    filter === 'all' ? true : filter === 'done' ? i.status === 'done' : i.status !== 'done',
+  );
+  const count = (f: Filter) =>
+    (issues ?? []).filter((i) => (f === 'all' ? true : f === 'done' ? i.status === 'done' : i.status !== 'done'))
+      .length;
 
   return (
     <div>
       <div className="page-head">
-        <h1>Meldungen</h1>
+        <h1>{tr('Meldungen')}</h1>
       </div>
       <div className="segmented" style={{ marginBottom: 16, maxWidth: 520 }}>
         {(['open', 'done', 'all'] as Filter[]).map((f) => (
           <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>
-            {{ open: 'Offen', done: 'Erledigt', all: 'Alle' }[f]} ({count(f)})
+            {{ open: tr('Offen'), done: tr('Erledigt'), all: tr('Alle') }[f]} ({count(f)})
           </button>
         ))}
       </div>
       {issues === undefined ? (
-        <Empty>Lädt …</Empty>
+        <Empty>{tr('Lädt …')}</Empty>
       ) : visible.length === 0 ? (
-        <Empty>Keine Meldungen.</Empty>
+        <Empty>{tr('Keine Meldungen.')}</Empty>
       ) : (
         <div className="issue-grid">
           {visible.map((i) => {
@@ -60,7 +70,7 @@ export function IssuesPage() {
                   <Link to={`/t/${i.tagId}`}>
                     <b>{i.tagNumber}</b>
                   </Link>{' '}
-                  <span className="small muted">{t ? t.description || t.type : 'Tag nicht mehr vorhanden'}</span>
+                  <span className="small muted">{t ? t.description || t.type : tr('Tag nicht mehr vorhanden')}</span>
                 </div>
                 <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>{i.description}</p>
                 <div className="small">
@@ -73,7 +83,12 @@ export function IssuesPage() {
                   )}
                 </div>
                 {i.photoFileId && (
-                  <StoredImage fileId={i.photoFileId} alt="Foto zur Meldung" className="thumb issue-photo" onClick={() => setPhoto(i.photoFileId)} />
+                  <StoredImage
+                    fileId={i.photoFileId}
+                    alt={tr('Foto zur Meldung')}
+                    className="thumb issue-photo"
+                    onClick={() => setPhoto(i.photoFileId)}
+                  />
                 )}
                 <div className="actions" style={{ marginTop: 12 }}>
                   {i.status !== 'done' && (
@@ -81,25 +96,29 @@ export function IssuesPage() {
                       className="btn btn-primary"
                       onClick={async () => {
                         await takeOverIssue(i, user?.name ?? '');
-                        toast('Als Tagebucheintrag übernommen – Meldung erledigt');
+                        toast(tr('Als Tagebucheintrag übernommen – Meldung erledigt'));
                       }}
                     >
-                      <Icon name="wrench" /> Als Tagebucheintrag übernehmen
+                      <Icon name="wrench" /> {tr('Als Tagebucheintrag übernehmen')}
                     </button>
                   )}
                   <select
                     value={i.status}
                     onChange={(e) => setIssueStatus(i, e.target.value as IssueStatus)}
-                    aria-label="Status"
+                    aria-label={tr('Status')}
                   >
                     {(Object.keys(ISSUE_STATUS_LABELS) as IssueStatus[]).map((s) => (
                       <option key={s} value={s}>
-                        Status: {ISSUE_STATUS_LABELS[s]}
+                        {tr('Status:')} {ISSUE_STATUS_LABELS[s]}
                       </option>
                     ))}
                   </select>
                 </div>
-                {i.logEntryId && <p className="small muted" style={{ marginBottom: 0 }}>Im Tagebuch des Bauteils eingetragen.</p>}
+                {i.logEntryId && (
+                  <p className="small muted" style={{ marginBottom: 0 }}>
+                    {tr('Im Tagebuch des Bauteils eingetragen.')}
+                  </p>
+                )}
               </article>
             );
           })}

@@ -9,6 +9,7 @@ import { data } from '../data';
 import type { Product, Tag } from '../data/types';
 import { isUuid, normalizeKey } from '../lib/util';
 import { applyProduct, deleteTag, emptyTag, findProduct, saveTag } from '../services/tags';
+import { tr } from '../i18n';
 
 const TYPES = [
   'Handventil',
@@ -28,7 +29,7 @@ export function TagEditPage() {
   const isNew = !id;
   const existing = useData(() => (id ? data.tags.get(id) : Promise.resolve(undefined)), [id]);
 
-  if (!isNew && existing === undefined) return <Empty>Lädt …</Empty>;
+  if (!isNew && existing === undefined) return <Empty>{tr('Lädt …')}</Empty>;
   const presetId = params.get('id');
   const initial = existing ?? emptyTag(presetId && isUuid(presetId) ? presetId.toLowerCase() : undefined);
   return <TagForm key={initial.id} initial={initial} isNew={isNew} />;
@@ -72,44 +73,44 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tag.articleNumber, tag.manufacturer]);
 
-  if (!can('edit')) return <Empty>Nur Bearbeiter und Administratoren können Tags bearbeiten.</Empty>;
+  if (!can('edit')) return <Empty>{tr('Nur Bearbeiter und Administratoren können Tags bearbeiten.')}</Empty>;
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!tag.tagNumber.trim()) return setError('Bitte eine Tag-Nummer eingeben.');
+    if (!tag.tagNumber.trim()) return setError(tr('Bitte eine Tag-Nummer eingeben.'));
     const dup = (await data.tags.list()).find(
       (t) => t.id !== tag.id && normalizeKey(t.tagNumber) === normalizeKey(tag.tagNumber),
     );
-    if (dup) return setError(`Die Tag-Nummer ${dup.tagNumber} gibt es schon.`);
+    if (dup) return setError(tr('Die Tag-Nummer {{n}} gibt es schon.', { n: dup.tagNumber }));
     await saveTag(tag);
-    toast(isNew ? 'Tag angelegt' : 'Gespeichert');
+    toast(isNew ? tr('Tag angelegt') : tr('Gespeichert'));
     navigate(`/t/${tag.id}`, { replace: true });
   };
 
   return (
     <div className="narrow">
       <div className="page-head">
-        <Link to={isNew ? '/tags' : `/t/${tag.id}`} className="btn btn-sm" aria-label="Zurück">
+        <Link to={isNew ? '/tags' : `/t/${tag.id}`} className="btn btn-sm" aria-label={tr('Zurück')}>
           <Icon name="back" size={18} />
         </Link>
-        <h1>{isNew ? 'Neuer Tag' : `${initial.tagNumber} bearbeiten`}</h1>
+        <h1>{isNew ? tr('Neuer Tag') : tr('{{n}} bearbeiten', { n: initial.tagNumber })}</h1>
       </div>
 
       <form onSubmit={save}>
         <section className="card">
           <div className="form-grid">
-            <Field label="Tag-Nummer *">
+            <Field label={tr('Tag-Nummer *')}>
               <input
                 type="text"
                 value={tag.tagNumber}
                 onChange={(e) => set({ tagNumber: e.target.value.toUpperCase() })}
-                placeholder="z. B. HV-1001"
+                placeholder={tr('z. B. HV-1001')}
                 autoCapitalize="characters"
                 required
               />
             </Field>
-            <Field label="Typ">
+            <Field label={tr('Typ')}>
               <input type="text" list="types" value={tag.type} onChange={(e) => set({ type: e.target.value })} />
               <datalist id="types">
                 {TYPES.map((t) => (
@@ -117,10 +118,10 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
                 ))}
               </datalist>
             </Field>
-            <Field label="Hersteller">
+            <Field label={tr('Hersteller')}>
               <input type="text" value={tag.manufacturer} onChange={(e) => set({ manufacturer: e.target.value })} />
             </Field>
-            <Field label="Artikelnummer" hint="Bekannte Artikelnummern werden im Produktkatalog erkannt.">
+            <Field label={tr('Artikelnummer')} hint={tr('Bekannte Artikelnummern werden im Produktkatalog erkannt.')}>
               <input type="text" value={tag.articleNumber} onChange={(e) => set({ articleNumber: e.target.value })} />
             </Field>
 
@@ -129,28 +130,31 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
                 <Icon name="check" />
                 <div>
                   <div className="title">
-                    {detected ? 'Produkt erkannt' : 'Verknüpft mit Produktvorlage'}:{' '}
+                    {detected ? tr('Produkt erkannt') : tr('Verknüpft mit Produktvorlage')}:{' '}
                     {(detected ?? linked)!.manufacturer} {(detected ?? linked)!.articleNumber} –{' '}
                     {(detected ?? linked)!.name}
                   </div>
                   <div className="small">
-                    Dokumente, FAQ, Wartungsaufgaben, Ersatzteile und Support-Kontakt werden aus der Vorlage übernommen.
-                    Spätere Änderungen an der Vorlage gelten automatisch auch für diesen Tag.
+                    {tr(
+                      tr(
+                        'Dokumente, FAQ, Wartungsaufgaben, Ersatzteile und Support-Kontakt werden aus der Vorlage übernommen. Spätere Änderungen an der Vorlage gelten automatisch auch für diesen Tag.',
+                      ),
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
-            <Field label="Bezeichnung / Funktion" full>
+            <Field label={tr('Bezeichnung / Funktion')} full>
               <input type="text" value={tag.description} onChange={(e) => set({ description: e.target.value })} />
             </Field>
-            <Field label="Anlage">
+            <Field label={tr('Anlage')}>
               <input
                 type="text"
                 list="plants"
                 value={tag.plant}
                 onChange={(e) => set({ plant: e.target.value })}
-                placeholder="z. B. Wasseraufbereitung"
+                placeholder={tr('z. B. Wasseraufbereitung')}
               />
               <datalist id="plants">
                 {plants?.map((p) => (
@@ -158,38 +162,38 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
                 ))}
               </datalist>
             </Field>
-            <Field label="Standort">
+            <Field label={tr('Standort')}>
               <input type="text" value={tag.location} onChange={(e) => set({ location: e.target.value })} />
             </Field>
             <Field
-              label="Bestellnummer (Bauteil)"
-              hint={linked?.orderNumber ? `leer = aus Vorlage: ${linked.orderNumber}` : undefined}
+              label={tr('Bestellnummer (Bauteil)')}
+              hint={linked?.orderNumber ? tr('leer = aus Vorlage: {{n}}', { n: linked.orderNumber }) : undefined}
             >
               <input type="text" value={tag.orderNumber} onChange={(e) => set({ orderNumber: e.target.value })} />
             </Field>
-            <Field label="Inbetriebnahme" hint="Startdatum für Wartungsintervalle ohne bisherigen Eintrag">
+            <Field label={tr('Inbetriebnahme')} hint={tr('Startdatum für Wartungsintervalle ohne bisherigen Eintrag')}>
               <input type="date" value={tag.commissionedAt} onChange={(e) => set({ commissionedAt: e.target.value })} />
             </Field>
-            <Field label="Notizen" full>
+            <Field label={tr('Notizen')} full>
               <textarea value={tag.notes} onChange={(e) => set({ notes: e.target.value })} />
             </Field>
           </div>
         </section>
 
         <section className="card">
-          <h2>Support-Kontakt</h2>
+          <h2>{tr('Support-Kontakt')}</h2>
           <p className="small muted">
-            Leer lassen = Kontakt aus der Produktvorlage
+            {tr('Leer lassen = Kontakt aus der Produktvorlage')}
             {linked?.supportEmail || linked?.supportPhone ? ` (${linked.supportName || linked.supportEmail})` : ''}.
           </p>
           <div className="form-grid">
-            <Field label="Name / Firma" full>
+            <Field label={tr('Name / Firma')} full>
               <input type="text" value={tag.supportName} onChange={(e) => set({ supportName: e.target.value })} />
             </Field>
-            <Field label="E-Mail">
+            <Field label={tr('E-Mail')}>
               <input type="email" value={tag.supportEmail} onChange={(e) => set({ supportEmail: e.target.value })} />
             </Field>
-            <Field label="Telefon">
+            <Field label={tr('Telefon')}>
               <input type="tel" value={tag.supportPhone} onChange={(e) => set({ supportPhone: e.target.value })} />
             </Field>
           </div>
@@ -201,37 +205,39 @@ function TagForm({ initial, isNew }: { initial: Tag; isNew: boolean }) {
           </div>
         )}
         <button className="btn btn-primary btn-lg btn-block" type="submit">
-          <Icon name="check" /> {isNew ? 'Tag anlegen' : 'Speichern'}
+          <Icon name="check" /> {isNew ? tr('Tag anlegen') : tr('Speichern')}
         </button>
       </form>
 
       {!isNew && (
         <>
-          <h2 style={{ marginTop: 32 }}>Zusätzlich nur für diesen Tag</h2>
-          <p className="small muted">Ergänzt die Daten aus der Produktvorlage – z. B. für Bauteile ohne Vorlage.</p>
+          <h2 style={{ marginTop: 32 }}>{tr('Zusätzlich nur für diesen Tag')}</h2>
+          <p className="small muted">
+            {tr('Ergänzt die Daten aus der Produktvorlage – z. B. für Bauteile ohne Vorlage.')}
+          </p>
           <section className="card">
-            <h3>Wartungsaufgaben</h3>
+            <h3>{tr('Wartungsaufgaben')}</h3>
             <TasksEditor ownerType="tag" ownerId={tag.id} productId={tag.productId} />
           </section>
           <section className="card">
-            <h3>Ersatzteile</h3>
+            <h3>{tr('Ersatzteile')}</h3>
             <PartsEditor ownerType="tag" ownerId={tag.id} />
           </section>
           <section className="card">
-            <h3>FAQ</h3>
+            <h3>{tr('FAQ')}</h3>
             <FaqEditor ownerType="tag" ownerId={tag.id} />
           </section>
           {can('admin') && (
             <button
               className="btn btn-danger btn-block"
               onClick={async () => {
-                if (!confirm(`Tag ${initial.tagNumber} mit Tagebuch und Dokumenten löschen?`)) return;
+                if (!confirm(tr('Tag {{n}} mit Tagebuch und Dokumenten löschen?', { n: initial.tagNumber }))) return;
                 await deleteTag(tag.id);
-                toast('Tag gelöscht');
+                toast(tr('Tag gelöscht'));
                 navigate('/tags', { replace: true });
               }}
             >
-              <Icon name="trash" /> Tag löschen
+              <Icon name="trash" /> {tr('Tag löschen')}
             </button>
           )}
         </>

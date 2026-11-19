@@ -16,6 +16,7 @@ import { openIssuesForTag } from '../services/issues';
 import { isScanned } from '../services/scanProof';
 import { rememberScan, tagUrl } from '../services/settings';
 import { deleteLogEntry, loadTagDetail, type TagDetail } from '../services/tags';
+import { tr } from '../i18n';
 
 export function TagPage() {
   const { id = '' } = useParams();
@@ -26,9 +27,9 @@ export function TagPage() {
     if (detail) rememberScan(detail.tag.id);
   }, [detail]);
 
-  if (detail === undefined) return <Empty>Lädt …</Empty>;
+  if (detail === undefined) return <Empty>{tr('Lädt …')}</Empty>;
   if (detail === null) return <UnknownTag id={id} />;
-  if (!ready) return <Empty>Lädt …</Empty>;
+  if (!ready) return <Empty>{tr('Lädt …')}</Empty>;
   if (isPublic) return <PublicTagView d={detail} />;
   return <TagView d={detail} />;
 }
@@ -51,14 +52,14 @@ function PublicTagView({ d }: { d: TagDetail }) {
       </section>
       <div className="actions" style={{ gridTemplateColumns: '1fr' }}>
         <Link className="btn btn-primary btn-lg" to={`/t/${tag.id}/meldung`}>
-          <Icon name="bell" /> Störung melden
+          <Icon name="bell" /> {tr('Störung melden')}
         </Link>
         <Link className="btn btn-lg" to={`/anmelden?back=${encodeURIComponent(`/t/${tag.id}`)}`}>
-          <Icon name="users" /> Anmelden (Demo)
+          <Icon name="users" /> {tr('Anmelden (Demo)')}
         </Link>
       </div>
       <p className="small muted" style={{ textAlign: 'center', marginTop: 16 }}>
-        Mit Account sehen Sie die vollständige Bauteilakte: Wartung, Tagebuch, Dokumente, Ersatzteile.
+        {tr('Mit Account sehen Sie die vollständige Bauteilakte: Wartung, Tagebuch, Dokumente, Ersatzteile.')}
       </p>
     </div>
   );
@@ -71,9 +72,9 @@ function UnknownTag({ id }: { id: string }) {
     <div>
       <div className="alert due">
         <div>
-          <div className="title">Unbekannter QR-Code</div>
+          <div className="title">{tr('Unbekannter QR-Code')}</div>
           <div className="small">
-            Zu diesem Code gibt es auf diesem Gerät noch keinen Tag.
+            {tr('Zu diesem Code gibt es auf diesem Gerät noch keinen Tag.')}
             <br />
             <span className="mono" style={{ wordBreak: 'break-all' }}>
               {id}
@@ -83,17 +84,17 @@ function UnknownTag({ id }: { id: string }) {
       </div>
       {valid && can('edit') ? (
         <Link className="btn btn-primary btn-lg btn-block" to={`/tags/neu?id=${id}`} style={{ marginBottom: 12 }}>
-          <Icon name="plus" /> Neuen Tag mit diesem Code anlegen
+          <Icon name="plus" /> {tr('Neuen Tag mit diesem Code anlegen')}
         </Link>
       ) : (
         <p className="muted">
           {valid
-            ? 'Nur Bearbeiter oder Administratoren können hier einen neuen Tag anlegen.'
-            : 'Der Code enthält keine gültige Tag-ID.'}
+            ? tr('Nur Bearbeiter oder Administratoren können hier einen neuen Tag anlegen.')
+            : tr('Der Code enthält keine gültige Tag-ID.')}
         </p>
       )}
       <Link className="btn btn-block" to="/scan?scan=1">
-        <Icon name="scan" /> Erneut scannen
+        <Icon name="scan" /> {tr('Erneut scannen')}
       </Link>
     </div>
   );
@@ -116,7 +117,7 @@ function TagView({ d }: { d: TagDetail }) {
     <section className={`card ${cls}`} id={id}>
       <div className="section-head">
         <h2>
-          <Icon name="phone" /> Support-Kontakt
+          <Icon name="phone" /> {tr('Support-Kontakt')}
         </h2>
       </div>
       {d.support ? (
@@ -133,16 +134,18 @@ function TagView({ d }: { d: TagDetail }) {
                 className="btn btn-lg"
                 href={`mailto:${d.support.email}?subject=${encodeURIComponent(`Support-Anfrage ${tag.tagNumber} (${tag.type})`)}&body=${encodeURIComponent(`Tag: ${tag.tagNumber}\nAnlage: ${tag.plant}\nHersteller/Art.-Nr.: ${tag.manufacturer} ${tag.articleNumber}\nLink: ${tagUrl(tag.id)}\n\nAnliegen:\n`)}`}
               >
-                <Icon name="mail" /> E-Mail
+                <Icon name="mail" /> {tr('E-Mail')}
               </a>
             )}
           </div>
           <p className="small muted" style={{ marginBottom: 0 }}>
-            {d.support.source === 'product' ? 'Kontakt aus der Produktvorlage' : 'Kontakt speziell für diesen Tag'}
+            {d.support.source === 'product'
+              ? tr('Kontakt aus der Produktvorlage')
+              : tr('Kontakt speziell für diesen Tag')}
           </p>
         </>
       ) : (
-        <Empty>Kein Support-Kontakt hinterlegt.</Empty>
+        <Empty>{tr('Kein Support-Kontakt hinterlegt.')}</Empty>
       )}
     </section>
   );
@@ -168,37 +171,40 @@ function TagView({ d }: { d: TagDetail }) {
                     </div>
                     {tag.plant && <div className="plant">{tag.plant}</div>}
                     {isDemoTag(tag.id) && (
-                      <div className="demo-note" title="Wartungsintervalle, FAQ und Ersatzteile sind Beispielwerte">
-                        Demo-Daten · Intervalle, FAQ und Ersatzteile sind Beispielwerte
+                      <div
+                        className="demo-note"
+                        title={tr('Wartungsintervalle, FAQ und Ersatzteile sind Beispielwerte')}
+                      >
+                        {tr('Demo-Daten · Intervalle, FAQ und Ersatzteile sind Beispielwerte')}
                       </div>
                     )}
                   </div>
                   <StatusBadge status={status} />
                 </div>
                 <dl className="meta">
-                  <dt>Hersteller</dt>
+                  <dt>{tr('Hersteller')}</dt>
                   <dd>{tag.manufacturer || '–'}</dd>
-                  <dt>Artikel-Nr.</dt>
+                  <dt>{tr('Artikel-Nr.')}</dt>
                   <dd>
                     {tag.articleNumber || '–'}
                     {product && can('admin') && (
                       <>
                         {' '}
                         <Link to={`/katalog/${product.id}`} style={{ color: 'var(--accent)', fontWeight: 400 }}>
-                          (Vorlage)
+                          {tr('(Vorlage)')}
                         </Link>
                       </>
                     )}
                   </dd>
                   {d.orderNumber && (
                     <>
-                      <dt>Bestell-Nr.</dt>
+                      <dt>{tr('Bestell-Nr.')}</dt>
                       <dd>{d.orderNumber}</dd>
                     </>
                   )}
                   {tag.location && (
                     <>
-                      <dt>Standort</dt>
+                      <dt>{tr('Standort')}</dt>
                       <dd>{tag.location}</dd>
                     </>
                   )}
@@ -221,13 +227,15 @@ function TagView({ d }: { d: TagDetail }) {
                 <Icon name="bell" size={26} />
                 <div style={{ flex: 1 }}>
                   <div className="title">
-                    {openIssues.length === 1 ? '1 offene Meldung' : `${openIssues.length} offene Meldungen`}
+                    {openIssues.length === 1
+                      ? tr('1 offene Meldung')
+                      : tr('{{n}} offene Meldungen', { n: openIssues.length })}
                   </div>
                   <div className="small">{openIssues[0].description.slice(0, 90)}</div>
                 </div>
                 {can('admin') && (
                   <Link className="btn btn-sm" to="/meldungen">
-                    Ansehen
+                    {tr('Ansehen')}
                   </Link>
                 )}
               </div>
@@ -241,14 +249,14 @@ function TagView({ d }: { d: TagDetail }) {
               <div className="actions">
                 {can('edit') && (
                   <Link className="btn btn-primary btn-lg" to={`/t/${tag.id}/eintrag`}>
-                    <Icon name="plus" /> Eintrag hinzufügen
+                    <Icon name="plus" /> {tr('Eintrag hinzufügen')}
                   </Link>
                 )}
                 <Link className="btn btn-dark btn-lg" to="/scan?scan=1">
-                  <Icon name="scan" /> Nächstes Bauteil scannen
+                  <Icon name="scan" /> {tr('Nächstes Bauteil scannen')}
                 </Link>
                 <Link className="btn" to={`/t/${tag.id}/meldung`}>
-                  <Icon name="bell" /> Störung melden
+                  <Icon name="bell" /> {tr('Störung melden')}
                 </Link>
               </div>
             ),
@@ -263,11 +271,11 @@ function TagView({ d }: { d: TagDetail }) {
                   <QrCode text={tagUrl(tag.id)} />
                   <div className="actions" style={{ flex: 1, gridTemplateColumns: '1fr' }}>
                     <Link className="btn btn-sm" to={`/etiketten?tags=${tag.id}`}>
-                      <Icon name="printer" size={18} /> Etikett drucken
+                      <Icon name="printer" size={18} /> {tr('Etikett drucken')}
                     </Link>
                     {can('edit') && (
                       <Link className="btn btn-sm" to={`/tags/${tag.id}/bearbeiten`}>
-                        <Icon name="edit" size={18} /> Tag bearbeiten
+                        <Icon name="edit" size={18} /> {tr('Tag bearbeiten')}
                       </Link>
                     )}
                   </div>
@@ -281,24 +289,24 @@ function TagView({ d }: { d: TagDetail }) {
             col: 'right',
             order: 5,
             node: !wide && (
-              <nav className="jump no-print" aria-label="Bereiche">
+              <nav className="jump no-print" aria-label={tr('Bereiche')}>
                 <a href="#wartung" onClick={jump}>
-                  Wartung
+                  {tr('Wartung')}
                 </a>
                 <a href="#tagebuch" onClick={jump}>
-                  Tagebuch
+                  {tr('Tagebuch')}
                 </a>
                 <a href="#dokumente" onClick={jump}>
-                  Dokumente
+                  {tr('Dokumente')}
                 </a>
                 <a href="#faq" onClick={jump}>
-                  FAQ
+                  {tr('FAQ')}
                 </a>
                 <a href="#ersatzteile" onClick={jump}>
-                  Ersatzteile
+                  {tr('Ersatzteile')}
                 </a>
                 <a href="#support" onClick={jump}>
-                  Support
+                  {tr('Support')}
                 </a>
               </nav>
             ),
@@ -311,28 +319,30 @@ function TagView({ d }: { d: TagDetail }) {
               <section className="card" id="wartung">
                 <div className="section-head">
                   <h2>
-                    <Icon name="calendar" /> Wartung
+                    <Icon name="calendar" /> {tr('Wartung')}
                   </h2>
                 </div>
-                {d.tasks.length === 0 && <Empty>Keine Wartungsaufgaben hinterlegt.</Empty>}
+                {d.tasks.length === 0 && <Empty>{tr('Keine Wartungsaufgaben hinterlegt.')}</Empty>}
                 <ul className="list">
                   {d.tasks.map((s) => (
                     <li key={s.task.id} className="list-item" style={{ alignItems: 'flex-start' }}>
                       <div className="grow">
                         <div className="title">{s.task.title}</div>
                         <div className="small muted">
-                          {intervalLabel(s.task.intervalValue, s.task.intervalUnit)} · zuletzt:{' '}
-                          {s.lastDone ? fmtDate(s.lastDone) : `nie (ab Inbetriebnahme ${fmtDate(s.startDate)})`}
+                          {intervalLabel(s.task.intervalValue, s.task.intervalUnit)} {tr('· zuletzt:')}{' '}
+                          {s.lastDone
+                            ? fmtDate(s.lastDone)
+                            : tr('nie (ab Inbetriebnahme {{date}})', { date: fmtDate(s.startDate) })}
                         </div>
                         <div className="small">
-                          Fällig am <b>{fmtDate(s.dueDate)}</b> ({describeDue(s)})
+                          {tr('Fällig am')} <b>{fmtDate(s.dueDate)}</b> ({describeDue(s)})
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
                         <StatusBadge status={s.status} />
                         {mayComplete && (
                           <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag?task=${s.task.id}`}>
-                            <Icon name="check" size={18} /> Erledigt
+                            <Icon name="check" size={18} /> {tr('Erledigt')}
                           </Link>
                         )}
                       </div>
@@ -350,11 +360,11 @@ function TagView({ d }: { d: TagDetail }) {
               <section className="card" id="tagebuch">
                 <div className="section-head">
                   <h2>
-                    <Icon name="wrench" /> Tagebuch
+                    <Icon name="wrench" /> {tr('Tagebuch')}
                   </h2>
                   {can('edit') && (
                     <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag`}>
-                      <Icon name="plus" size={18} /> Eintrag
+                      <Icon name="plus" size={18} /> {tr('Eintrag')}
                     </Link>
                   )}
                 </div>
@@ -370,7 +380,7 @@ function TagView({ d }: { d: TagDetail }) {
               <section className="card" id="dokumente">
                 <div className="section-head">
                   <h2>
-                    <Icon name="doc" /> Dokumente
+                    <Icon name="doc" /> {tr('Dokumente')}
                   </h2>
                 </div>
                 <DocumentList
@@ -390,25 +400,25 @@ function TagView({ d }: { d: TagDetail }) {
               <section className="card" id="ersatzteile">
                 <div className="section-head">
                   <h2>
-                    <Icon name="box" /> Ersatzteile
+                    <Icon name="box" /> {tr('Ersatzteile')}
                   </h2>
                 </div>
-                {d.spareParts.length === 0 && <Empty>Keine Ersatzteile hinterlegt.</Empty>}
+                {d.spareParts.length === 0 && <Empty>{tr('Keine Ersatzteile hinterlegt.')}</Empty>}
                 <ul className="list">
                   {d.spareParts.map((p) => (
                     <li key={p.id} className="list-item wrap" style={{ alignItems: 'flex-start' }}>
                       <div className="grow">
                         <div className="title">{p.name}</div>
                         <dl className="kv small" style={{ margin: '4px 0 0' }}>
-                          <dt>Hersteller-Nr.</dt>
+                          <dt>{tr('Hersteller-Nr.')}</dt>
                           <dd className="mono">{p.manufacturerPartNumber || '–'}</dd>
-                          <dt>Bestell-Nr.</dt>
+                          <dt>{tr('Bestell-Nr.')}</dt>
                           <dd className="mono">{p.supplierOrderNumber || '–'}</dd>
-                          <dt>Lieferant</dt>
+                          <dt>{tr('Lieferant')}</dt>
                           <dd>{p.supplier?.name ?? '–'}</dd>
                           {p.notes && (
                             <>
-                              <dt>Hinweis</dt>
+                              <dt>{tr('Hinweis')}</dt>
                               <dd>{p.notes}</dd>
                             </>
                           )}
@@ -420,7 +430,7 @@ function TagView({ d }: { d: TagDetail }) {
                             className="btn btn-primary"
                             onClick={() => setOrder({ part: p, supplier: p.supplier })}
                           >
-                            <Icon name="cart" /> Bestellen
+                            <Icon name="cart" /> {tr('Bestellen')}
                           </button>
                         </div>
                       )}
@@ -438,10 +448,10 @@ function TagView({ d }: { d: TagDetail }) {
               <section className="card" id="faq">
                 <div className="section-head">
                   <h2>
-                    <Icon name="help" /> FAQ
+                    <Icon name="help" /> {tr('FAQ')}
                   </h2>
                 </div>
-                {d.faqs.length === 0 && <Empty>Keine Fragen hinterlegt.</Empty>}
+                {d.faqs.length === 0 && <Empty>{tr('Keine Fragen hinterlegt.')}</Empty>}
                 {d.faqs.map((f) => (
                   <details key={f.id} className="acc">
                     <summary>{f.question}</summary>
@@ -458,11 +468,11 @@ function TagView({ d }: { d: TagDetail }) {
             node: !wide && (
               <div className="actions two no-print">
                 <button className="btn" onClick={() => setShowQr(true)}>
-                  <Icon name="qr" /> QR-Code
+                  <Icon name="qr" /> {tr('QR-Code')}
                 </button>
                 {can('edit') && (
                   <button className="btn" onClick={() => navigate(`/tags/${tag.id}/bearbeiten`)}>
-                    <Icon name="edit" /> Bearbeiten
+                    <Icon name="edit" /> {tr('Bearbeiten')}
                   </button>
                 )}
               </div>
@@ -479,7 +489,7 @@ function TagView({ d }: { d: TagDetail }) {
             {tagUrl(tag.id)}
           </p>
           <Link className="btn btn-block" to={`/etiketten?tags=${tag.id}`}>
-            <Icon name="printer" /> Etikett drucken
+            <Icon name="printer" /> {tr('Etikett drucken')}
           </Link>
         </Modal>
       )}
@@ -507,20 +517,20 @@ function NextMaintenance({ tasks, tagId }: { tasks: TaskStatus[]; tagId: string 
       <div style={{ flex: 1 }}>
         <div className="title">
           {next.status === 'overdue'
-            ? 'Wartung überfällig'
+            ? tr('Wartung überfällig')
             : next.status === 'due'
-              ? 'Wartung fällig'
-              : 'Nächste Wartung'}
+              ? tr('Wartung fällig')
+              : tr('Nächste Wartung')}
           : {next.task.title}
         </div>
         <div>
           {fmtDate(next.dueDate)} – {describeDue(next)}
-          {more > 0 && ` · ${more} weitere fällig`}
+          {more > 0 && ` · ${tr('{{n}} weitere fällig', { n: more })}`}
         </div>
       </div>
       {(can('admin') || (can('edit') && isScanned(tagId))) && next.status !== 'ok' && (
         <Link className="btn btn-sm" to={`/t/${tagId}/eintrag?task=${next.task.id}`}>
-          Erledigt
+          {tr('Erledigt')}
         </Link>
       )}
     </div>
@@ -529,8 +539,8 @@ function NextMaintenance({ tasks, tagId }: { tasks: TaskStatus[]; tagId: string 
 
 function Diary({ entries, tasks, canDelete }: { entries: LogEntry[]; tasks: TaskStatus[]; canDelete: boolean }) {
   const [photo, setPhoto] = useState<string | null>(null);
-  const titleOf = (id: string) => tasks.find((t) => t.task.id === id)?.task.title ?? 'Wartungsaufgabe';
-  if (entries.length === 0) return <Empty>Noch keine Einträge.</Empty>;
+  const titleOf = (id: string) => tasks.find((t) => t.task.id === id)?.task.title ?? tr('Wartungsaufgabe');
+  if (entries.length === 0) return <Empty>{tr('Noch keine Einträge.')}</Empty>;
   return (
     <div>
       {entries.map((e) => (
@@ -541,21 +551,21 @@ function Diary({ entries, tasks, canDelete }: { entries: LogEntry[]; tasks: Task
               {fmtDate(e.date)} · {e.person || 'unbekannt'}
             </span>
             {e.source === 'scan' && (
-              <span className="src-badge scan" title="Eintrag nach QR-Scan am Bauteil erstellt">
-                <Icon name="scan" size={14} /> per Scan erfasst
+              <span className="src-badge scan" title={tr('Eintrag nach QR-Scan am Bauteil erstellt')}>
+                <Icon name="scan" size={14} /> {tr('per Scan erfasst')}
               </span>
             )}
             {e.source === 'manual' && (
-              <span className="src-badge manual" title="Eintrag ohne QR-Scan erstellt">
-                ohne Scan erfasst
+              <span className="src-badge manual" title={tr('Eintrag ohne QR-Scan erstellt')}>
+                {tr('ohne Scan erfasst')}
               </span>
             )}
             {canDelete && (
               <button
                 className="icon-btn"
                 style={{ marginLeft: 'auto', width: 40, height: 40 }}
-                aria-label="Eintrag löschen"
-                onClick={() => confirm('Eintrag löschen?') && deleteLogEntry(e)}
+                aria-label={tr('Eintrag löschen')}
+                onClick={() => confirm(tr('Eintrag löschen?')) && deleteLogEntry(e)}
               >
                 <Icon name="trash" size={18} />
               </button>
@@ -563,12 +573,14 @@ function Diary({ entries, tasks, canDelete }: { entries: LogEntry[]; tasks: Task
           </div>
           <div style={{ whiteSpace: 'pre-wrap' }}>{e.description}</div>
           {e.completedTaskIds.length > 0 && (
-            <div className="done-tasks">✓ Erledigt: {e.completedTaskIds.map(titleOf).join(', ')}</div>
+            <div className="done-tasks">
+              {tr('✓ Erledigt:')} {e.completedTaskIds.map(titleOf).join(', ')}
+            </div>
           )}
           {e.photoFileId && (
             <StoredImage
               fileId={e.photoFileId}
-              alt="Foto zum Eintrag"
+              alt={tr('Foto zum Eintrag')}
               className="thumb"
               onClick={() => setPhoto(e.photoFileId)}
             />

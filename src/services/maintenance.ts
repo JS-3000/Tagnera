@@ -10,15 +10,16 @@
 import { data } from '../data';
 import type { IntervalUnit, LogEntry, MaintenanceTask, Tag } from '../data/types';
 import { INTERVAL_UNIT_LABELS } from '../data/types';
+import { t, translated } from '../i18n';
 import { addDays, addMonths, daysBetween, today } from '../lib/util';
 
 export type MaintStatus = 'ok' | 'due' | 'overdue';
 
-export const STATUS_LABELS: Record<MaintStatus, string> = {
+export const STATUS_LABELS: Record<MaintStatus, string> = translated({
   ok: 'OK',
   due: 'Fällig',
   overdue: 'Überfällig',
-};
+});
 
 export const STATUS_RANK: Record<MaintStatus, number> = { ok: 0, due: 1, overdue: 2 };
 
@@ -53,12 +54,12 @@ export function intervalDays(value: number, unit: IntervalUnit): number {
 
 export function intervalLabel(value: number, unit: IntervalUnit): string {
   if (value === 1) {
-    return { days: 'täglich', weeks: 'wöchentlich', months: 'monatlich', years: 'jährlich' }[unit];
+    return t({ days: 'täglich', weeks: 'wöchentlich', months: 'monatlich', years: 'jährlich' }[unit]);
   }
-  if (unit === 'months' && value === 3) return 'vierteljährlich';
-  if (unit === 'months' && value === 6) return 'halbjährlich';
+  if (unit === 'months' && value === 3) return t('vierteljährlich');
+  if (unit === 'months' && value === 6) return t('halbjährlich');
   const [one, many] = INTERVAL_UNIT_LABELS[unit];
-  return `alle ${value} ${value === 1 ? one : many}`;
+  return t('alle {{n}} {{unit}}', { n: value, unit: t(value === 1 ? one : many) });
 }
 
 export function warningWindowDays(task: MaintenanceTask): number {
@@ -109,8 +110,9 @@ export async function loadAllTaskStatuses(refDate = today()): Promise<TaskStatus
 }
 
 export function describeDue(s: TaskStatus): string {
-  if (s.daysLeft < 0) return `seit ${-s.daysLeft} ${-s.daysLeft === 1 ? 'Tag' : 'Tagen'} überfällig`;
-  if (s.daysLeft === 0) return 'heute fällig';
-  if (s.daysLeft === 1) return 'morgen fällig';
-  return `fällig in ${s.daysLeft} Tagen`;
+  if (s.daysLeft === -1) return t('seit 1 Tag überfällig');
+  if (s.daysLeft < 0) return t('seit {{n}} Tagen überfällig', { n: -s.daysLeft });
+  if (s.daysLeft === 0) return t('heute fällig');
+  if (s.daysLeft === 1) return t('morgen fällig');
+  return t('fällig in {{n}} Tagen', { n: s.daysLeft });
 }

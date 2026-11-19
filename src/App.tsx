@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { i18next } from './i18n';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { SessionProvider } from './app/session';
 import { Layout } from './components/Layout';
@@ -27,8 +28,15 @@ const PdfViewerPage = lazy(() => import('./pages/PdfViewerPage').then((m) => ({ 
 
 // Hash routing (#/t/<uuid>) works on any static hosting such as GitHub Pages.
 export function App() {
+  // switching the language rebuilds the UI once, so every text is shown in the new language
+  const [lang, setLang] = useState(i18next.language);
+  useEffect(() => {
+    const on = (l: string) => setLang(l);
+    i18next.on('languageChanged', on);
+    return () => i18next.off('languageChanged', on);
+  }, []);
   return (
-    <HashRouter>
+    <HashRouter key={lang}>
       <SessionProvider>
         <Routes>
           <Route

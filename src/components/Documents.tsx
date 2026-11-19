@@ -6,7 +6,9 @@ import { daysBetween, fmtDate, fmtSize, today, toDateStr } from '../lib/util';
 import { addDocument, addDocumentVersion, removeDocument, type DocWithVersions } from '../services/tags';
 import { Icon } from './Icon';
 import { Empty, Field, FileViewer, Modal, toast } from './ui';
+import { tr } from '../i18n';
 
+// stored as data (German); translated only for display
 const CATEGORIES = ['Anleitung', 'Datenblatt', 'Zeichnung', 'Zertifikat', 'Prüfbericht', 'Foto', 'Sonstiges'];
 const NEW_DAYS = 30; // show "NEU" badge for 30 days
 
@@ -41,7 +43,7 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
 
   return (
     <>
-      {docs.length === 0 && <Empty>Keine Dokumente vorhanden.</Empty>}
+      {docs.length === 0 && <Empty>{tr('Keine Dokumente vorhanden.')}</Empty>}
       <ul className="list">
         {docs.map((d) => {
           if (d.request) {
@@ -52,11 +54,13 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                   <span className="grow">
                     <span className="title">{d.doc.title}</span>
                     <br />
-                    <span className="small muted">Bei {d.request.manufacturer} noch nicht öffentlich verfügbar</span>
+                    <span className="small muted">
+                      {tr('Bei')} {d.request.manufacturer} {tr('noch nicht öffentlich verfügbar')}
+                    </span>
                   </span>
                   <div className="item-actions no-print">
                     <a className="btn btn-sm" href={d.request.mailto}>
-                      <Icon name="mail" size={18} /> Beim Hersteller anfragen
+                      <Icon name="mail" size={18} /> {tr('Beim Hersteller anfragen')}
                     </a>
                   </div>
                 </div>
@@ -77,20 +81,20 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                     <span className="title" style={{ fontWeight: 700 }}>
                       {d.doc.title}
                     </span>{' '}
-                    {isNew && <span className="pill new">NEU</span>}
+                    {isNew && <span className="pill new">{tr('NEU')}</span>}
                     <br />
                     <span className="small muted">
                       {d.doc.category}
-                      {d.shipped ? ' · Herstellerdokument' : d.inherited ? ' · aus Produktvorlage' : ''}
+                      {d.shipped ? tr(' · Herstellerdokument') : d.inherited ? tr(' · aus Produktvorlage') : ''}
                       {d.current.size > 0 && ` · ${fmtSize(d.current.size)}`}
                     </span>
                     <br />
                     <span className="small">
                       {d.shipped
-                        ? `Stand ${fmtDate(dateOf(d.current.addedAt))}`
+                        ? tr('Stand {{date}}', { date: fmtDate(dateOf(d.current.addedAt)) })
                         : d.older.length === 0
-                          ? `Neu hinzugefügt am ${fmtDate(dateOf(d.current.addedAt))}`
-                          : `Neue Version vom ${fmtDate(dateOf(d.current.addedAt))}`}
+                          ? tr('Neu hinzugefügt am {{date}}', { date: fmtDate(dateOf(d.current.addedAt)) })
+                          : tr('Neue Version vom {{date}}', { date: fmtDate(dateOf(d.current.addedAt)) })}
                       {d.current.note && ` – ${d.current.note}`}
                     </span>
                   </span>
@@ -98,13 +102,14 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
                 {!d.shipped && canManage(d) && (
                   <div className="btn-row no-print item-actions">
                     <button className="btn btn-sm" onClick={() => setVersionFor(d)}>
-                      <Icon name="upload" size={18} /> Neue Version
+                      <Icon name="upload" size={18} /> {tr('Neue Version')}
                     </button>
                     <button
                       className="icon-btn"
-                      aria-label="Dokument löschen"
+                      aria-label={tr('Dokument löschen')}
                       onClick={() =>
-                        confirm(`„${d.doc.title}“ mit allen Versionen löschen?`) && removeDocument(d.doc.id)
+                        confirm(tr('„{{name}}“ mit allen Versionen löschen?', { name: d.doc.title })) &&
+                        removeDocument(d.doc.id)
                       }
                     >
                       <Icon name="trash" />
@@ -114,7 +119,10 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
               </div>
               {d.older.length > 0 && (
                 <details className="acc" style={{ marginTop: 8, marginLeft: 36 }}>
-                  <summary className="small">Ältere Versionen ({d.older.length})</summary>
+                  <summary className="small">
+                    {tr('Ältere Versionen (')}
+                    {d.older.length})
+                  </summary>
                   <ul className="list acc-body">
                     {d.older.map((v) => (
                       <li key={v.id}>
@@ -139,7 +147,7 @@ export function DocumentList({ docs, owner, canAdd, canManage }: Props) {
       </ul>
       {canAdd && (
         <button className="btn btn-block no-print" style={{ marginTop: 8 }} onClick={() => setAdding(true)}>
-          <Icon name="plus" /> Dokument hochladen
+          <Icon name="plus" /> {tr('Dokument hochladen')}
         </button>
       )}
 
@@ -160,18 +168,18 @@ function UploadModal({ owner, onClose }: { owner: Props['owner']; onClose: () =>
   const [busy, setBusy] = useState(false);
 
   return (
-    <Modal title="Dokument hochladen" onClose={onClose}>
+    <Modal title={tr('Dokument hochladen')} onClose={onClose}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           if (!file) return;
           setBusy(true);
           await addDocument(owner.ownerType, owner.ownerId, { title: title.trim(), category, note: note.trim() }, file);
-          toast('Dokument gespeichert');
+          toast(tr('Dokument gespeichert'));
           onClose();
         }}
       >
-        <Field label="Datei (PDF oder Bild)">
+        <Field label={tr('Datei (PDF oder Bild)')}>
           <input
             type="file"
             accept="application/pdf,image/*"
@@ -183,21 +191,23 @@ function UploadModal({ owner, onClose }: { owner: Props['owner']; onClose: () =>
             }}
           />
         </Field>
-        <Field label="Titel">
+        <Field label={tr('Titel')}>
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
         </Field>
-        <Field label="Kategorie">
+        <Field label={tr('Kategorie')}>
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
             {CATEGORIES.map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>
+                {tr(c)}
+              </option>
             ))}
           </select>
         </Field>
-        <Field label="Bemerkung (optional)" hint="z. B. Revision oder was sich geändert hat">
+        <Field label={tr('Bemerkung (optional)')} hint={tr('z. B. Revision oder was sich geändert hat')}>
           <input type="text" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
         <button className="btn btn-primary btn-block" disabled={!file || busy} type="submit">
-          Speichern
+          {tr('Speichern')}
         </button>
       </form>
     </Modal>
@@ -209,19 +219,19 @@ function VersionModal({ doc, onClose }: { doc: DocWithVersions; onClose: () => v
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   return (
-    <Modal title={`Neue Version: ${doc.doc.title}`} onClose={onClose}>
-      <p className="small muted">Die bisherige Version bleibt unter „Ältere Versionen“ erhalten.</p>
+    <Modal title={`${tr('Neue Version')}: ${doc.doc.title}`} onClose={onClose}>
+      <p className="small muted">{tr('Die bisherige Version bleibt unter „Ältere Versionen“ erhalten.')}</p>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           if (!file) return;
           setBusy(true);
           await addDocumentVersion(doc.doc.id, file, note.trim());
-          toast('Neue Version gespeichert');
+          toast(tr('Neue Version gespeichert'));
           onClose();
         }}
       >
-        <Field label="Datei (PDF oder Bild)">
+        <Field label={tr('Datei (PDF oder Bild)')}>
           <input
             type="file"
             accept="application/pdf,image/*"
@@ -229,11 +239,11 @@ function VersionModal({ doc, onClose }: { doc: DocWithVersions; onClose: () => v
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </Field>
-        <Field label="Was ist neu?" hint="z. B. „Rev. D – geänderte Drehmomente“">
+        <Field label={tr('Was ist neu?')} hint={tr('z. B. „Rev. D – geänderte Drehmomente“')}>
           <input type="text" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
         <button className="btn btn-primary btn-block" disabled={!file || busy} type="submit">
-          Version speichern
+          {tr('Version speichern')}
         </button>
       </form>
     </Modal>

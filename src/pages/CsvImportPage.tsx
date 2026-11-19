@@ -18,6 +18,7 @@ import {
   type TargetField,
 } from '../services/csvImport';
 import { productKeys } from '../services/tags';
+import { tr } from '../i18n';
 
 export function CsvImportPage() {
   const { can } = useSession();
@@ -46,14 +47,14 @@ export function CsvImportPage() {
   const existingKeys = useMemo(() => new Set((existing ?? []).map((t) => normalizeKey(t.tagNumber))), [existing]);
   const productKeySet = useMemo(() => new Set((products ?? []).flatMap(productKeys)), [products]);
 
-  if (!can('admin')) return <Empty>Der CSV-Import ist Administratoren vorbehalten.</Empty>;
+  if (!can('admin')) return <Empty>{tr('Der CSV-Import ist Administratoren vorbehalten.')}</Empty>;
 
   const mapped = (k: TargetField) => mapping[k] !== undefined && mapping[k]! >= 0;
 
   return (
     <div>
       <div className="page-head">
-        <h1>Tags aus CSV importieren</h1>
+        <h1>{tr('Tags aus CSV importieren')}</h1>
         <button
           className="btn btn-sm"
           onClick={() =>
@@ -68,15 +69,15 @@ export function CsvImportPage() {
             )
           }
         >
-          <Icon name="download" size={18} /> Beispiel-CSV
+          <Icon name="download" size={18} /> {tr('Beispiel-CSV')}
         </button>
       </div>
 
       <section className="card">
-        <h2>1. Datei wählen</h2>
+        <h2>{tr('1. Datei wählen')}</h2>
         <div className="btn-row">
           <label className="btn btn-primary">
-            <Icon name="upload" /> CSV-Datei auswählen
+            <Icon name="upload" /> {tr('CSV-Datei auswählen')}
             <input
               type="file"
               accept=".csv,text/csv,text/plain"
@@ -101,28 +102,30 @@ export function CsvImportPage() {
               if (file) void load(file, e.target.checked);
             }}
           />
-          Erste Zeile enthält Spaltenüberschriften
+          {tr('Erste Zeile enthält Spaltenüberschriften')}
         </label>
         <p className="small muted" style={{ marginBottom: 0 }}>
-          Trennzeichen (Semikolon, Komma, Tab) und Zeichensatz (UTF-8 oder Excel/Windows) werden automatisch erkannt.
+          {tr(
+            'Trennzeichen (Semikolon, Komma, Tab) und Zeichensatz (UTF-8 oder Excel/Windows) werden automatisch erkannt.',
+          )}
         </p>
       </section>
 
       {parsed && (
         <>
           <section className="card">
-            <h2>2. Spalten zuordnen</h2>
+            <h2>{tr('2. Spalten zuordnen')}</h2>
             <p className="small muted">
-              {parsed.rows.length} Datenzeilen gefunden. Ordne jedem Feld die passende Spalte deiner Datei zu.
+              {parsed.rows.length} {tr('Datenzeilen gefunden. Ordne jedem Feld die passende Spalte deiner Datei zu.')}
             </p>
             <div className="form-grid">
               {TARGET_FIELDS.map((f) => (
-                <Field key={f.key} label={f.label + (f.required ? ' *' : '')}>
+                <Field key={f.key} label={tr(f.label) + (f.required ? ' *' : '')}>
                   <select
                     value={mapping[f.key] ?? -1}
                     onChange={(e) => setMapping((m) => ({ ...m, [f.key]: Number(e.target.value) }))}
                   >
-                    <option value={-1}>– nicht importieren –</option>
+                    <option value={-1}>{tr('– nicht importieren –')}</option>
                     {parsed.headers.map((h, i) => (
                       <option key={i} value={i}>
                         {h}
@@ -134,50 +137,53 @@ export function CsvImportPage() {
               ))}
             </div>
             {!mapped('plant') && (
-              <Field label="Anlage für alle Zeilen" hint="Wird verwendet, weil keine Spalte „Anlage“ zugeordnet ist.">
+              <Field
+                label={tr('Anlage für alle Zeilen')}
+                hint={tr('Wird verwendet, weil keine Spalte „Anlage“ zugeordnet ist.')}
+              >
                 <input
                   type="text"
                   value={defaultPlant}
                   onChange={(e) => setDefaultPlant(e.target.value)}
-                  placeholder="z. B. Wasseraufbereitung"
+                  placeholder={tr('z. B. Wasseraufbereitung')}
                 />
               </Field>
             )}
             <label className={`check${updateExisting ? ' checked' : ''}`}>
               <input type="checkbox" checked={updateExisting} onChange={(e) => setUpdateExisting(e.target.checked)} />
-              Vorhandene Tag-Nummern aktualisieren (sonst überspringen)
+              {tr('Vorhandene Tag-Nummern aktualisieren (sonst überspringen)')}
             </label>
           </section>
 
           <section className="card">
-            <h2>3. Vorschau</h2>
+            <h2>{tr('3. Vorschau')}</h2>
             <div className="table-wrap">
               <table className="table stack">
                 <thead>
                   <tr>
                     {TARGET_FIELDS.filter((f) => mapped(f.key)).map((f) => (
-                      <th key={f.key}>{f.label}</th>
+                      <th key={f.key}>{tr(f.label)}</th>
                     ))}
-                    <th>Hinweis</th>
+                    <th>{tr('Hinweis')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {preview.map((v, i) => (
                     <tr key={i}>
                       {TARGET_FIELDS.filter((f) => mapped(f.key)).map((f) => (
-                        <td key={f.key} data-label={f.label}>
+                        <td key={f.key} data-label={tr(f.label)}>
                           {v[f.key]}
                         </td>
                       ))}
-                      <td className="small" data-label="Hinweis">
-                        {!v.tagNumber && <span style={{ color: 'var(--overdue)' }}>keine Tag-Nummer</span>}
+                      <td className="small" data-label={tr('Hinweis')}>
+                        {!v.tagNumber && <span style={{ color: 'var(--overdue)' }}>{tr('keine Tag-Nummer')}</span>}
                         {v.tagNumber && existingKeys.has(normalizeKey(v.tagNumber)) && (
                           <span className="pill">
-                            {updateExisting ? 'wird aktualisiert' : 'existiert – übersprungen'}
+                            {updateExisting ? tr('wird aktualisiert') : tr('existiert – übersprungen')}
                           </span>
                         )}{' '}
                         {v.articleNumber && productKeySet.has(normalizeKey(v.articleNumber)) && (
-                          <span className="pill new">Produkt erkannt</span>
+                          <span className="pill new">{tr('Produkt erkannt')}</span>
                         )}
                       </td>
                     </tr>
@@ -186,7 +192,9 @@ export function CsvImportPage() {
               </table>
             </div>
             {parsed.rows.length > preview.length && (
-              <p className="small muted">… und {parsed.rows.length - preview.length} weitere Zeilen.</p>
+              <p className="small muted">
+                {tr('… und')} {parsed.rows.length - preview.length} {tr('weitere Zeilen.')}
+              </p>
             )}
             <button
               className="btn btn-primary btn-lg btn-block"
@@ -201,11 +209,11 @@ export function CsvImportPage() {
                 }
               }}
             >
-              <Icon name="upload" /> {parsed.rows.length} Zeilen importieren
+              <Icon name="upload" /> {tr('{{n}} Zeilen importieren', { n: parsed.rows.length })}
             </button>
             {!mapped('tagNumber') && (
               <p className="small" style={{ color: 'var(--overdue)' }}>
-                Bitte die Spalte für die Tag-Nummer zuordnen.
+                {tr('Bitte die Spalte für die Tag-Nummer zuordnen.')}
               </p>
             )}
           </section>
@@ -216,10 +224,12 @@ export function CsvImportPage() {
         <div className="alert">
           <Icon name="check" />
           <div>
-            <div className="title">Import abgeschlossen</div>
-            {result.created} neu angelegt, {result.updated} aktualisiert, {result.skipped} übersprungen.{' '}
-            {result.linkedToProduct > 0 && `${result.linkedToProduct} mit Produktvorlage verknüpft. `}
-            <Link to="/tags">Zu den Tags</Link> · <Link to="/etiketten">QR-Etiketten drucken</Link>
+            <div className="title">{tr('Import abgeschlossen')}</div>
+            {result.created} {tr('neu angelegt,')} {result.updated} {tr('aktualisiert,')} {result.skipped}{' '}
+            {tr('übersprungen.')}{' '}
+            {result.linkedToProduct > 0 &&
+              `${tr('{{n}} mit Produktvorlage verknüpft.', { n: result.linkedToProduct })} `}
+            <Link to="/tags">{tr('Zu den Tags')}</Link> · <Link to="/etiketten">{tr('QR-Etiketten drucken')}</Link>
           </div>
         </div>
       )}

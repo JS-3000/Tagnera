@@ -11,6 +11,7 @@ import { addDays, fmtDate, today } from '../lib/util';
 import { intervalLabel, STATUS_RANK, type MaintStatus } from '../services/maintenance';
 import { loadOccurrences, monthName, type Occurrence } from '../services/report';
 import { addLogEntry } from '../services/tags';
+import { tr } from '../i18n';
 
 const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -52,7 +53,10 @@ export function CalendarPage() {
   const complete = async (o: Occurrence) => {
     if (
       !confirm(
-        `„${o.status.task.title}“ an ${o.status.tag.tagNumber} als erledigt markieren?\nDer Eintrag wird als „ohne Scan erfasst“ gespeichert.`,
+        tr('„{{task}}“ an {{tag}} als erledigt markieren?\nDer Eintrag wird als „ohne Scan erfasst“ gespeichert.', {
+          task: o.status.task.title,
+          tag: o.status.tag.tagNumber,
+        }),
       )
     )
       return;
@@ -66,7 +70,7 @@ export function CalendarPage() {
       completedTaskIds: [o.status.task.id],
       source: 'manual',
     });
-    toast('Erledigt – Intervall neu gestartet');
+    toast(tr('Erledigt – Intervall neu gestartet'));
   };
 
   const list = byDay.get(selected) ?? [];
@@ -74,23 +78,23 @@ export function CalendarPage() {
   const calendar = (
     <section className="card cal">
       <div className="cal-head">
-        <button className="btn btn-sm" onClick={() => step(-1)} aria-label="Vorheriger Monat">
+        <button className="btn btn-sm" onClick={() => step(-1)} aria-label={tr('Vorheriger Monat')}>
           ‹
         </button>
         <h2>
           {monthName(ym.m)} {ym.y}
         </h2>
-        <button className="btn btn-sm" onClick={() => step(1)} aria-label="Nächster Monat">
+        <button className="btn btn-sm" onClick={() => step(1)} aria-label={tr('Nächster Monat')}>
           ›
         </button>
         <button className="btn btn-sm" onClick={goToday}>
-          Heute
+          {tr('Heute')}
         </button>
       </div>
       <div className="cal-grid" role="grid">
         {WEEKDAYS.map((w) => (
           <div key={w} className="cal-wd">
-            {w}
+            {tr(w)}
           </div>
         ))}
         {days.map((d) => {
@@ -103,7 +107,7 @@ export function CalendarPage() {
               key={d}
               className={`cal-day${out ? ' out' : ''}${d === t ? ' today' : ''}${d === selected ? ' sel' : ''}`}
               onClick={() => setSelected(d)}
-              aria-label={`${fmtDate(d)}: ${items.length} Wartungen`}
+              aria-label={`${fmtDate(d)}: ${tr('{{n}} Wartungen', { n: items.length })}`}
               aria-pressed={d === selected}
             >
               <span className="cal-num">{Number(d.slice(8, 10))}</span>
@@ -118,13 +122,13 @@ export function CalendarPage() {
       </div>
       <div className="cal-legend small muted">
         <span>
-          <i className="dot ok" /> geplant
+          <i className="dot ok" /> {tr('geplant')}
         </span>
         <span>
-          <i className="dot due" /> fällig
+          <i className="dot due" /> {tr('fällig')}
         </span>
         <span>
-          <i className="dot overdue" /> überfällig
+          <i className="dot overdue" /> {tr('überfällig')}
         </span>
       </div>
     </section>
@@ -134,9 +138,9 @@ export function CalendarPage() {
     <section className="card">
       <h2>{fmtDate(selected)}</h2>
       {occ === undefined ? (
-        <Empty>Lädt …</Empty>
+        <Empty>{tr('Lädt …')}</Empty>
       ) : list.length === 0 ? (
-        <Empty>Keine Wartungen an diesem Tag.</Empty>
+        <Empty>{tr('Keine Wartungen an diesem Tag.')}</Empty>
       ) : (
         <ul className="list">
           {[...list]
@@ -154,7 +158,7 @@ export function CalendarPage() {
                   <span className="small muted">{o.status.tag.description || o.status.tag.type}</span>
                   <div style={{ fontWeight: 600 }}>{o.status.task.title}</div>
                   <div className="small muted">
-                    {o.carried ? `überfällig seit ${fmtDate(o.status.dueDate)} · ` : ''}
+                    {o.carried ? `${tr('überfällig seit {{date}}', { date: fmtDate(o.status.dueDate) })} · ` : ''}
                     {intervalLabel(o.status.task.intervalValue, o.status.task.intervalUnit)}
                   </div>
                 </div>
@@ -162,11 +166,11 @@ export function CalendarPage() {
                   <StatusBadge status={o.state} />
                   {can('admin') && (o.carried || o.date === o.status.dueDate) && o.date <= addDays(t, 30) && (
                     <button className="btn btn-sm" onClick={() => complete(o)}>
-                      <Icon name="check" size={18} /> Erledigt
+                      <Icon name="check" size={18} /> {tr('Erledigt')}
                     </button>
                   )}
                   <Link className="btn btn-sm" to={`/t/${o.status.tag.id}`}>
-                    Bauteil
+                    {tr('Bauteil')}
                   </Link>
                 </div>
               </li>
@@ -175,7 +179,7 @@ export function CalendarPage() {
       )}
       {!can('admin') && list.length > 0 && (
         <p className="small muted" style={{ marginBottom: 0 }}>
-          Wartungen werden nach dem Scan des QR-Codes auf der Bauteilseite als erledigt markiert.
+          {tr('Wartungen werden nach dem Scan des QR-Codes auf der Bauteilseite als erledigt markiert.')}
         </p>
       )}
     </section>
@@ -184,9 +188,9 @@ export function CalendarPage() {
   return (
     <div>
       <div className="page-head">
-        <h1>Wartungskalender</h1>
+        <h1>{tr('Wartungskalender')}</h1>
         <Link className="btn" to="/report">
-          <Icon name="report" /> Wartungsreport
+          <Icon name="report" /> {tr('Wartungsreport')}
         </Link>
       </div>
       {wide ? (

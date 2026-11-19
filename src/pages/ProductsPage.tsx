@@ -6,6 +6,7 @@ import { Empty } from '../components/ui';
 import { data } from '../data';
 import { byString } from '../lib/util';
 import { emptyProduct } from '../services/tags';
+import { tr } from '../i18n';
 
 /** Product catalog: templates identified by manufacturer + article number. */
 export function ProductsPage() {
@@ -21,7 +22,7 @@ export function ProductsPage() {
   return (
     <div className="narrow">
       <div className="page-head">
-        <h1>Produktkatalog</h1>
+        <h1>{tr('Produktkatalog')}</h1>
         {can('admin') && (
           <button
             className="btn btn-primary"
@@ -31,15 +32,18 @@ export function ProductsPage() {
               navigate(`/katalog/${p.id}`);
             }}
           >
-            <Icon name="plus" /> Neue Produktvorlage
+            <Icon name="plus" /> {tr('Neue Produktvorlage')}
           </button>
         )}
       </div>
       <p className="muted small">
-        Hersteller + Artikelnummer bilden eine Produktvorlage. Wird beim Anlegen eines Tags eine bekannte Artikelnummer
-        eingegeben, übernimmt der Tag automatisch Dokumente, FAQ, Wartungsaufgaben und Ersatzteile der Vorlage.
+        {tr(
+          tr(
+            'Hersteller + Artikelnummer bilden eine Produktvorlage. Wird beim Anlegen eines Tags eine bekannte Artikelnummer eingegeben, übernimmt der Tag automatisch Dokumente, FAQ, Wartungsaufgaben und Ersatzteile der Vorlage.',
+          ),
+        )}
       </p>
-      {rows?.length === 0 && <Empty>Noch keine Produktvorlagen.</Empty>}
+      {rows?.length === 0 && <Empty>{tr('Noch keine Produktvorlagen.')}</Empty>}
       <div className="card" style={{ padding: '4px 16px' }}>
         <ul className="list">
           {rows?.map(({ p, count }) => (
@@ -48,7 +52,7 @@ export function ProductsPage() {
                 <Icon name="book" />
                 <div className="grow">
                   <div className="title">
-                    {p.manufacturer || '(Hersteller fehlt)'} {p.articleNumber}
+                    {p.manufacturer || tr('(Hersteller fehlt)')} {p.articleNumber}
                   </div>
                   <div className="small muted">
                     {p.name} {p.type && `· ${p.type}`}

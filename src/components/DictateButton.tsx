@@ -1,6 +1,7 @@
 // Voice note: dictate text with the Web Speech API. Hidden when the browser does not support it.
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
+import { tr } from '../i18n';
 
 interface RecognitionLike {
   lang: string;
@@ -29,7 +30,7 @@ export const speechSupported = () => !!getCtor();
 export function DictateButton({
   lang,
   onText,
-  label = 'Diktieren',
+  label = tr('Diktieren'),
 }: {
   lang: string;
   onText: (text: string) => void;
@@ -62,7 +63,7 @@ export function DictateButton({
         if (e.results[i].isFinal) text += e.results[i][0].transcript;
       if (text.trim()) textRef.current(text.trim());
     };
-    r.onerror = (e) => setError(e.error === 'not-allowed' ? 'Kein Zugriff auf das Mikrofon.' : '');
+    r.onerror = (e) => setError(e.error === 'not-allowed' ? tr('Kein Zugriff auf das Mikrofon.') : '');
     r.onend = () => setListening(false);
     rec.current = r;
     try {
@@ -82,7 +83,7 @@ export function DictateButton({
         aria-pressed={listening}
         aria-label={label}
       >
-        <Icon name="mic" size={18} /> {listening ? 'Stopp' : label}
+        <Icon name="mic" size={18} /> {listening ? tr('Stopp') : label}
       </button>
       {error && (
         <span className="small" style={{ color: 'var(--overdue)' }}>

@@ -78,7 +78,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const can = useCallback((p: Permission) => (user ? ALLOWED[user.role].includes(p) : false), [user]);
 
   return (
-    <SessionContext.Provider value={{ user, users: list, role, isPublic: !user, ready: users !== undefined, can, switchUser, logout }}>
+    <SessionContext.Provider
+      value={{ user, users: list, role, isPublic: !user, ready: users !== undefined, can, switchUser, logout }}
+    >
       {children}
     </SessionContext.Provider>
   );

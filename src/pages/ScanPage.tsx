@@ -12,6 +12,7 @@ import { loadAllTaskStatuses, worstStatus, type MaintStatus } from '../services/
 import { loadSettings, parseScannedText } from '../services/settings';
 import { markScanned } from '../services/scanProof';
 import { searchTags } from '../services/tags';
+import { tr } from '../i18n';
 
 export function ScanPage() {
   const navigate = useNavigate();
@@ -74,14 +75,15 @@ export function ScanPage() {
       {tagCount === 0 && (
         <div className="alert info">
           <div>
-            <div className="title">Noch keine Daten auf diesem Gerät</div>
+            <div className="title">{tr('Noch keine Daten auf diesem Gerät')}</div>
             {can('admin') ? (
               <>
-                Stelle in den <Link to="/einstellungen">Einstellungen</Link> die Demo wieder her („Demo zurücksetzen“) oder lege unter{' '}
-                <Link to="/tags">Tags</Link> den ersten Tag an.
+                {tr('Stelle in den')} <Link to="/einstellungen">{tr('Einstellungen')}</Link>{' '}
+                {tr('die Demo wieder her („Demo zurücksetzen“) oder lege unter')} <Link to="/tags">{tr('Tags')}</Link>{' '}
+                {tr('den ersten Tag an.')}
               </>
             ) : (
-              <>In den Einstellungen stellt „Demo zurücksetzen“ die Demo wieder her.</>
+              <>{tr('In den Einstellungen stellt „Demo zurücksetzen“ die Demo wieder her.')}</>
             )}
           </div>
         </div>
@@ -95,9 +97,9 @@ export function ScanPage() {
       {foreign && (
         <div className="alert due">
           <div>
-            <div className="title">Kein ConnecTag-Code</div>
+            <div className="title">{tr('Kein ConnecTag-Code')}</div>
             <div className="small" style={{ wordBreak: 'break-all' }}>
-              Inhalt: {foreign}
+              {tr('Inhalt:')} {foreign}
             </div>
           </div>
         </div>
@@ -105,12 +107,12 @@ export function ScanPage() {
 
       {!active && (
         <button className="btn btn-primary btn-lg btn-block" onClick={start} style={{ marginBottom: 16 }}>
-          <Icon name="scan" size={28} /> Nächstes Bauteil scannen
+          <Icon name="scan" size={28} /> {tr('Nächstes Bauteil scannen')}
         </button>
       )}
 
       <section className="card">
-        <h2>Tag-Nummer suchen</h2>
+        <h2>{tr('Tag-Nummer suchen')}</h2>
         <form
           className="searchbar"
           onSubmit={(e) => {
@@ -122,12 +124,12 @@ export function ScanPage() {
             type="search"
             inputMode="search"
             autoCapitalize="characters"
-            placeholder="z. B. HV-1001"
+            placeholder={tr('z. B. HV-1001')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Tag-Nummer"
+            aria-label={tr('Tag-Nummer')}
           />
-          <button className="btn btn-dark" type="submit" aria-label="Suchen">
+          <button className="btn btn-dark" type="submit" aria-label={tr('Suchen')}>
             <Icon name="search" />
           </button>
         </form>
@@ -146,14 +148,14 @@ export function ScanPage() {
                 </Link>
               </li>
             ))}
-            {results.length === 0 && <Empty>Kein Tag gefunden.</Empty>}
+            {results.length === 0 && <Empty>{tr('Kein Tag gefunden.')}</Empty>}
           </ul>
         )}
       </section>
 
       <section className="card">
-        <h2>Zuletzt gescannt</h2>
-        {recent && recent.length > 0 ? <RecentList items={recent} /> : <Empty>Noch nichts gescannt.</Empty>}
+        <h2>{tr('Zuletzt gescannt')}</h2>
+        {recent && recent.length > 0 ? <RecentList items={recent} /> : <Empty>{tr('Noch nichts gescannt.')}</Empty>}
       </section>
     </div>
   );

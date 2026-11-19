@@ -10,6 +10,7 @@ import { uuid } from '../lib/util';
 import { exportAll, importAll } from '../services/backup';
 import { DEMO_VERSION, resetDemo } from '../services/demoData';
 import { currentAppUrl, loadSettings, saveSettings } from '../services/settings';
+import { getLang, setLang, tr } from '../i18n';
 
 export function SettingsPage() {
   const { user, users, can, switchUser, logout, isPublic } = useSession();
@@ -23,7 +24,7 @@ export function SettingsPage() {
       await fn();
       toast(okMsg);
     } catch (e) {
-      alert('Fehler: ' + (e instanceof Error ? e.message : String(e)));
+      alert(tr('Fehler: ') + (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -32,7 +33,7 @@ export function SettingsPage() {
   return (
     <div>
       <div className="page-head">
-        <h1>Einstellungen</h1>
+        <h1>{tr('Einstellungen')}</h1>
       </div>
       <Columns
         tiles={[
@@ -42,12 +43,15 @@ export function SettingsPage() {
             col: 'left',
             node: (
               <section className="card">
-                <h2>Benutzer & Rolle</h2>
+                <h2>{tr('Benutzer & Rolle')}</h2>
                 <p className="muted small">
-                  Prototyp ohne echten Login: Wähle hier, als wer du die App bedienst. Die Oberfläche blendet Funktionen
-                  je nach Rolle aus.
+                  {tr(
+                    tr(
+                      'Prototyp ohne echten Login: Wähle hier, als wer du die App bedienst. Die Oberfläche blendet Funktionen je nach Rolle aus.',
+                    ),
+                  )}
                 </p>
-                <div className="segmented" role="radiogroup" aria-label="Benutzer">
+                <div className="segmented" role="radiogroup" aria-label={tr('Benutzer')}>
                   {users.map((u) => (
                     <button key={u.id} className={u.id === user?.id ? 'on' : ''} onClick={() => switchUser(u.id)}>
                       {u.name}
@@ -58,25 +62,27 @@ export function SettingsPage() {
                     </button>
                   ))}
                   <button className={isPublic ? 'on' : ''} onClick={logout}>
-                    Öffentlich
+                    {tr('Öffentlich')}
                     <br />
                     <span className="small" style={{ fontWeight: 500 }}>
-                      ohne Account
+                      {tr('ohne Account')}
                     </span>
                   </button>
                 </div>
                 <ul className="small muted" style={{ marginBottom: 0 }}>
                   <li>
-                    <b>Öffentlich (ohne Account):</b> nach dem Scan nur Tag, Bezeichnung und „Störung melden“
+                    <b>{tr('Öffentlich (ohne Account):')}</b>{' '}
+                    {tr('nach dem Scan nur Tag, Bezeichnung und „Störung melden“')}
                   </li>
                   <li>
-                    <b>Leser:</b> nur ansehen
+                    <b>{tr('Leser:')}</b> {tr('nur ansehen')}
                   </li>
                   <li>
-                    <b>Bearbeiter:</b> Tagebuch, Wartungen, Bestellungen, Tags anlegen
+                    <b>{tr('Bearbeiter:')}</b> {tr('Tagebuch, Wartungen, Bestellungen, Tags anlegen')}
                   </li>
                   <li>
-                    <b>Administrator:</b> alles inkl. Katalog, Lieferanten, Import und Benutzerverwaltung
+                    <b>{tr('Administrator:')}</b>{' '}
+                    {tr('alles inkl. Katalog, Lieferanten, Import und Benutzerverwaltung')}
                   </li>
                 </ul>
               </section>
@@ -88,20 +94,24 @@ export function SettingsPage() {
             col: 'left',
             node: (
               <section className="card">
-                <h2>Daten</h2>
+                <h2>{tr('Daten')}</h2>
                 <p className="muted small">
-                  Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur
-                  dich. Die „Demoanlage ConnecTag“ (Demo-Version {DEMO_VERSION}) wird automatisch geladen und lässt sich
-                  jederzeit zurücksetzen.
+                  {tr(
+                    tr(
+                      'Alle Daten liegen nur in diesem Browser auf diesem Gerät – was du löschst oder änderst, betrifft nur dich. Die „Demoanlage ConnecTag“ (Demo-Version',
+                    ),
+                  )}{' '}
+                  {DEMO_VERSION}
+                  {tr(') wird automatisch geladen und lässt sich jederzeit zurücksetzen.')}
                 </p>
                 <div className="actions">
-                  <button className="btn" disabled={busy} onClick={() => run(exportAll, 'Export erstellt')}>
-                    <Icon name="download" /> Daten exportieren
+                  <button className="btn" disabled={busy} onClick={() => run(exportAll, tr('Export erstellt'))}>
+                    <Icon name="download" /> {tr('Daten exportieren')}
                   </button>
                   {can('admin') && (
                     <>
                       <button className="btn" disabled={busy} onClick={() => fileRef.current?.click()}>
-                        <Icon name="upload" /> Daten importieren
+                        <Icon name="upload" /> {tr('Daten importieren')}
                       </button>
                       <input
                         ref={fileRef}
@@ -112,11 +122,11 @@ export function SettingsPage() {
                           const f = e.target.files?.[0];
                           e.target.value = '';
                           if (!f) return;
-                          if (!confirm('Import ersetzt ALLE Daten auf diesem Gerät. Fortfahren?')) return;
+                          if (!confirm(tr('Import ersetzt ALLE Daten auf diesem Gerät. Fortfahren?'))) return;
                           void run(async () => {
                             const r = await importAll(f);
-                            toast(`${r.tags} Tags importiert`);
-                          }, 'Import abgeschlossen');
+                            toast(tr('{{n}} Tags importiert', { n: r.tags }));
+                          }, tr('Import abgeschlossen'));
                         }}
                       />
                     </>
@@ -127,14 +137,16 @@ export function SettingsPage() {
                     onClick={() => {
                       if (
                         !confirm(
-                          'Demo auf den Originalzustand zurücksetzen? Änderungen an den 10 Demo-Tags gehen verloren, eigene Tags bleiben erhalten.',
+                          tr(
+                            'Demo auf den Originalzustand zurücksetzen? Änderungen an den 10 Demo-Tags gehen verloren, eigene Tags bleiben erhalten.',
+                          ),
                         )
                       )
                         return;
-                      void run(resetDemo, 'Demo zurückgesetzt');
+                      void run(resetDemo, tr('Demo zurückgesetzt'));
                     }}
                   >
-                    <Icon name="back" /> Demo zurücksetzen
+                    <Icon name="back" /> {tr('Demo zurücksetzen')}
                   </button>
                   {can('admin') && (
                     <button
@@ -143,14 +155,16 @@ export function SettingsPage() {
                       onClick={() => {
                         if (
                           !confirm(
-                            'Wirklich ALLE Daten auf diesem Gerät löschen? Die Demo wird beim nächsten Start neu geladen.',
+                            tr(
+                              'Wirklich ALLE Daten auf diesem Gerät löschen? Die Demo wird beim nächsten Start neu geladen.',
+                            ),
                           )
                         )
                           return;
-                        void run(() => data.clearAll(), 'Alle Daten gelöscht');
+                        void run(() => data.clearAll(), tr('Alle Daten gelöscht'));
                       }}
                     >
-                      <Icon name="trash" /> Alles löschen
+                      <Icon name="trash" /> {tr('Alles löschen')}
                     </button>
                   )}
                 </div>
@@ -163,32 +177,55 @@ export function SettingsPage() {
             col: 'left',
             node: (
               <section className="card">
-                <h2>Über</h2>
+                <h2>{tr('Über')}</h2>
                 <p style={{ margin: 0 }}>
                   <Logo showSlogan size={36} />
                   <br />
-                  <span className="small muted">Prototyp-Version {__APP_VERSION__}</span>
+                  <span className="small muted">
+                    {tr('Prototyp-Version')} {__APP_VERSION__}
+                  </span>
                 </p>
               </section>
             ),
           },
           { key: 'admin', order: 2, col: 'right', node: can('admin') && <UserAdmin users={users} /> },
           {
+            key: 'lang',
+            order: 3,
+            col: 'right',
+            node: (
+              <section className="card">
+                <h2>{tr('Sprache')} / Language</h2>
+                <div className="segmented" role="radiogroup" aria-label="Sprache / Language">
+                  <button className={getLang() === 'de' ? 'on' : ''} onClick={() => setLang('de')}>
+                    Deutsch
+                  </button>
+                  <button className={getLang() === 'en' ? 'on' : ''} onClick={() => setLang('en')}>
+                    English
+                  </button>
+                </div>
+                <p className="small muted" style={{ marginBottom: 0 }}>
+                  {tr('Demo-Inhalte und Herstellerdokumente bleiben deutsch.')}
+                </p>
+              </section>
+            ),
+          },
+          {
             key: 'qr',
             order: 4,
             col: 'right',
             node: (
               <section className="card">
-                <h2>QR-Code-Adresse</h2>
+                <h2>{tr('QR-Code-Adresse')}</h2>
                 <p className="muted small">
-                  Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (
-                  <span className="mono">{currentAppUrl()}</span>). Wichtig, wenn du Etiketten lokal druckst, die App
-                  aber über GitHub Pages nutzt.
+                  {tr('Diese Adresse steht in jedem QR-Code. Leer lassen = aktuelle Adresse der App (')}
+                  <span className="mono">{currentAppUrl()}</span>
+                  {tr('). Wichtig, wenn du Etiketten lokal druckst, die App aber über GitHub Pages nutzt.')}
                 </p>
-                <Field label="Basis-URL für QR-Codes">
+                <Field label={tr('Basis-URL für QR-Codes')}>
                   <input
                     type="url"
-                    placeholder="https://js-3000.github.io/Tagnera/"
+                    placeholder={tr('https://js-3000.github.io/Tagnera/')}
                     value={qrBase}
                     onChange={(e) => setQrBase(e.target.value)}
                     onBlur={() => saveSettings({ qrBaseUrl: qrBase.trim() })}
@@ -210,7 +247,7 @@ function UserAdmin({ users }: { users: User[] }) {
 
   return (
     <section className="card">
-      <h2>Benutzerverwaltung</h2>
+      <h2>{tr('Benutzerverwaltung')}</h2>
       <ul className="list">
         {users.map((u) => (
           <li key={u.id} className="user-row">
@@ -218,9 +255,13 @@ function UserAdmin({ users }: { users: User[] }) {
               type="text"
               defaultValue={u.name}
               onBlur={(e) => e.target.value.trim() && update(u, { name: e.target.value.trim() })}
-              aria-label="Name"
+              aria-label={tr('Name')}
             />
-            <select value={u.role} onChange={(e) => update(u, { role: e.target.value as Role })} aria-label="Rolle">
+            <select
+              value={u.role}
+              onChange={(e) => update(u, { role: e.target.value as Role })}
+              aria-label={tr('Rolle')}
+            >
               {Object.entries(ROLE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
@@ -229,7 +270,7 @@ function UserAdmin({ users }: { users: User[] }) {
             </select>
             <button
               className="icon-btn"
-              aria-label="Benutzer löschen"
+              aria-label={tr('Benutzer löschen')}
               disabled={users.length <= 1}
               onClick={() => confirm(`${u.name} löschen?`) && data.users.remove(u.id)}
             >
@@ -250,12 +291,16 @@ function UserAdmin({ users }: { users: User[] }) {
       >
         <input
           type="text"
-          placeholder="Name"
+          placeholder={tr('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          aria-label="Name des neuen Benutzers"
+          aria-label={tr('Name des neuen Benutzers')}
         />
-        <select value={role} onChange={(e) => setRole(e.target.value as Role)} aria-label="Rolle des neuen Benutzers">
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value as Role)}
+          aria-label={tr('Rolle des neuen Benutzers')}
+        >
           {Object.entries(ROLE_LABELS).map(([k, v]) => (
             <option key={k} value={k}>
               {v}
@@ -263,7 +308,7 @@ function UserAdmin({ users }: { users: User[] }) {
           ))}
         </select>
         <button className="btn btn-dark" type="submit">
-          <Icon name="plus" /> Hinzufügen
+          <Icon name="plus" /> {tr('Hinzufügen')}
         </button>
       </form>
     </section>

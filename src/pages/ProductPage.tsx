@@ -11,11 +11,12 @@ import type { Product } from '../data/types';
 import { byString, nowIso } from '../lib/util';
 import { staticDocsFor } from '../services/staticDocs';
 import { deleteProduct, loadDocuments } from '../services/tags';
+import { tr } from '../i18n';
 
 export function ProductPage() {
   const { id = '' } = useParams();
   const product = useData(() => data.products.get(id), [id]);
-  if (product === undefined) return <Empty>Lädt … (oder Vorlage nicht gefunden)</Empty>;
+  if (product === undefined) return <Empty>{tr('Lädt … (oder Vorlage nicht gefunden)')}</Empty>;
   return <ProductView key={product.id} initial={product} />;
 }
 
@@ -27,7 +28,10 @@ function ProductView({ initial }: { initial: Product }) {
   const [dirty, setDirty] = useState(false);
   const suppliers = useData(() => data.suppliers.list(), []);
   const docs = useData(
-    async () => [...(await staticDocsFor(p, null)), ...(await loadDocuments([{ ownerType: 'product', ownerId: p.id }]))],
+    async () => [
+      ...(await staticDocsFor(p, null)),
+      ...(await loadDocuments([{ ownerType: 'product', ownerId: p.id }])),
+    ],
     [p.id, p.articleNumber],
   );
   const tags = useData(
@@ -42,11 +46,11 @@ function ProductView({ initial }: { initial: Product }) {
   return (
     <div>
       <div className="page-head">
-        <Link to="/katalog" className="btn btn-sm" aria-label="Zurück">
+        <Link to="/katalog" className="btn btn-sm" aria-label={tr('Zurück')}>
           <Icon name="back" size={18} />
         </Link>
         <h1>
-          {p.manufacturer || 'Neue Vorlage'} {p.articleNumber}
+          {p.manufacturer || tr('Neue Vorlage')} {p.articleNumber}
         </h1>
       </div>
 
@@ -56,12 +60,12 @@ function ProductView({ initial }: { initial: Product }) {
           e.preventDefault();
           await data.products.save({ ...p, updatedAt: nowIso() });
           setDirty(false);
-          toast('Vorlage gespeichert');
+          toast(tr('Vorlage gespeichert'));
         }}
       >
         <fieldset disabled={!admin} style={{ border: 0, padding: 0, margin: 0 }}>
           <div className="form-grid">
-            <Field label="Hersteller *">
+            <Field label={tr('Hersteller *')}>
               <input
                 type="text"
                 value={p.manufacturer}
@@ -69,7 +73,7 @@ function ProductView({ initial }: { initial: Product }) {
                 required
               />
             </Field>
-            <Field label="Artikelnummer *">
+            <Field label={tr('Artikelnummer *')}>
               <input
                 type="text"
                 value={p.articleNumber}
@@ -77,16 +81,16 @@ function ProductView({ initial }: { initial: Product }) {
                 required
               />
             </Field>
-            <Field label="Bezeichnung">
+            <Field label={tr('Bezeichnung')}>
               <input type="text" value={p.name} onChange={(e) => set({ name: e.target.value })} />
             </Field>
-            <Field label="Typ">
+            <Field label={tr('Typ')}>
               <input type="text" value={p.type} onChange={(e) => set({ type: e.target.value })} />
             </Field>
-            <Field label="Beschreibung" full>
+            <Field label={tr('Beschreibung')} full>
               <textarea value={p.description} onChange={(e) => set({ description: e.target.value })} />
             </Field>
-            <Field label="Lieferant (Bauteil)">
+            <Field label={tr('Lieferant (Bauteil)')}>
               <select value={p.supplierId ?? ''} onChange={(e) => set({ supplierId: e.target.value || null })}>
                 <option value="">–</option>
                 {suppliers?.map((s) => (
@@ -96,25 +100,25 @@ function ProductView({ initial }: { initial: Product }) {
                 ))}
               </select>
             </Field>
-            <Field label="Bestellnummer (Bauteil)">
+            <Field label={tr('Bestellnummer (Bauteil)')}>
               <input type="text" value={p.orderNumber} onChange={(e) => set({ orderNumber: e.target.value })} />
             </Field>
           </div>
-          <h3>Support-Kontakt</h3>
+          <h3>{tr('Support-Kontakt')}</h3>
           <div className="form-grid">
-            <Field label="Name / Firma" full>
+            <Field label={tr('Name / Firma')} full>
               <input type="text" value={p.supportName} onChange={(e) => set({ supportName: e.target.value })} />
             </Field>
-            <Field label="E-Mail">
+            <Field label={tr('E-Mail')}>
               <input type="email" value={p.supportEmail} onChange={(e) => set({ supportEmail: e.target.value })} />
             </Field>
-            <Field label="Telefon">
+            <Field label={tr('Telefon')}>
               <input type="tel" value={p.supportPhone} onChange={(e) => set({ supportPhone: e.target.value })} />
             </Field>
           </div>
           {admin && (
             <button className="btn btn-primary btn-block" type="submit" disabled={!dirty}>
-              <Icon name="check" /> {dirty ? 'Vorlage speichern' : 'Gespeichert'}
+              <Icon name="check" /> {dirty ? tr('Vorlage speichern') : tr('Gespeichert')}
             </button>
           )}
         </fieldset>
@@ -122,10 +126,13 @@ function ProductView({ initial }: { initial: Product }) {
 
       <div className="card-grid">
         <section className="card">
-          <h2>Dokumente</h2>
+          <h2>{tr('Dokumente')}</h2>
           <p className="small muted">
-            Neue Versionen erscheinen bei allen verknüpften Tags als „Neue Version vom …“, die alte bleibt unter „Ältere
-            Versionen“.
+            {tr(
+              tr(
+                'Neue Versionen erscheinen bei allen verknüpften Tags als „Neue Version vom …“, die alte bleibt unter „Ältere Versionen“.',
+              ),
+            )}
           </p>
           <DocumentList
             docs={docs ?? []}
@@ -135,20 +142,23 @@ function ProductView({ initial }: { initial: Product }) {
           />
         </section>
         <section className="card">
-          <h2>Wartungsaufgaben</h2>
+          <h2>{tr('Wartungsaufgaben')}</h2>
           <TasksEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
         </section>
         <section className="card">
-          <h2>Ersatzteile</h2>
+          <h2>{tr('Ersatzteile')}</h2>
           <PartsEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
         </section>
         <section className="card">
-          <h2>FAQ</h2>
+          <h2>{tr('FAQ')}</h2>
           <FaqEditor ownerType="product" ownerId={p.id} readOnly={!admin} />
         </section>
         <section className="card">
-          <h2>Verknüpfte Tags ({tags?.length ?? 0})</h2>
-          {tags?.length === 0 && <Empty>Kein Tag nutzt diese Vorlage.</Empty>}
+          <h2>
+            {tr('Verknüpfte Tags (')}
+            {tags?.length ?? 0})
+          </h2>
+          {tags?.length === 0 && <Empty>{tr('Kein Tag nutzt diese Vorlage.')}</Empty>}
           <ul className="list">
             {tags?.map((t) => (
               <li key={t.id}>
@@ -164,13 +174,13 @@ function ProductView({ initial }: { initial: Product }) {
         <button
           className="btn btn-danger btn-block"
           onClick={async () => {
-            if (!confirm('Vorlage löschen? Verknüpfte Tags bleiben erhalten, verlieren aber die Vorlagendaten.'))
+            if (!confirm(tr('Vorlage löschen? Verknüpfte Tags bleiben erhalten, verlieren aber die Vorlagendaten.')))
               return;
             await deleteProduct(p.id);
             navigate('/katalog', { replace: true });
           }}
         >
-          <Icon name="trash" /> Vorlage löschen
+          <Icon name="trash" /> {tr('Vorlage löschen')}
         </button>
       )}
     </div>

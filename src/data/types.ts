@@ -1,4 +1,5 @@
 // Domain model of ConnecTag.
+import { translated } from '../i18n';
 //
 // The shapes are deliberately "flat" (no nested objects, foreign keys as ids)
 // so that each type maps 1:1 to a PostgreSQL / Supabase table later on.
@@ -180,25 +181,25 @@ export interface OutboxItem {
   attempts: number;
 }
 
-export const ISSUE_STATUS_LABELS: Record<IssueStatus, string> = {
+export const ISSUE_STATUS_LABELS: Record<IssueStatus, string> = translated({
   new: 'Neu',
   in_progress: 'In Bearbeitung',
   done: 'Erledigt',
-};
+});
 
-export const ROLE_LABELS: Record<Role, string> = {
+export const ROLE_LABELS: Record<Role, string> = translated({
   reader: 'Leser',
   editor: 'Bearbeiter',
   admin: 'Administrator',
-};
+});
 
-export const LOG_KIND_LABELS: Record<LogKind, string> = {
+export const LOG_KIND_LABELS: Record<LogKind, string> = translated({
   inbetriebnahme: 'Inbetriebnahme',
   wartung: 'Wartung',
   reparatur: 'Reparatur',
   pruefung: 'Prüfung',
   umbau: 'Umbau',
-};
+});
 
 export const INTERVAL_UNIT_LABELS: Record<IntervalUnit, [string, string]> = {
   days: ['Tag', 'Tage'],

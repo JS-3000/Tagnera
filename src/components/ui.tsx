@@ -3,9 +3,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useFileUrl } from '../app/hooks';
 import { STATUS_LABELS, type MaintStatus } from '../services/maintenance';
 import { Icon } from './Icon';
+import { tr } from '../i18n';
 
 export function StatusBadge({ status }: { status: MaintStatus | null }) {
-  if (!status) return <span className="status status-none">Keine Wartung</span>;
+  if (!status) return <span className="status status-none">{tr('Keine Wartung')}</span>;
   return <span className={`status status-${status}`}>{STATUS_LABELS[status]}</span>;
 }
 
@@ -24,7 +25,7 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
       <div className="modal" role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head">
           <h2>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Schließen">
+          <button className="icon-btn" onClick={onClose} aria-label={tr('Schließen')}>
             <Icon name="close" />
           </button>
         </div>
@@ -74,28 +75,28 @@ export function FileViewer({
       <div className="lb-bar">
         {url && (
           <a className="btn btn-sm" href={url} target="_blank" rel="noreferrer">
-            <Icon name="external" size={18} /> In neuem Tab
+            <Icon name="external" size={18} /> {tr('In neuem Tab')}
           </a>
         )}
         {url && (
           <a className="btn btn-sm" href={url} download={name}>
-            <Icon name="download" size={18} /> Speichern
+            <Icon name="download" size={18} /> {tr('Speichern')}
           </a>
         )}
         <button className="btn btn-sm btn-primary" onClick={onClose}>
-          <Icon name="close" size={18} /> Schließen
+          <Icon name="close" size={18} /> {tr('Schließen')}
         </button>
       </div>
       <div className="lb-body">
         {!url ? (
-          <span style={{ color: '#fff' }}>Lädt …</span>
+          <span style={{ color: '#fff' }}>{tr('Lädt …')}</span>
         ) : isImage ? (
           <img src={url} alt={name} />
         ) : mimeType === 'application/pdf' ? (
           <iframe src={url} title={name} />
         ) : (
           <a className="btn btn-primary" href={url} download={name}>
-            Datei herunterladen
+            {tr('Datei herunterladen')}
           </a>
         )}
       </div>
