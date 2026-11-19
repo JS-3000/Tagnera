@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useData, useMedia } from '../app/hooks';
 import { useSession } from '../app/session';
 import { Icon } from '../components/Icon';
@@ -20,7 +20,26 @@ export function ReportPage() {
   const { user, can } = useSession();
   const [period, setPeriod] = useState<Period>(() => currentPeriod('month'));
   const wide = useMedia('(min-width: 900px)');
+  const navigate = useNavigate();
+  const [pdfBusy, setPdfBusy] = useState(false);
   const report = useData(() => buildReport(period), [period.kind, period.year, period.index]);
+
+  // real A4 PDF (pdfmake, loaded on demand) – opens in the in-app viewer with download button
+  const makePdf = async () => {
+    if (!report) return;
+    setPdfBusy(true);
+    try {
+      const { createReportPdf } = await import('../services/reportPdf');
+      const blob = await createReportPdf(report, user?.name ?? '');
+      const url = URL.createObjectURL(blob);
+      const q = new URLSearchParams({ src: url, name: `Wartungsreport ${report.label}.pdf`, back: '/report' });
+      navigate(`/viewer?${q.toString()}`);
+    } catch (e) {
+      alert('PDF konnte nicht erstellt werden: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   const setKind = (kind: PeriodKind) => setPeriod({ ...currentPeriod(kind), year: period.year });
   const step = (dir: -1 | 1) => {
@@ -48,8 +67,8 @@ export function ReportPage() {
     <div>
       <div className="page-head no-print">
         <h1>Wartungsreport</h1>
-        <button className="btn btn-primary" onClick={() => window.print()} disabled={!report}>
-          <Icon name="printer" /> Drucken
+        <button className="btn btn-primary" onClick={makePdf} disabled={!report || pdfBusy}>
+          <Icon name="printer" /> {pdfBusy ? 'PDF wird erstellt …' : 'Drucken / PDF'}
         </button>
       </div>
 
