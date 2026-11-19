@@ -65,9 +65,13 @@ export const TABLE_NAMES: TableName[] = [
   'outbox',
 ];
 
+export type WriteHook = (table: TableName, op: 'save' | 'remove', recordId: string, payload: unknown) => void;
+
 export interface DataBackend extends Tables {
   /** Delete everything (used by "reset" and before a full JSON import). */
   clearAll(): Promise<void>;
   /** Subscribe to any write. Returns an unsubscribe function. Used to refresh the UI. */
   onChange(listener: () => void): () => void;
+  /** Hook for the offline outbox (services/outbox.ts): called after every single write. */
+  setWriteHook(hook: WriteHook | null): void;
 }

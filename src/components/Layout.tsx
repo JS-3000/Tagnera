@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useData, useTitle } from '../app/hooks';
+import { useData, useOnline, useTitle } from '../app/hooks';
 import { useSession } from '../app/session';
 import { ROLE_LABELS } from '../data/types';
 import { data } from '../data';
@@ -60,6 +60,7 @@ const isPublicPath = (p: string) =>
 
 export function Layout() {
   const { user, can, isPublic, ready } = useSession();
+  const online = useOnline();
   const statuses = useData(() => loadAllTaskStatuses(), []);
   const alertCount = isPublic ? 0 : (statuses?.filter((s) => s.status !== 'ok').length ?? 0);
   const newIssues = useData(() => data.issues.findBy('status', 'new').then((l) => l.length), []) ?? 0;
@@ -109,6 +110,15 @@ export function Layout() {
         </Link>
         {!isPublic && <HeaderSearch />}
         <div className="spacer" />
+        {!online && (
+          <span
+            className="offline-pill"
+            role="status"
+            title={tr('Keine Verbindung – die App arbeitet mit den Daten auf diesem Gerät.')}
+          >
+            {tr('Offline')}
+          </span>
+        )}
         {user && (
           <Link to="/einstellungen" className="who" style={{ textDecoration: 'none', color: '#fff' }}>
             <span className="who-name">

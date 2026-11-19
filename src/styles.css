@@ -2232,3 +2232,51 @@ label.tap {
     opacity: 0.3;
   }
 }
+@media (max-aspect-ratio: 1/1) {
+  .mon-head {
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+  .mon-plant {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .mon-time {
+    font-size: 2.2em;
+  }
+  .mon-date {
+    white-space: normal;
+  }
+  .mon .logo {
+    --logo-h: 2em !important;
+  }
+  .mon-clock {
+    margin-left: auto;
+  }
+}
+.mon {
+  grid-template-columns: minmax(0, 1fr);
+}
+.mon-head > * {
+  min-width: 0;
+}
+@media (max-aspect-ratio: 1/1) {
+  .mon-main,
+  .mon-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mon-tag {
+    min-width: 0;
+  }
+}
+.offline-pill {
+  flex: none;
+  background: var(--accent);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

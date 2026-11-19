@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
 import { ensureDemoData } from './services/demoData';
+import './services/outbox';
 import { markScannedFromStartUrl } from './services/scanProof';
 
 markScannedFromStartUrl();

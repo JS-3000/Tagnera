@@ -2,7 +2,7 @@
 // All data stays in the browser of this device.
 
 import Dexie, { type Table } from 'dexie';
-import type { DataBackend, Repository, TableName } from './backend';
+import type { DataBackend, Repository, TableName, WriteHook } from './backend';
 import { TABLE_NAMES } from './backend';
 
 class TagneraDb extends Dexie {
@@ -35,6 +35,7 @@ type Listener = () => void;
 export function createDexieBackend(): DataBackend {
   const db = new TagneraDb();
   const listeners = new Set<Listener>();
+  let writeHook: WriteHook | null = null;
   let scheduled = false;
 
   // Batch many writes into one UI refresh.
@@ -56,19 +57,23 @@ export function createDexieBackend(): DataBackend {
       findBy: (field, value) => table.where(field).equals(value).toArray(),
       save: async (item) => {
         await table.put(item);
+        writeHook?.(name, 'save', item.id, item);
         notify();
         return item;
       },
       saveMany: async (items) => {
         await table.bulkPut(items);
+        items.forEach((i) => writeHook?.(name, 'save', i.id, i));
         notify();
       },
       remove: async (id) => {
         await table.delete(id);
+        writeHook?.(name, 'remove', id, null);
         notify();
       },
       removeMany: async (ids) => {
         await table.bulkDelete(ids);
+        ids.forEach((id) => writeHook?.(name, 'remove', id, null));
         notify();
       },
     };
@@ -91,6 +96,9 @@ export function createDexieBackend(): DataBackend {
     clearAll: async () => {
       for (const name of TABLE_NAMES) await db.table(name).clear();
       notify();
+    },
+    setWriteHook: (h) => {
+      writeHook = h;
     },
     onChange: (l) => {
       listeners.add(l);
