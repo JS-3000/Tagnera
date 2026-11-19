@@ -2214,3 +2214,21 @@ label.tap {
 .mon-head {
   padding-right: 2.6em; /* room for the exit button */
 }
+.dictate-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -6px;
+}
+.dictate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dictate .rec svg {
+  animation: rec-pulse 1s ease-in-out infinite;
+}
+@keyframes rec-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}

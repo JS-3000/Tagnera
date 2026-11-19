@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useData } from '../app/hooks';
 import { useSession } from '../app/session';
+import { DictateButton } from '../components/DictateButton';
 import { Icon } from '../components/Icon';
 import { Empty, Field } from '../components/ui';
 import { data } from '../data';
@@ -83,6 +84,12 @@ export function IssueFormPage() {
           {tag.type}
           {tag.description && ` – ${tag.description}`}
         </p>
+        <div className="dictate-row">
+          <DictateButton
+            lang="de-DE"
+            onText={(text) => setDescription((d) => (d.trim() ? `${d.trim()} ${text}` : text))}
+          />
+        </div>
         <Field label="Was ist passiert? *">
           <textarea
             value={description}
@@ -103,12 +110,28 @@ export function IssueFormPage() {
           <span>Foto (optional)</span>
           <label className="btn btn-block">
             <Icon name="camera" /> {photo ? 'Anderes Foto wählen' : 'Foto aufnehmen / auswählen'}
-            <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+            />
           </label>
-          {preview && <img src={preview} alt="Vorschau" style={{ maxWidth: 160, maxHeight: 120, borderRadius: 8, marginTop: 8 }} />}
+          {preview && (
+            <img
+              src={preview}
+              alt="Vorschau"
+              style={{ maxWidth: 160, maxHeight: 120, borderRadius: 8, marginTop: 8 }}
+            />
+          )}
         </div>
       </section>
-      <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy || !description.trim() || !name.trim()}>
+      <button
+        className="btn btn-primary btn-lg btn-block"
+        type="submit"
+        disabled={busy || !description.trim() || !name.trim()}
+      >
         <Icon name="mail" /> Meldung absenden
       </button>
     </form>

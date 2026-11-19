@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useData } from '../app/hooks';
 import { useSession } from '../app/session';
+import { DictateButton } from '../components/DictateButton';
 import { Icon } from '../components/Icon';
 import { Empty, Field, StatusBadge, toast } from '../components/ui';
 import { LOG_KIND_LABELS, type LogKind } from '../data/types';
@@ -139,6 +140,12 @@ export function LogEntryPage() {
           </div>
         )}
 
+        <div className="dictate-row">
+          <DictateButton
+            lang="de-DE"
+            onText={(text) => setDescription((d) => (d.trim() ? `${d.trim()} ${text}` : text))}
+          />
+        </div>
         <Field label="Beschreibung">
           <textarea
             value={description}
