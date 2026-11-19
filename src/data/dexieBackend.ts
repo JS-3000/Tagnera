@@ -22,6 +22,11 @@ class TagneraDb extends Dexie {
       logEntries: 'id, tagId, date',
       files: 'id',
     });
+    // v2 (additive, existing data stays): fault reports + offline outbox
+    this.version(2).stores({
+      issues: 'id, tagId, status, createdAt',
+      outbox: 'id, createdAt',
+    });
   }
 }
 
@@ -81,6 +86,8 @@ export function createDexieBackend(): DataBackend {
     documentVersions: repo('documentVersions'),
     logEntries: repo('logEntries'),
     files: repo('files'),
+    issues: repo('issues'),
+    outbox: repo('outbox'),
     clearAll: async () => {
       for (const name of TABLE_NAMES) await db.table(name).clear();
       notify();

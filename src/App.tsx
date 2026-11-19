@@ -4,6 +4,9 @@ import { SessionProvider } from './app/session';
 import { Layout } from './components/Layout';
 import { CalendarPage } from './pages/CalendarPage';
 import { CsvImportPage } from './pages/CsvImportPage';
+import { IssueFormPage } from './pages/IssueFormPage';
+import { IssuesPage } from './pages/IssuesPage';
+import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/DashboardPage';
 import { LabelsPage } from './pages/LabelsPage';
 import { LogEntryPage } from './pages/LogEntryPage';
@@ -46,6 +49,9 @@ export function App() {
             <Route path="scan" element={<ScanPage />} />
             <Route path="t/:id" element={<TagPage />} />
             <Route path="t/:id/eintrag" element={<LogEntryPage />} />
+            <Route path="t/:id/meldung" element={<IssueFormPage />} />
+            <Route path="meldungen" element={<IssuesPage />} />
+            <Route path="anmelden" element={<LoginPage />} />
             <Route path="hinweise" element={<NotificationsPage />} />
             <Route path="tags" element={<TagsPage />} />
             <Route path="tags/neu" element={<TagEditPage />} />

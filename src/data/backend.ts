@@ -5,6 +5,8 @@
 // Every method is async already, so no caller has to change.
 
 import type {
+  IssueReport,
+  OutboxItem,
   DocumentItem,
   DocumentVersion,
   Faq,
@@ -41,6 +43,8 @@ export interface Tables {
   documentVersions: Repository<DocumentVersion>;
   logEntries: Repository<LogEntry>;
   files: Repository<StoredFile>;
+  issues: Repository<IssueReport>;
+  outbox: Repository<OutboxItem>;
 }
 
 export type TableName = keyof Tables;
@@ -57,6 +61,8 @@ export const TABLE_NAMES: TableName[] = [
   'documentVersions',
   'logEntries',
   'files',
+  'issues',
+  'outbox',
 ];
 
 export interface DataBackend extends Tables {

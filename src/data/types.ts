@@ -5,6 +5,8 @@
 // Dates are ISO strings: "2026-11-17" for calendar dates, full ISO for timestamps.
 
 export type Role = 'reader' | 'editor' | 'admin';
+/** session role: a user role, or 'public' = scanned without an account (may only report faults) */
+export type SessionRole = Role | 'public';
 
 export interface User {
   id: string;
@@ -150,6 +152,39 @@ export interface StoredFile {
   blob: Blob;
   createdAt: string;
 }
+
+/** Fault report from anyone who scans a QR code (also without an account). */
+export type IssueStatus = 'new' | 'in_progress' | 'done';
+export interface IssueReport {
+  id: string;
+  tagId: string;
+  tagNumber: string; // snapshot at the time of the report
+  description: string;
+  name: string;
+  phone: string;
+  photoFileId: string | null;
+  status: IssueStatus;
+  logEntryId: string | null; // set when taken over into the diary
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Write operation waiting to be sent to a server (prepared for later; see services/outbox.ts). */
+export interface OutboxItem {
+  id: string;
+  table: string;
+  op: 'save' | 'remove';
+  recordId: string;
+  payload: unknown;
+  createdAt: string;
+  attempts: number;
+}
+
+export const ISSUE_STATUS_LABELS: Record<IssueStatus, string> = {
+  new: 'Neu',
+  in_progress: 'In Bearbeitung',
+  done: 'Erledigt',
+};
 
 export const ROLE_LABELS: Record<Role, string> = {
   reader: 'Leser',

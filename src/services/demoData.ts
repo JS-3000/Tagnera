@@ -885,6 +885,9 @@ async function removeDemo(): Promise<void> {
     data.tasks.list(),
   ]);
   const demoEntries = entries.filter((e) => DEMO_TAG_IDS.has(e.tagId));
+  const demoIssues = (await data.issues.list()).filter((i) => DEMO_TAG_IDS.has(i.tagId));
+  await data.files.removeMany(demoIssues.map((i) => i.photoFileId).filter((x): x is string => !!x));
+  await data.issues.removeMany(demoIssues.map((i) => i.id));
   await data.files.removeMany(demoEntries.map((e) => e.photoFileId).filter((x): x is string => !!x));
   await data.logEntries.removeMany(demoEntries.map((e) => e.id));
   for (const d of docs.filter((x) => ownerIds.has(x.ownerId))) {
@@ -947,7 +950,9 @@ export async function ensureDemoData(): Promise<'loaded' | 'shifted' | 'unchange
     await removeDemo();
     await writeDemo(t);
     writeState({ version: DEMO_VERSION, anchor: t });
-    if (!state) saveSettings({ currentUserId: DEMO_USERS[0].id });
+    // new device (e.g. a customer scanning a demo card): starts without account ("Öffentlich");
+    // "Anmelden (Demo)" then offers the demo users
+    if (!state) saveSettings({ currentUserId: DEMO_USERS[0].id, loggedOut: true });
     return 'loaded';
   }
   await renameOldDemoPlant();

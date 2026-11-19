@@ -12,7 +12,7 @@ import { DEMO_VERSION, resetDemo } from '../services/demoData';
 import { currentAppUrl, loadSettings, saveSettings } from '../services/settings';
 
 export function SettingsPage() {
-  const { user, users, can, switchUser } = useSession();
+  const { user, users, can, switchUser, logout, isPublic } = useSession();
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [qrBase, setQrBase] = useState(loadSettings().qrBaseUrl);
@@ -57,8 +57,18 @@ export function SettingsPage() {
                       </span>
                     </button>
                   ))}
+                  <button className={isPublic ? 'on' : ''} onClick={logout}>
+                    Öffentlich
+                    <br />
+                    <span className="small" style={{ fontWeight: 500 }}>
+                      ohne Account
+                    </span>
+                  </button>
                 </div>
                 <ul className="small muted" style={{ marginBottom: 0 }}>
+                  <li>
+                    <b>Öffentlich (ohne Account):</b> nach dem Scan nur Tag, Bezeichnung und „Störung melden“
+                  </li>
                   <li>
                     <b>Leser:</b> nur ansehen
                   </li>

@@ -5,6 +5,8 @@ const KEY = 'tagnera.settings.v1';
 
 export interface DeviceSettings {
   currentUserId: string | null;
+  /** simulated logout: 'Öffentlich (ohne Account)' – only fault reports */
+  loggedOut?: boolean;
   recentTagIds: string[];
   /** Base URL written into QR codes. Empty = URL the app is currently running at. */
   qrBaseUrl: string;

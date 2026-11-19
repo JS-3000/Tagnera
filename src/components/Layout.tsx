@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useData, useTitle } from '../app/hooks';
 import { useSession } from '../app/session';
 import { ROLE_LABELS } from '../data/types';
+import { data } from '../data';
 import { loadAllTaskStatuses } from '../services/maintenance';
 import { HeaderSearch } from './HeaderSearch';
 import { Icon, type IconName } from './Icon';
@@ -20,6 +21,7 @@ const FIELD: NavItem[] = [
   { to: '/', label: 'Übersicht', icon: 'report' },
   { to: '/scan', label: 'Scannen', icon: 'scan' },
   { to: '/hinweise', label: 'Hinweise', icon: 'bell' },
+  { to: '/meldungen', label: 'Meldungen', icon: 'mail', admin: true },
 ];
 const MANAGE: NavItem[] = [
   { to: '/tags', label: 'Tags', icon: 'tag' },
@@ -37,11 +39,29 @@ const MOBILE: NavItem[] = [
   { to: '/report', label: 'Report', icon: 'report' },
   { to: '/einstellungen', label: 'Mehr', icon: 'settings' },
 ];
+// administrators: "Meldungen" instead of "Hinweise" (those stay reachable via the bell)
+const MOBILE_ADMIN: NavItem[] = [
+  MOBILE[0],
+  MOBILE[1],
+  { to: '/meldungen', label: 'Meldungen', icon: 'mail' },
+  MOBILE[3],
+  MOBILE[4],
+];
+// without account
+const PUBLIC_NAV: NavItem[] = [
+  { to: '/scan', label: 'Scannen', icon: 'scan' },
+  { to: '/anmelden', label: 'Anmelden', icon: 'users' },
+];
+
+/** pages that can be opened without an account */
+const isPublicPath = (p: string) =>
+  p === '/' || p === '/scan' || p === '/anmelden' || p === '/einstellungen' || /^\/t\/[^/]+(\/meldung)?$/.test(p);
 
 export function Layout() {
-  const { user, can } = useSession();
+  const { user, can, isPublic, ready } = useSession();
   const statuses = useData(() => loadAllTaskStatuses(), []);
-  const alertCount = statuses?.filter((s) => s.status !== 'ok').length ?? 0;
+  const alertCount = isPublic ? 0 : (statuses?.filter((s) => s.status !== 'ok').length ?? 0);
+  const newIssues = useData(() => data.issues.findBy('status', 'new').then((l) => l.length), []) ?? 0;
   const visible = (n: NavItem) => !n.admin || can('admin');
 
   // Only the content area scrolls – jump back to the top on every page change.
@@ -50,9 +70,12 @@ export function Layout() {
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
   }, [pathname]);
-  const routeTitle = [...FIELD, ...MANAGE, { to: '/einstellungen', label: 'Einstellungen' }].find(
-    (n) => n.to !== '/' && pathname.startsWith(n.to),
-  )?.label;
+  const routeTitle = [
+    ...FIELD,
+    ...MANAGE,
+    { to: '/einstellungen', label: 'Einstellungen' },
+    { to: '/anmelden', label: 'Anmelden' },
+  ].find((n) => n.to !== '/' && pathname.startsWith(n.to))?.label;
   useTitle(pathname.startsWith('/t/') ? undefined : (routeTitle ?? (pathname === '/' ? 'Übersicht' : undefined)));
 
   const link = (n: NavItem) => (
@@ -60,8 +83,14 @@ export function Layout() {
       <Icon name={n.icon} size={22} />
       <span>{n.label}</span>
       {n.to === '/hinweise' && alertCount > 0 && <span className="badge-count">{alertCount}</span>}
+      {n.to === '/meldungen' && newIssues > 0 && <span className="badge-count">{newIssues}</span>}
     </NavLink>
   );
+
+  // protected pages without login -> login page, then back
+  if (ready && isPublic && !isPublicPath(pathname)) {
+    return <Navigate to={`/anmelden?back=${encodeURIComponent(pathname)}`} replace />;
+  }
 
   return (
     <div className="app">
@@ -69,7 +98,7 @@ export function Layout() {
         <Link to="/" className="brand" aria-label="ConnecTag Startseite">
           <Logo variant="dark" size={30} />
         </Link>
-        <HeaderSearch />
+        {!isPublic && <HeaderSearch />}
         <div className="spacer" />
         {user && (
           <Link to="/einstellungen" className="who" style={{ textDecoration: 'none', color: '#fff' }}>
@@ -80,19 +109,31 @@ export function Layout() {
             <span style={{ color: 'var(--accent)' }}>{ROLE_LABELS[user.role]}</span>
           </Link>
         )}
-        <Link to="/hinweise" className="icon-btn" aria-label="Hinweise">
-          <Icon name="bell" />
-          {alertCount > 0 && <span className="badge-count">{alertCount}</span>}
-        </Link>
+        {isPublic ? (
+          <Link to={`/anmelden?back=${encodeURIComponent(pathname)}`} className="btn btn-sm btn-primary">
+            Anmelden
+          </Link>
+        ) : (
+          <Link to="/hinweise" className="icon-btn" aria-label="Hinweise">
+            <Icon name="bell" />
+            {alertCount > 0 && <span className="badge-count">{alertCount}</span>}
+          </Link>
+        )}
       </header>
 
       <nav className="sidebar" aria-label="Hauptnavigation">
-        <div className="group">Feld</div>
-        {FIELD.filter(visible).map(link)}
-        <div className="group">Verwaltung</div>
-        {MANAGE.filter(visible).map(link)}
-        <div className="group">System</div>
-        {link({ to: '/einstellungen', label: 'Einstellungen', icon: 'settings' })}
+        {isPublic ? (
+          PUBLIC_NAV.map(link)
+        ) : (
+          <>
+            <div className="group">Feld</div>
+            {FIELD.filter(visible).map(link)}
+            <div className="group">Verwaltung</div>
+            {MANAGE.filter(visible).map(link)}
+            <div className="group">System</div>
+            {link({ to: '/einstellungen', label: 'Einstellungen', icon: 'settings' })}
+          </>
+        )}
       </nav>
 
       <main className="scroll" ref={scrollRef}>
@@ -102,7 +143,7 @@ export function Layout() {
       </main>
 
       <nav className="bottomnav" aria-label="Navigation">
-        {MOBILE.map(link)}
+        {(isPublic ? PUBLIC_NAV : can('admin') ? MOBILE_ADMIN : MOBILE).map(link)}
       </nav>
       <ToastHost />
     </div>

@@ -6,8 +6,8 @@ import { Columns } from '../components/Columns';
 import { Icon } from '../components/Icon';
 import { Empty, StatusBadge } from '../components/ui';
 import { data } from '../data';
-import { LOG_KIND_LABELS } from '../data/types';
-import { fmtDate, today } from '../lib/util';
+import { ISSUE_STATUS_LABELS, LOG_KIND_LABELS } from '../data/types';
+import { fmtDate, fmtDateTime, today } from '../lib/util';
 import { describeDue, loadAllTaskStatuses, STATUS_RANK, worstStatus, type MaintStatus } from '../services/maintenance';
 import { loadSettings } from '../services/settings';
 import { ScanPage } from './ScanPage';
@@ -15,7 +15,8 @@ import { ScanPage } from './ScanPage';
 /** "/" shows the scanner on phones and the overview on large screens. */
 export function HomePage() {
   const wide = useMedia('(min-width: 900px)');
-  return wide ? <DashboardPage /> : <ScanPage />;
+  const { isPublic } = useSession();
+  return wide && !isPublic ? <DashboardPage /> : <ScanPage />;
 }
 
 const HORIZON_DAYS = 60;
@@ -24,11 +25,13 @@ export function DashboardPage() {
   const { can } = useSession();
   const navigate = useNavigate();
   const d = useData(async () => {
-    const [tags, statuses, entries] = await Promise.all([
+    const [tags, statuses, entries, allIssues] = await Promise.all([
       data.tags.list(),
       loadAllTaskStatuses(),
       data.logEntries.list(),
+      data.issues.list(),
     ]);
+    const issues = allIssues.filter((x) => x.status !== 'done').sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const tagStatus = new Map<string, MaintStatus>();
     for (const t of tags) {
       const own = statuses.filter((s) => s.tag.id === t.id);
@@ -65,6 +68,7 @@ export function DashboardPage() {
       latest,
       plants: [...plants.entries()].sort((a, b) => a[0].localeCompare(b[0])),
       recent,
+      issues,
     };
   }, []);
 
@@ -192,6 +196,38 @@ export function DashboardPage() {
                     </table>
                   </div>
                 )}
+              </section>
+            ),
+          },
+          {
+            key: 'issues',
+            col: 'right',
+            node: can('admin') && d.issues.length > 0 && (
+              <section className="card">
+                <div className="section-head">
+                  <h2>Offene Meldungen ({d.issues.length})</h2>
+                  <Link className="btn btn-sm" to="/meldungen">
+                    Alle
+                  </Link>
+                </div>
+                <ul className="list">
+                  {d.issues.slice(0, 4).map((i) => (
+                    <li key={i.id}>
+                      <Link className="list-item" to="/meldungen" style={{ alignItems: 'flex-start' }}>
+                        <span className={`issue-status ${i.status}`}>{ISSUE_STATUS_LABELS[i.status]}</span>
+                        <div className="grow">
+                          <b>{i.tagNumber}</b> <span className="small muted">{fmtDateTime(i.createdAt)}</span>
+                          <div
+                            className="small"
+                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {i.description}
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </section>
             ),
           },

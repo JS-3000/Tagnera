@@ -12,12 +12,14 @@ import { LOG_KIND_LABELS, type LogEntry, type SparePart, type Supplier } from '.
 import { fmtDate, isUuid } from '../lib/util';
 import { describeDue, intervalLabel, worstStatus, type TaskStatus } from '../services/maintenance';
 import { isDemoTag } from '../services/demoData';
+import { openIssuesForTag } from '../services/issues';
 import { isScanned } from '../services/scanProof';
 import { rememberScan, tagUrl } from '../services/settings';
 import { deleteLogEntry, loadTagDetail, type TagDetail } from '../services/tags';
 
 export function TagPage() {
   const { id = '' } = useParams();
+  const { isPublic, ready } = useSession();
   const detail = useData(() => loadTagDetail(id), [id]);
 
   useEffect(() => {
@@ -26,7 +28,40 @@ export function TagPage() {
 
   if (detail === undefined) return <Empty>Lädt …</Empty>;
   if (detail === null) return <UnknownTag id={id} />;
+  if (!ready) return <Empty>Lädt …</Empty>;
+  if (isPublic) return <PublicTagView d={detail} />;
   return <TagView d={detail} />;
+}
+
+/** Without an account: only tag number, description and "Störung melden". */
+function PublicTagView({ d }: { d: TagDetail }) {
+  const { tag } = d;
+  useTitle(tag.tagNumber);
+  return (
+    <div className="narrow" style={{ maxWidth: 640, margin: '0 auto' }}>
+      <section className="tag-head public-card">
+        <div className="tagno">{tag.tagNumber}</div>
+        <div style={{ fontSize: '1.15rem', fontWeight: 600, marginTop: 4 }}>{tag.type}</div>
+        {tag.description && <div style={{ opacity: 0.85 }}>{tag.description}</div>}
+        {tag.plant && (
+          <div className="plant" style={{ marginTop: 6 }}>
+            {tag.plant}
+          </div>
+        )}
+      </section>
+      <div className="actions" style={{ gridTemplateColumns: '1fr' }}>
+        <Link className="btn btn-primary btn-lg" to={`/t/${tag.id}/meldung`}>
+          <Icon name="bell" /> Störung melden
+        </Link>
+        <Link className="btn btn-lg" to={`/anmelden?back=${encodeURIComponent(`/t/${tag.id}`)}`}>
+          <Icon name="users" /> Anmelden (Demo)
+        </Link>
+      </div>
+      <p className="small muted" style={{ textAlign: 'center', marginTop: 16 }}>
+        Mit Account sehen Sie die vollständige Bauteilakte: Wartung, Tagebuch, Dokumente, Ersatzteile.
+      </p>
+    </div>
+  );
 }
 
 function UnknownTag({ id }: { id: string }) {
@@ -72,6 +107,7 @@ function TagView({ d }: { d: TagDetail }) {
   const [showQr, setShowQr] = useState(false);
   const status = d.tasks.length ? worstStatus(d.tasks) : null;
   const wide = useMedia('(min-width: 1100px)');
+  const openIssues = useData(() => openIssuesForTag(tag.id), [tag.id]);
   // editors complete maintenance only after scanning the QR code at the component
   const mayComplete = can('admin') || (can('edit') && isScanned(tag.id));
   useTitle(tag.tagNumber);
@@ -177,6 +213,27 @@ function TagView({ d }: { d: TagDetail }) {
             node: d.tasks.length > 0 && <NextMaintenance tasks={d.tasks} tagId={tag.id} />,
           },
           {
+            key: 'issues',
+            col: 'left',
+            order: 3,
+            node: openIssues && openIssues.length > 0 && (
+              <div className="alert overdue">
+                <Icon name="bell" size={26} />
+                <div style={{ flex: 1 }}>
+                  <div className="title">
+                    {openIssues.length === 1 ? '1 offene Meldung' : `${openIssues.length} offene Meldungen`}
+                  </div>
+                  <div className="small">{openIssues[0].description.slice(0, 90)}</div>
+                </div>
+                {can('admin') && (
+                  <Link className="btn btn-sm" to="/meldungen">
+                    Ansehen
+                  </Link>
+                )}
+              </div>
+            ),
+          },
+          {
             key: 'actions',
             col: 'left',
             order: 4,
@@ -189,6 +246,9 @@ function TagView({ d }: { d: TagDetail }) {
                 )}
                 <Link className="btn btn-dark btn-lg" to="/scan?scan=1">
                   <Icon name="scan" /> Nächstes Bauteil scannen
+                </Link>
+                <Link className="btn" to={`/t/${tag.id}/meldung`}>
+                  <Icon name="bell" /> Störung melden
                 </Link>
               </div>
             ),
