@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { SessionProvider } from './app/session';
 import { Layout } from './components/Layout';
+import { CalendarPage } from './pages/CalendarPage';
 import { CsvImportPage } from './pages/CsvImportPage';
 import { HomePage } from './pages/DashboardPage';
 import { LabelsPage } from './pages/LabelsPage';
@@ -55,6 +56,7 @@ export function App() {
             <Route path="etiketten" element={<LabelsPage />} />
             <Route path="import" element={<CsvImportPage />} />
             <Route path="report" element={<ReportPage />} />
+            <Route path="kalender" element={<CalendarPage />} />
             <Route path="einstellungen" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

@@ -136,6 +136,8 @@ export interface LogEntry {
   description: string;
   photoFileId: string | null;
   completedTaskIds: string[]; // maintenance tasks completed with this entry
+  /** 'scan' = created after a QR scan at the component; 'manual' = without scan. Old entries: undefined */
+  source?: 'scan' | 'manual';
   createdAt: string;
 }
 

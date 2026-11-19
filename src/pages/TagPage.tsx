@@ -12,6 +12,7 @@ import { LOG_KIND_LABELS, type LogEntry, type SparePart, type Supplier } from '.
 import { fmtDate, isUuid } from '../lib/util';
 import { describeDue, intervalLabel, worstStatus, type TaskStatus } from '../services/maintenance';
 import { isDemoTag } from '../services/demoData';
+import { isScanned } from '../services/scanProof';
 import { rememberScan, tagUrl } from '../services/settings';
 import { deleteLogEntry, loadTagDetail, type TagDetail } from '../services/tags';
 
@@ -71,6 +72,8 @@ function TagView({ d }: { d: TagDetail }) {
   const [showQr, setShowQr] = useState(false);
   const status = d.tasks.length ? worstStatus(d.tasks) : null;
   const wide = useMedia('(min-width: 1100px)');
+  // editors complete maintenance only after scanning the QR code at the component
+  const mayComplete = can('admin') || (can('edit') && isScanned(tag.id));
   useTitle(tag.tagNumber);
 
   const supportSection = (cls: string, id?: string) => (
@@ -267,7 +270,7 @@ function TagView({ d }: { d: TagDetail }) {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
                         <StatusBadge status={s.status} />
-                        {can('edit') && (
+                        {mayComplete && (
                           <Link className="btn btn-sm" to={`/t/${tag.id}/eintrag?task=${s.task.id}`}>
                             <Icon name="check" size={18} /> Erledigt
                           </Link>
@@ -455,7 +458,7 @@ function NextMaintenance({ tasks, tagId }: { tasks: TaskStatus[]; tagId: string 
           {more > 0 && ` · ${more} weitere fällig`}
         </div>
       </div>
-      {can('edit') && next.status !== 'ok' && (
+      {(can('admin') || (can('edit') && isScanned(tagId))) && next.status !== 'ok' && (
         <Link className="btn btn-sm" to={`/t/${tagId}/eintrag?task=${next.task.id}`}>
           Erledigt
         </Link>
@@ -477,6 +480,16 @@ function Diary({ entries, tasks, canDelete }: { entries: LogEntry[]; tasks: Task
             <span className="muted small">
               {fmtDate(e.date)} · {e.person || 'unbekannt'}
             </span>
+            {e.source === 'scan' && (
+              <span className="src-badge scan" title="Eintrag nach QR-Scan am Bauteil erstellt">
+                <Icon name="scan" size={14} /> per Scan erfasst
+              </span>
+            )}
+            {e.source === 'manual' && (
+              <span className="src-badge manual" title="Eintrag ohne QR-Scan erstellt">
+                ohne Scan erfasst
+              </span>
+            )}
             {canDelete && (
               <button
                 className="icon-btn"

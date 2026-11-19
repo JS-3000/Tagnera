@@ -67,6 +67,9 @@ export function ReportPage() {
     <div>
       <div className="page-head no-print">
         <h1>Wartungsreport</h1>
+        <Link className="btn" to="/kalender">
+          <Icon name="calendar" /> Kalender
+        </Link>
         <button className="btn btn-primary" onClick={makePdf} disabled={!report || pdfBusy}>
           <Icon name="printer" /> {pdfBusy ? 'PDF wird erstellt …' : 'Drucken / PDF'}
         </button>

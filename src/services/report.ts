@@ -145,3 +145,32 @@ export function collectiveOrderMail(
   ];
   return `mailto:${encodeURIComponent(supplier.orderEmail)}?subject=${encodeURIComponent(`Sammelbestellung Ersatzteile ${periodLabel}`)}&body=${encodeURIComponent(lines.join('\n'))}`;
 }
+
+export interface Occurrence {
+  date: string;
+  status: TaskStatus;
+  state: MaintStatus;
+  /** overdue task shown again on today's date ("überfällig seit …") */
+  carried?: boolean;
+}
+
+/** All due dates of all tasks between start and end (inclusive) – used by the maintenance calendar. */
+export async function loadOccurrences(start: string, end: string): Promise<Occurrence[]> {
+  const statuses = await loadAllTaskStatuses();
+  const t = today();
+  const out: Occurrence[] = [];
+  for (const s of statuses) {
+    let d = s.dueDate;
+    for (let n = 1; d <= end && n < 1000; n++) {
+      if (d >= start) {
+        const left = daysBetween(t, d);
+        const state: MaintStatus = left < 0 ? 'overdue' : left <= warningWindowDays(s.task) ? 'due' : 'ok';
+        out.push({ date: d, status: s, state });
+      }
+      d = addInterval(s.dueDate, s.task.intervalValue, s.task.intervalUnit, n);
+    }
+    // overdue work stays visible: also listed on today
+    if (s.status === 'overdue' && t >= start && t <= end) out.push({ date: t, status: s, state: 'overdue', carried: true });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || a.status.tag.tagNumber.localeCompare(b.status.tag.tagNumber, 'de', { numeric: true }));
+}

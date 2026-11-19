@@ -7,6 +7,7 @@ import { Empty, Field, StatusBadge, toast } from '../components/ui';
 import { LOG_KIND_LABELS, type LogKind } from '../data/types';
 import { fmtDate, today } from '../lib/util';
 import { intervalLabel } from '../services/maintenance';
+import { isScanned } from '../services/scanProof';
 import { addLogEntry, loadTagDetail, savePhoto } from '../services/tags';
 
 export function LogEntryPage() {
@@ -16,7 +17,10 @@ export function LogEntryPage() {
   const { user, can } = useSession();
   const detail = useData(() => loadTagDetail(id), [id]);
 
-  const preTask = params.get('task');
+  // Nachweis vor Ort: editors may complete maintenance only after scanning the tag's QR code
+  const scanned = isScanned(id);
+  const mayComplete = can('admin') || scanned;
+  const preTask = mayComplete ? params.get('task') : null;
   const [date, setDate] = useState(today());
   const [person, setPerson] = useState(user?.name ?? '');
   const [kind, setKind] = useState<LogKind>(preTask ? 'wartung' : 'pruefung');
@@ -61,7 +65,8 @@ export function LogEntryPage() {
         kind,
         description: description.trim() || (doneTitles.length ? doneTitles.join(', ') + ' durchgeführt.' : ''),
         photoFileId: file?.id ?? null,
-        completedTaskIds: done,
+        completedTaskIds: mayComplete ? done : [],
+        source: scanned ? 'scan' : 'manual',
       });
       toast(done.length ? 'Gespeichert – Wartungsintervall neu gestartet' : 'Eintrag gespeichert');
       navigate(`/t/${detail.tag.id}`, { replace: true });
@@ -97,9 +102,30 @@ export function LogEntryPage() {
             <span className="hint" style={{ marginBottom: 6 }}>
               Angehakte Aufgaben starten ihr Intervall ab dem Eintragsdatum neu.
             </span>
+            {!mayComplete && (
+              <div className="alert due" style={{ marginBottom: 8 }}>
+                <Icon name="scan" />
+                <div>
+                  <div className="title">Erst den QR-Code am Bauteil scannen</div>
+                  <div className="small">
+                    Wartungen können Bearbeiter nur nach dem Scan vor Ort als erledigt markieren. Andere Einträge
+                    werden als „ohne Scan erfasst“ gespeichert.
+                  </div>
+                </div>
+              </div>
+            )}
             {detail.tasks.map((s) => (
-              <label key={s.task.id} className={`check${done.includes(s.task.id) ? ' checked' : ''}`}>
-                <input type="checkbox" checked={done.includes(s.task.id)} onChange={() => toggle(s.task.id)} />
+              <label
+                key={s.task.id}
+                className={`check${done.includes(s.task.id) ? ' checked' : ''}`}
+                style={mayComplete ? undefined : { opacity: 0.55 }}
+              >
+                <input
+                  type="checkbox"
+                  checked={done.includes(s.task.id)}
+                  disabled={!mayComplete}
+                  onChange={() => toggle(s.task.id)}
+                />
                 <span style={{ flex: 1 }}>
                   <b>{s.task.title}</b>
                   <br />

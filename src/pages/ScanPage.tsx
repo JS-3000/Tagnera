@@ -10,6 +10,7 @@ import { data } from '../data';
 import type { Tag } from '../data/types';
 import { loadAllTaskStatuses, worstStatus, type MaintStatus } from '../services/maintenance';
 import { loadSettings, parseScannedText } from '../services/settings';
+import { markScanned } from '../services/scanProof';
 import { searchTags } from '../services/tags';
 
 export function ScanPage() {
@@ -49,6 +50,7 @@ export function ScanPage() {
     const id = parseScannedText(text);
     if (id) {
       setActive(false);
+      markScanned(id);
       navigate(`/t/${id}`);
     } else {
       setForeign(text);

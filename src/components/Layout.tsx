@@ -27,7 +27,8 @@ const MANAGE: NavItem[] = [
   { to: '/lieferanten', label: 'Lieferanten', icon: 'truck' },
   { to: '/etiketten', label: 'QR-Etiketten', icon: 'qr' },
   { to: '/import', label: 'CSV-Import', icon: 'upload', admin: true },
-  { to: '/report', label: 'Wartungsreport', icon: 'calendar' },
+  { to: '/report', label: 'Wartungsreport', icon: 'report' },
+  { to: '/kalender', label: 'Wartungskalender', icon: 'calendar' },
 ];
 const MOBILE: NavItem[] = [
   { to: '/scan', label: 'Scannen', icon: 'scan' },

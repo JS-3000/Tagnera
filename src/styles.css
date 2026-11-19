@@ -1789,3 +1789,120 @@ label.tap {
 .col-tile > .tag-head {
   margin-bottom: 0;
 }
+.src-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.src-badge.scan {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.src-badge.manual {
+  background: #eceff2;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------ maintenance calendar */
+.cal-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.cal-layout > .card {
+  margin-bottom: 0;
+}
+.cal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.cal-head h2 {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(2px, 0.6vw, 6px);
+}
+.cal-wd {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  min-height: clamp(44px, 9vw, 84px);
+  padding: 5px 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.cal-day.out {
+  opacity: 0.45;
+}
+.cal-day.today .cal-num {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 7px;
+}
+.cal-day.sel {
+  border: 2px solid var(--accent);
+  background: var(--due-bg);
+}
+.cal-num {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.cal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.dot.due {
+  background: var(--due);
+}
+.dot.overdue {
+  background: var(--overdue);
+}
+.cal-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.cal-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.cal-layout .list-item.wrap > .item-actions {
+  width: 100%;
+  justify-content: flex-end;
+}
