@@ -1,6 +1,9 @@
-# Tagnera
+# ConnecTag
 
 **brings your tag a level up**
+
+> Früher „Tagnera“. Repository-Name, Adresse (`https://js-3000.github.io/Tagnera/`) und interne Speicher-Schlüssel
+> (`tagnera…`) bleiben bewusst gleich, damit gedruckte QR-Codes und vorhandene Daten weiter funktionieren.
 
 Klickbarer Prototyp einer Web-App, die Bauteil-Tags im Anlagenbau digitalisiert (z. B. `HV-1001` für ein Handventil).
 Jeder Tag bekommt einen QR-Code. Wer ihn scannt, sieht die digitale Akte des Bauteils: Tagebuch, Wartungsintervalle,
@@ -8,7 +11,8 @@ Dokumente, FAQ, Ersatzteile und Support-Kontakt.
 
 - Läuft komplett im Browser, **ohne Server**. Alle Daten liegen lokal im Browser (IndexedDB).
 - Installierbar als App auf dem Handy (PWA), funktioniert auch offline.
-- Oberfläche auf Deutsch, Handy-Ansicht fürs Feld, Desktop-Ansicht für die Verwaltung.
+- Oberfläche auf Deutsch und Englisch (Standard: Sprache des Geräts), Handy-Ansicht fürs Feld, eigene PC-Ansicht
+  für die Verwaltung, Hallen-Monitor für den Fernseher.
 
 ---
 
@@ -24,7 +28,7 @@ npm install
 npm run dev
 ```
 
-Dann im Browser <http://localhost:5173> öffnen. Die **Demoanlage Tagnera** (10 Tags) wird beim ersten Öffnen
+Dann im Browser <http://localhost:5173> öffnen. Die **Demoanlage ConnecTag** (10 Tags) wird beim ersten Öffnen
 automatisch geladen, siehe Abschnitt 7.
 
 Weitere Befehle:
@@ -102,18 +106,39 @@ aktualisieren sich beim nächsten Öffnen automatisch.
 | **CSV-Import**      | Datei wählen, Spalten selbst zuordnen, Vorschau, Import (inkl. Produkterkennung).                                                                             |
 | **Wartungsreport**  | Monat oder Quartal: alle fälligen Arbeiten und die benötigten Ersatzteile, druckbar, Sammelbestellung je Lieferant.                                            |
 | **Einstellungen**   | Benutzer/Rolle wechseln, Benutzerverwaltung, „Demo zurücksetzen“, JSON-Export/-Import, QR-Code-Adresse.                                                        |
+| **Übersicht (PC)**  | Kennzahlen, offene Wartungen der nächsten 60 Tage, offene Meldungen, letzte Einträge, Button „Hallen-Monitor starten“.                                         |
+| **Wartungskalender**| Monatsansicht mit Punkten (grün geplant, orange fällig, rot überfällig), Tagesliste. Erledigen im Kalender nur als Administrator („ohne Scan erfasst“).       |
+| **Störung melden**  | Ohne Account nach dem Scan: Beschreibung, Name, Telefon (optional), Foto (optional), Diktieren per Mikrofon.                                                  |
+| **Meldungen**       | Eingang für Administratoren mit rotem Zähler: Status neu / in Bearbeitung / erledigt, „Als Tagebucheintrag übernehmen“.                                      |
+| **Hallen-Monitor**  | `#/monitor`: Heute fällig, Überfällig, Heute erledigt, offene Störmeldungen, nächste 7 Tage. Vollbild, große Schrift, aktualisiert sich jede Minute.          |
 
-**Rollen (simuliert, ohne Login):**
+**Rollen (Anmeldung im Prototyp simuliert, ohne Passwort):**
 
+- **Öffentlich (ohne Account):** Wer einen QR-Code scannt und nicht angemeldet ist, sieht nur Tag-Nummer,
+  Bauteilbezeichnung und „Störung melden“. **Neue Geräte starten so.** „Anmelden (Demo)“ zeigt die Demo-Benutzer.
 - **Leser:** nur ansehen.
-- **Bearbeiter:** zusätzlich Tagebuch, Wartungen, Bestellungen, Tags und Tag-Dokumente.
-- **Administrator:** alles, inkl. Katalog, Lieferanten, CSV-Import, Datenimport und Benutzer.
+- **Bearbeiter:** zusätzlich Tagebuch, Bestellungen, Tags und Tag-Dokumente. **Wartungen erledigen nur nach dem
+  Scan** des QR-Codes am Bauteil (In-App-Scanner oder Handykamera, gilt 30 Minuten für genau diesen Tag).
+  Andere Einträge ohne Scan sind erlaubt und werden als „ohne Scan erfasst“ markiert.
+- **Administrator:** alles, inkl. Meldungen, Kalender-Erledigung, Katalog, Lieferanten, CSV-Import und Benutzer.
+
+Im Tagebuch zeigt jeder neue Eintrag „per Scan erfasst“ oder „ohne Scan erfasst“ (Nachweis vor Ort).
+Zum Testen lässt sich die Rolle in den Einstellungen umschalten, auch auf „Öffentlich“.
 
 **Etiketten drucken:** Im Druckdialog „Skalierung 100 %“ bzw. „Tatsächliche Größe“ und „Ränder: keine“ wählen,
 Kopf- und Fußzeilen ausschalten. Zuerst auf Normalpapier drucken (Option „Umrisse mitdrucken“) und gegen den
 Etikettenbogen halten. Kleine Abweichungen des Druckers gleicht der X/Y-Versatz aus.
 
 ## 5. Wichtige Entscheidungen
+
+- **Wartungsreport als echtes PDF:** „Drucken / PDF“ erzeugt mit pdfmake ein eigenes A4-Dokument (Logo, Anlage,
+  Zeitraum, Tabellen mit Seitenumbruch, Ersatzteile je Lieferant, „Seite x von y“). Das funktioniert auf Handy und PC
+  gleich – zuverlässiger als das Drucken der Webseite. Die Bibliothek wird erst beim Klick geladen.
+- **Sprachen:** i18next. Die deutschen Texte sind zugleich die Schlüssel (`tr('Speichern')`), die englischen
+  Übersetzungen stehen in `src/i18n/en.json`. Fehlt eine Übersetzung, erscheint der deutsche Text.
+  Demo-Inhalte, Herstellerdokumente, der PDF-Report und die Bestell-E-Mail bleiben deutsch.
+- **Layout:** Kacheln stehen in zwei festen Spalten (`components/Columns.tsx`) – keine Lücken, kein Springen,
+  ausgeblendete Kacheln lassen nur Kacheln derselben Spalte nachrücken.
 
 - **Vorlagen werden verknüpft, nicht kopiert.** Ein Tag zeigt die Dokumente, FAQ, Wartungsaufgaben und Ersatzteile
   seiner Produktvorlage *live* an. Wird an der Vorlage etwas geändert, sehen das sofort alle Tags dieses Produkts.
@@ -148,14 +173,15 @@ Für Supabase schreibt man eine `supabaseBackend.ts` mit denselben Methoden (z. 
 kommen in Supabase Storage, und in `src/data/index.ts` wird eine Zeile geändert. Die Datentypen sind bereits flach
 und mit UUIDs als Schlüssel angelegt, sie lassen sich also direkt als Tabellen übernehmen.
 
-## 7. Feste Demo „Demoanlage Tagnera“
+## 7. Feste Demo „Demoanlage ConnecTag“
 
 Für Kundentermine gibt es einen festen Demo-Datensatz, der auf jedem Handy gleich aussieht:
 
 - **10 Tags mit festen UUIDs** (`src/services/demoData.ts`, Liste `DEMO_DEFS`). Die gedruckten Demo-Karten zeigen auf
   `https://js-3000.github.io/Tagnera/#/t/<UUID>`. **UUIDs und diese Adresse nie ändern.**
 - **Automatisch geladen:** Beim ersten Öffnen der App (oder beim ersten Scan einer Demo-Karte) werden die Demo-Daten
-  geladen, ohne Klick und ohne Import.
+  geladen, ohne Klick und ohne Import. Neue Geräte starten als „Öffentlich“; nach „Anmelden (Demo)“ ist die volle
+  Bauteilakte sichtbar.
 - **Status-Mix:** 6 × OK, 2 × fällig (1F102, 2QT101-1), 2 × überfällig (1P101, 3XV101). Die Tagebuch-Daten werden
   täglich auf das aktuelle Datum umgerechnet, damit der Mix an jedem Vorführtag stimmt. Selbst eingetragene
   Einträge (z. B. „Erledigt“) bleiben erhalten und verändern den Status wie im echten Betrieb.
@@ -209,6 +235,62 @@ eine vorbereitete E-Mail an die hinterlegte Adresse (`email`, leer = ohne Empfä
 vor, den Eintrag aus `"requests"` löschen und das PDF wie oben eintragen.
 
 Dokumente, die in der App selbst hochgeladen werden, liegen dagegen nur auf dem jeweiligen Gerät (Browser-Speicher).
+
+## 9. Störmeldungen in der Demo vorführen
+
+Ohne Server landet eine Meldung nur auf dem Gerät, auf dem sie abgeschickt wird. So führst du es vor:
+
+1. Einstellungen → Rolle **„Öffentlich (ohne Account)“** (oder ein neues Handy nehmen).
+2. Demo-Karte scannen → nur Tag und **„Störung melden“** → Beschreibung, Name, Foto → absenden →
+   „Danke, Ihre Meldung ist eingegangen“.
+3. **„Anmelden (Demo)“** → J. Simon (Administrator). Auf der Bauteilseite steht „1 offene Meldung“,
+   in der Navigation „Meldungen“ mit rotem Zähler.
+4. Meldungen → **„Als Tagebucheintrag übernehmen“** → der Eintrag steht im Tagebuch, die Meldung ist erledigt.
+5. Optional: Hallen-Monitor auf demselben Gerät zeigt die offene Meldung, bis sie übernommen ist.
+
+## 10. Hallen-Monitor (Fernseher)
+
+- Übersicht (PC) → **„Hallen-Monitor starten“** (Vollbild) oder direkt `https://js-3000.github.io/Tagnera/#/monitor`
+  im Browser des Fernsehers öffnen. Optional nur eine Anlage: `#/monitor?anlage=Demoanlage%20ConnecTag`.
+- Aktualisiert sich jede Minute, blättert bei vielen Einträgen automatisch, verhindert das Abschalten des
+  Bildschirms (Wake Lock, wo der Browser es kann). Beenden mit **Esc** oder dem dezenten ✕ oben rechts.
+- **Wichtig:** Ohne Server zeigt der Monitor nur die Daten des Geräts, auf dem er läuft. Für eine echte Halle braucht
+  es später den Server (siehe Abschnitt 6), dann sehen alle Geräte dieselben Daten.
+
+## 11. Offline-Modus
+
+- App, Bauteilseiten und bereits geöffnete Dokumente funktionieren ohne Netz (Service Worker + lokale Datenbank).
+  Im Kopf erscheint dann **„Offline“**.
+- Für den späteren Server ist eine Warteschlange vorbereitet (`src/services/outbox.ts`): Ist ein Server angebunden
+  (`configureRemote(...)`), wird jeder Schreibvorgang dort zwischengespeichert und bei Verbindung der Reihe nach
+  nachgesendet. Im Prototyp ohne Server wird nichts in die Warteschlange gelegt.
+
+## 12. Responsive-Prüfung
+
+```bash
+npm run build
+```
+
+```bash
+npm run check:responsive
+```
+
+Ruft alle wichtigen Seiten bei 320, 360, 390, 430, 768, 1024, 1280 und 1920 px sowie im Handy-Querformat auf,
+meldet seitlichen Überlauf und zu kleine Touch-Ziele (< 44 px) und legt Screenshots samt Übersicht unter
+`test-results/responsive/index.html` ab. Auf dem eigenen Rechner einmalig `npx playwright install chromium` ausführen.
+
+## 13. App auf dem Handy aktualisieren (neues Icon)
+
+- **Inhalt und Funktionen** aktualisieren sich automatisch: App öffnen, einige Sekunden warten, schließen und erneut
+  öffnen – dann läuft die neue Version.
+- **Das App-Icon und der Name auf dem Startbildschirm** werden vom Betriebssystem zwischengespeichert:
+  - **Android (Chrome):** übernimmt neues Icon und Namen meist automatisch innerhalb von 1–2 Tagen. Sofort: App vom
+    Startbildschirm entfernen, die Adresse in Chrome öffnen und erneut „App installieren“ wählen.
+  - **iPhone (Safari):** übernimmt Icons nie automatisch. Icon lange drücken → „App entfernen“ → in Safari
+    `https://js-3000.github.io/Tagnera/` öffnen → Teilen → „Zum Home-Bildschirm“.
+  - Beim Entfernen des Icons bleiben die Daten auf Android in Chrome erhalten. Auf dem iPhone hat die installierte App
+    einen eigenen Speicher – vorher in den Einstellungen „Daten exportieren“ und danach wieder importieren, falls dort
+    eigene Daten liegen. Die Demo lädt sich ohnehin automatisch.
 
 ## Nicht Teil des Prototyps
 
